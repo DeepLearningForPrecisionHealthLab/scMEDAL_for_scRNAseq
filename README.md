@@ -60,7 +60,7 @@ For further details on model architecture and implementation, refer to the diagr
 
 # Experiment Files
 
-## Heart Data Experiment
+## Healthy Heart Data Experiment
 Access the Healthy Human Heart dataset utilized in this experiment from [here](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2) (Yu et al., 2023).
 
 ### Models

@@ -49,3 +49,10 @@ For further details on model architecture and implementation, refer to the diagr
 # Experiment files
 
 * [heart_data](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data): Experiment with the Healthy Human Heart dataset retrieved from [here](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2) (Yu et al 2023)
+    * [run_models](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)
+        * [AEC](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
+        * [AEC_DA](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC_DA)
+        * [AE_RE](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE)
+    * Note: .sh scripts are submitted with slurm: sbatch yourscript.sh
+    * [5fold_cross_val](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/5fold_cross_val)
+

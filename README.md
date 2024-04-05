@@ -55,30 +55,34 @@ For further details on model architecture and implementation, refer to the diagr
   * Function to split data into training, validation, and test sets. Includes support for 5-fold cross-validation.
 * [utils_load_model.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/utils_load_model.py)
   * Functions to load previously saved models.
+
 # Experiment Files
 
-## [Heart Data Experiment](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data)
-This experiment utilizes the Healthy Human Heart dataset, which can be accessed [here](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2) (Yu et al., 2023).
-* [Run Models](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)
-  * [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
-  * [Fixed Effects Subnetwork (AEC_DA)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC_DA)
-  * [Random Effects Subnetwork (AE_RE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE)
+## Heart Data Experiment
+Access the Healthy Human Heart dataset utilized in this experiment from [here](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2) (Yu et al., 2023).
+
+### Models
+Explore the models used in the Heart Data Experiment:
+- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)**
+  - [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
+  - [Fixed Effects Subnetwork (AEC_DA)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC_DA)
+  - [Random Effects Subnetwork (AE_RE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE)
 
 ### 5-Fold Cross-Validation
-* **[5fold_cross_val](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/preprocessing/5fold_cross_val)**
-  * **[Create Splits.ipynb](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/create_splits.ipynb):** A Jupyter notebook for data splitting using 5-fold cross-validation.
-  * **[Config Split Paths.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/config_split_paths.py):** Specifies paths for input data and data splits.
-  * **[Check Splits.ipynb](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/check_splits.ipynb):** Ensures there is no data leakage between training, testing, and validation sets.
+- **[5-Fold Cross-Validation Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/preprocessing/5fold_cross_val)**
+  - [Create Splits Notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/create_splits.ipynb): A notebook for splitting data using 5-fold cross-validation.
+  - [Config Split Paths Script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/config_split_paths.py): Manages paths for input data and data splits.
+  - [Check Splits Notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/check_splits.ipynb): Ensures no data leakage between training, testing, and validation sets.
 
-### Experiment Structure
-* **[model_config.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/model_config.py)**
-  * Configures model settings and output paths.
+### Experiment Configuration
+- **[Model Configuration Script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/model_config.py)**
+  - Updates model settings and defines output paths.
 
-### Scripts
-* **run_modelname_allfolds.py**
-  * Runs the model over 5 folds. Use the command: `python run_modelname_allfolds.py`
-* **sbatch_run_modelname.sh**
-  * Shell script for submitting jobs via Slurm. Use the command: `sbatch yourscript.sh`
+### Script Execution
+- **Run Model Across All Folds**
+  - Command: `python run_modelname_allfolds.py`
+- **Slurm Submission Script**
+  - Command: `sbatch sbatch_run_modelname.sh`
 
-### Environment
-The experiments are conducted using the ARMED_Aixa_v2 environment.
+### Execution Environment
+- The experiments are executed within the ARMED_Aixa_v2 environment.

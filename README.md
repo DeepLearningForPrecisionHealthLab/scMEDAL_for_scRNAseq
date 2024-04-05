@@ -44,13 +44,13 @@ For further details on model architecture and implementation, refer to the diagr
 * [random_effects.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/models/random_effects.py): Implements random effects classes, originally developed by Kevin Nguyen for the ARMED paper.
 
 ### Utilities
-* [utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/utils.py)
+* [utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/utils.py)
   * Functions for reading and saving data, plotting, and calculating clustering scores.
-* [model_train_utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/model_train_utils.py)
+* [model_train_utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/model_train_utils.py)
   * Functions to load data, build, and train models using configuration information.
-* [splitter.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/splitter.py)
+* [splitter.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/splitter.py)
   * Function to split data into training, validation, and test sets. Includes support for 5-fold cross-validation.
-* [utils_load_model.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/utils_load_model.py)
+* [utils_load_model.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/utils_load_model.py)
   * Functions to load previously saved models.
 
 # Experiment files
@@ -61,7 +61,7 @@ For further details on model architecture and implementation, refer to the diagr
         * [AEC_DA](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC_DA)
         * [AE_RE](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE)
 
-    * [5fold_cross_val](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/5fold_cross_val)
+    * [5fold_cross_val](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/preprocessing/5fold_cross_val)
 
 
 
@@ -77,8 +77,7 @@ For further details on model architecture and implementation, refer to the diagr
   * **sbatch_run_modelname.sh**
     * Shell scripts to be submitted to Slurm using: `sbatch yourscript.sh`
 
-* **model_config.py**
-  * This file is repeated here for clarity and should be used as described above.
+
 
 ### Environment
 The experiments are conducted using the ARMED_Aixa_v2 environment.

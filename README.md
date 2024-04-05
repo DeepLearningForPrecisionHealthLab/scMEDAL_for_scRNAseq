@@ -75,7 +75,8 @@ Explore the models used in the Heart Data Experiment:
   - [Check Splits Notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/check_splits.ipynb): Ensures no data leakage between training, testing, and validation sets.
 
 ### Experiment Configuration
-- **[Model Configuration Script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/model_config.py)**
+- **Model Configuration Script
+  - There is a model_config.py file for each model. See AEC example [here](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC/model_config.py)**
   - Updates model settings and defines output paths.
 
 ### Script Execution

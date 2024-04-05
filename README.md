@@ -15,9 +15,9 @@ For the simulation examples, the fixed effects are the celltypes and the random 
 
 ## ARMED Framework Overview
 
-```markdown
-The ARMED framework integrates seamlessly with an Autoencoder Classifier (AEC) to process gene expression count matrices (\\(X\\)) and predict cell types (\\(\hat{y}\\)). This framework is designed to enhance the conventional AEC by addressing both predictable and variable batch effects through its dual subnetwork architecture.
-```
+
+The ARMED framework integrates seamlessly with an Autoencoder Classifier (AEC) to process gene expression count matrices $(\\(X\\))$ and predict cell types (\\(\hat{y}\\)). This framework is designed to enhance the conventional AEC by addressing both predictable and variable batch effects through its dual subnetwork architecture.
+
 
 ### Subnetworks Description
 

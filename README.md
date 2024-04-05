@@ -52,32 +52,30 @@ For further details on model architecture and implementation, refer to the diagr
   * Function to split data into training, validation, and test sets. Includes support for 5-fold cross-validation.
 * [utils_load_model.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/utils_load_model.py)
   * Functions to load previously saved models.
+# Experiment Files
 
-# Experiment files
+## [Heart Data Experiment](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data)
+This experiment utilizes the Healthy Human Heart dataset, which can be accessed [here](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2) (Yu et al., 2023).
+* [Run Models](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)
+  * [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
+  * [Fixed Effects Subnetwork (AEC_DA)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC_DA)
+  * [Random Effects Subnetwork (AE_RE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE)
 
-* [heart_data](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data): Experiment with the Healthy Human Heart dataset retrieved from [here](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2) (Yu et al 2023)
-    * [run_models](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)
-        * [AEC](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
-        * [AEC_DA](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC_DA)
-        * [AE_RE](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE)
-
-    * [5fold_cross_val](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/preprocessing/5fold_cross_val)
-
-
+### 5-Fold Cross-Validation
+* **[5fold_cross_val](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/preprocessing/5fold_cross_val)**
+  * **[Create Splits.ipynb](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/create_splits.ipynb):** A Jupyter notebook for data splitting using 5-fold cross-validation.
+  * **[Config Split Paths.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/config_split_paths.py):** Specifies paths for input data and data splits.
+  * **[Check Splits.ipynb](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/check_splits.ipynb):** Ensures there is no data leakage between training, testing, and validation sets.
 
 ### Experiment Structure
+* **[model_config.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/model_config.py)**
+  * Configures model settings and output paths.
 
-* **model_config.py**
-  * Used to update model configurations and set the output path.
-
-* **Scripts**
-  * **run_modelname_allfolds.py**
-    * Executes the model across 5 folds.
-    * Command to run the script: `python run_modelname_allfolds.py`
-  * **sbatch_run_modelname.sh**
-    * Shell scripts to be submitted to Slurm using: `sbatch yourscript.sh`
-
-
+### Scripts
+* **run_modelname_allfolds.py**
+  * Runs the model over 5 folds. Use the command: `python run_modelname_allfolds.py`
+* **sbatch_run_modelname.sh**
+  * Shell script for submitting jobs via Slurm. Use the command: `sbatch yourscript.sh`
 
 ### Environment
 The experiments are conducted using the ARMED_Aixa_v2 environment.

@@ -38,13 +38,20 @@ To implement the ARMED framework in your research or applications, ensure that y
 For further details on model architecture and implementation, refer to the diagrams provided for each subnetwork. These visual aids will help clarify the operational dynamics and the strategic enhancements made to the traditional AEC model.
 ![ARMED Subnetworks](./images/latent_spaces.png)
 
-# Main files
 
-* models
-    * [AE_v4.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/models/AE_v4.py): AEC (simple autoencoder classifier), DA_AE (domain adversarial autoencoder for fixed effects), DomainEnhancingAutoencoderClassifier (Random Effects autoencoder) models
-    * [random_effects.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/models/random_effects.py): random effects classes (written by Kevin Nguyen for the original ARMED paper)
-* utils
-    * [utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/utils)
+### Models
+* [AE_v4.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/models/AE_v4.py): Contains models including the simple AEC (Autoencoder Classifier), DA_AE (Domain Adversarial Autoencoder for fixed effects), and the DomainEnhancingAutoencoderClassifier (for Random Effects).
+* [random_effects.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/models/random_effects.py): Implements random effects classes, originally developed by Kevin Nguyen for the ARMED paper.
+
+### Utilities
+* [utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/utils.py)
+  * Functions for reading and saving data, plotting, and calculating clustering scores.
+* [model_train_utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/model_train_utils.py)
+  * Functions to load data, build, and train models using configuration information.
+* [splitter.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/splitter.py)
+  * Function to split data into training, validation, and test sets. Includes support for 5-fold cross-validation.
+* [utils_load_model.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/utils_load_model.py)
+  * Functions to load previously saved models.
 
 # Experiment files
 
@@ -53,6 +60,25 @@ For further details on model architecture and implementation, refer to the diagr
         * [AEC](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
         * [AEC_DA](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC_DA)
         * [AE_RE](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE)
-    * Note: .sh scripts are submitted with slurm: sbatch yourscript.sh
+
     * [5fold_cross_val](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/5fold_cross_val)
 
+
+
+### Experiment Structure
+
+* **model_config.py**
+  * Used to update model configurations and set the output path.
+
+* **Scripts**
+  * **run_modelname_allfolds.py**
+    * Executes the model across 5 folds.
+    * Command to run the script: `python run_modelname_allfolds.py`
+  * **sbatch_run_modelname.sh**
+    * Shell scripts to be submitted to Slurm using: `sbatch yourscript.sh`
+
+* **model_config.py**
+  * This file is repeated here for clarity and should be used as described above.
+
+### Environment
+The experiments are conducted using the ARMED_Aixa_v2 environment.

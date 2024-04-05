@@ -15,7 +15,9 @@ For the simulation examples, the fixed effects are the celltypes and the random 
 
 ## ARMED Framework Overview
 
-The ARMED framework integrates seamlessly with an Autoencoder Classifier (AEC) to process gene expression count matrices (\(X\)) and predict cell types (\(\hat{y}\)). This framework is designed to enhance the conventional AEC by addressing both predictable and variable batch effects through its dual subnetwork architecture.
+```markdown
+The ARMED framework integrates seamlessly with an Autoencoder Classifier (AEC) to process gene expression count matrices (\\(X\\)) and predict cell types (\\(\hat{y}\\)). This framework is designed to enhance the conventional AEC by addressing both predictable and variable batch effects through its dual subnetwork architecture.
+```
 
 ### Subnetworks Description
 
@@ -75,8 +77,8 @@ Explore the models used in the Heart Data Experiment:
   - [Check Splits Notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/check_splits.ipynb): Ensures no data leakage between training, testing, and validation sets.
 
 ### Experiment Configuration
-- **Model Configuration Script
-  - There is a model_config.py file for each model. See AEC example [here](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC/model_config.py)**
+- **Model Configuration Script**
+  - There is a model_config.py file for each model. See AEC example [here](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC/model_config.py)
   - Updates model settings and defines output paths.
 
 ### Script Execution

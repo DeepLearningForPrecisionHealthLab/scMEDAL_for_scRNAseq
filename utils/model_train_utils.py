@@ -466,6 +466,9 @@ def train_and_save_model(model, train_in, train_out, val_in, val_out, model_para
     - model: The trained model.
     - history: Training history object.
     """
+    # initialize time tracker
+    import time
+    start_time = time.time()
     callbacks = [History()]
 
     if model_params.stop_criteria == "early_stopping":
@@ -499,28 +502,32 @@ def train_and_save_model(model, train_in, train_out, val_in, val_out, model_para
                         validation_data=(val_in, val_out), 
                         callbacks=callbacks)
 
-    # if model_params.stop_criteria == "early_stopping":
-    #     print("\nAdding early stopping params..")
-    #     # Update model_params with early stopping info
-    #     stopped_epoch = early_stopping_callback.stopped_epoch
-    #     best_epoch = stopped_epoch - early_stopping_callback.patience
-    #     model_params_dict = model_params.__dict__
-    #     model_params_dict["best_epoch"] = best_epoch
-    #     model_params_dict["checkpoint_name"] = best_epoch + 1
-    #     model_params_dict["stopped_epoch"] = stopped_epoch
-    #     print(f"Training stopped at epoch {stopped_epoch}.")
-    #     print(f"Best epoch was {best_epoch}, which corresponds to checkpoint {best_epoch + 1}")
-    # if save_model:
-    #     print("\nsaving model..")
-    #     keys2drop = ["optimizer","loss","loss_weights","metrics"]
-    #     dict2save = {f"{key}:{value}" for key, value in model_params_dict.items() if key not in keys2drop}
-    #     # Correct once chatgpt is back (I want to add the tf elements)f
-    #     # Save model parameters to a YAML file
-    #     with open(model_params.model_path + '/model_params.yaml', 'w') as f:
+    if model_params.stop_criteria == "early_stopping":
+        print("\nAdding early stopping params..")
+        # Update model_params with early stopping info
+        stopped_epoch = early_stopping_callback.stopped_epoch
+        best_epoch = stopped_epoch - early_stopping_callback.patience
+        model_params_dict = model_params.__dict__
+        model_params_dict["best_epoch"] = best_epoch
+        model_params_dict["checkpoint_name"] = best_epoch + 1
+        model_params_dict["stopped_epoch"] = stopped_epoch
+        print(f"Training stopped at epoch {stopped_epoch}.")
+        print(f"Best epoch was {best_epoch}, which corresponds to checkpoint {best_epoch + 1}")
+    if save_model:
+        print("\nSaving model..")
+        keys2drop = ["optimizer","loss","loss_weights","metrics"]
+        dict2save = {f"{key}:{value}" for key, value in model_params_dict.items() if key not in keys2drop}
+        # Correct once chatgpt is back (I want to add the tf elements)f
+        # Save model parameters to a YAML file
+        with open(model_params.model_path + '/model_params.yaml', 'w') as f:
             
-    #         yaml.dump(dict2save, f)
-    #         #yaml.dump(model_params_dict, f)
-    #     print("model saved")
+            yaml.dump(dict2save, f)
+            #yaml.dump(model_params_dict, f)
+        print("Model saved")
+    # compute total time to save and train model
+    total_time = time.time() - start_time
+    print(f"\nTotal time to train and save model: {total_time} seconds")
+
     return model, history
 
 
@@ -556,14 +563,16 @@ class PlotLoss:
     - save_model (bool): Flag indicating whether to save the plot.
     - model_type (str): Type of the model. Options: ["ae_da", "ae", "ae_re","aec","mec"].
     - showplot (bool): Whether to display the plot.
+    - average curve (bool): wether the average curve is being plotted or its a plot per fold
     """
 
-    def __init__(self, history, model_params, save_model, model_type="ae_da", showplot=False):
+    def __init__(self, history, model_params, save_model, model_type="ae_da", showplot=False,average_curve=False):
         self.history = history.history if isinstance(history, History) else history
         self.model_params = model_params
         self.save_model = save_model
         self.model_type = model_type
         self.showplot = showplot
+        self.average_curve = average_curve
 
         if self.model_type == "ae_da":
             self.plot_ae_da()
@@ -614,8 +623,14 @@ class PlotLoss:
         legend1 = ax1.legend(loc='upper right', bbox_to_anchor=(1.55, 1))
         legend2 = ax2.legend(loc='upper right', bbox_to_anchor=(1.6, 0.6))
 
+        # if self.save_model:
+        #     plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
         if self.save_model:
-            plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
+            if not self.average_curve:
+                plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
+        
+            else:
+                plt.savefig(self.model_params.plots_path_main + "/avg_loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
 
         if self.showplot:
             plt.show()
@@ -647,8 +662,14 @@ class PlotLoss:
 
         legend1 = ax1.legend(loc='upper right',bbox_to_anchor=(1.55,1))
         legend2 = ax2.legend(loc='upper right',bbox_to_anchor=(1.4,.6))
+        # if self.save_model:
+        #     plt.savefig(self.model_params.plots_path+"/loss_KLD.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
         if self.save_model:
-            plt.savefig(self.model_params.plots_path+"/loss_KLD.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
+            if not self.average_curve:
+                plt.savefig(self.model_params.plots_path + "/loss_KLD.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
+        
+            else:
+                plt.savefig(self.model_params.plots_path_main + "/avg_loss_KLD.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
         if self.showplot:
             plt.show()
 
@@ -667,10 +688,12 @@ class PlotLoss:
         plt.yscale("log")
         plt.xlabel("epochs")
         plt.ylabel("mse loss (log)")
-
         if self.save_model:
-            plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend,), bbox_inches='tight')
-            
+            if not self.average_curve:
+                plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend,), bbox_inches='tight')
+        
+            else:
+                plt.savefig(self.model_params.plots_path_main + "/avg_loss.png", bbox_extra_artists=(legend,), bbox_inches='tight')
 
         if self.showplot:
             plt.show()
@@ -724,8 +747,16 @@ class PlotLoss:
         plt.title("Losses Adjusted by Weights")
 
         # Saving the plot if the model is being saved
+        # if self.save_model:
+        #     plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
         if self.save_model:
-            plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
+            if not self.average_curve:
+                plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
+                print(f"Saved regular loss plot at: {self.model_params.plots_path}")
+        
+            else:
+                plt.savefig(self.model_params.plots_path_main + "/avg_loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
+                print(f"Saved raverage loss plot at: {self.model_params.plots_path}")
 
         # Displaying the plot
         if self.showplot:
@@ -773,8 +804,14 @@ class PlotLoss:
         plt.tight_layout()  # Adjust the layout
 
         # Save the plot if required
+        # if self.save_model:
+        #     plt.savefig(self.model_params.plots_path + "/aec_loss_plot.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
         if self.save_model:
-            plt.savefig(self.model_params.plots_path + "/aec_loss_plot.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
+            if not self.average_curve:
+                plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
+        
+            else:
+                plt.savefig(self.model_params.plots_path_main + "/avg_loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
 
         # Show or close the plot based on the flag
         if self.showplot:
@@ -797,8 +834,14 @@ class PlotLoss:
         plt.ylabel("CCE")
         plt.title("Training and Validation Loss")
 
+        # if self.save_model:
+        #     plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend,), bbox_inches='tight')
         if self.save_model:
-            plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend,), bbox_inches='tight')
+            if not self.average_curve:
+                plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend,), bbox_inches='tight')
+        
+            else:
+                plt.savefig(self.model_params.plots_path_main + "/avg_loss.png", bbox_extra_artists=(legend,), bbox_inches='tight')
 
         if self.showplot:
             plt.show()
@@ -807,8 +850,9 @@ class PlotLoss:
 
 
 
-def get_pca_scoresandplots(adata_dict, plot_params, eval_test=False, shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}}):
+def get_pca_andplot(adata_dict, plot_params, eval_test=False, shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}}):
     from sklearn.decomposition import PCA
+    import time
     """
     Performs Principal Component Analysis (PCA) on the given AnnData objects and plots the results.
     
@@ -821,6 +865,7 @@ def get_pca_scoresandplots(adata_dict, plot_params, eval_test=False, shape_color
     Returns:
     - dict: A dictionary of updated AnnData objects with PCA transformations applied.
     """
+    start_time = time.time()
     print("Calculating PCA ncomponents=2")
     pca = PCA(n_components=2)
     variance_ratio = None  # Initialize variance_ratio
@@ -856,7 +901,8 @@ def get_pca_scoresandplots(adata_dict, plot_params, eval_test=False, shape_color
             # Skip 'test' dataset unless eval_test is True
             if key == 'test' and not eval_test:
                 break
-
+    total_time = time.time() - start_time
+    print(f"Total PCA computation time: {total_time} seconds")
     return adata_dict
 
 
@@ -1053,7 +1099,7 @@ def get_pca_scoresandplots(adata_dict, plot_params, eval_test=False, shape_color
 
 #     return (adata_dict, df_scores_dict) if return_scores else adata_dict
 
-def get_encoder_latentandscores(adata_dict, model_encoder, model_params, batch_col, bio_col, plot_params, save_model=False, return_scores=False, z_ohe_dict=None, model_type="ae_da", other_inputs=None, shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}}):
+def get_encoder_latentandscores(adata_dict, model_encoder, model_params, batch_col, bio_col, plot_params, save_model=False, return_scores=False, z_ohe_dict=None, model_type="ae_da", other_inputs=None, shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}},sample_size=None):
     """
     Processes latent representations and calculates clustering scores for provided datasets using the given model encoder.
 
@@ -1074,6 +1120,7 @@ def get_encoder_latentandscores(adata_dict, model_encoder, model_params, batch_c
     Returns:
     - (dict): Updated AnnData objects with latent representations.
     - (dict): DataFrames containing clustering scores for each dataset (if return_scores is True).
+    - sample_size (int): sample size used to calculate clustering scores on a random subset of the latent space
     """
     def get_latent_list(base_latent_name, include_pca, include_baseline):
         latent_list = [base_latent_name]
@@ -1086,12 +1133,12 @@ def get_encoder_latentandscores(adata_dict, model_encoder, model_params, batch_c
     df_scores_dict = {}
     valid_data_types = ['train', 'val', 'test']
 
-    print("\n\ngetting encoder latent space and clustering scores")
+    print("\n\nGetting encoder latent space and clustering scores")
 
     for data_type, adata in adata_dict.items():
         # Proceed only if data_type is one of the valid types
         if data_type in valid_data_types:
-            print(data_type)
+            print("Subset:",data_type)
             # Determine input structure based on model_type and data format
             if model_type == "ae_re" and isinstance(adata, AnnData) and z_ohe_dict is not None:
                 # AE_RE.encoder inputs are = (x,z).
@@ -1128,14 +1175,14 @@ def get_encoder_latentandscores(adata_dict, model_encoder, model_params, batch_c
 
             # Get latent representation using model_encoder
             adata.obsm[latent_key] = model_encoder(inputs, training=False)[-1].numpy() if use_layer_activations else model_encoder(inputs, training=False).numpy()
-            print("\nlatent_representation retrived using the encoder:",latent_key)
+            print("\nLatent_representation retrived using the encoder:",latent_key)
 
             if save_model:
                 save_latent_representation(model_params.latent_path, latent_key, adata)
 
             latent_list = get_latent_list(latent_key, model_params.get_pca, model_params.get_baseline)
 
-            print("\nplotting latent space")
+            print("\nPlotting latent space")
             if shape_color_dict:
                 for combo_name, combo_params in shape_color_dict.items():
                     shape_col = combo_params["shape_col"]
@@ -1143,15 +1190,16 @@ def get_encoder_latentandscores(adata_dict, model_encoder, model_params, batch_c
                     file_name = f"{shape_col}-{color_col}_{latent_key}"
                     specific_plot_params = {**plot_params, "file_name": file_name}
                     plot_rep(adata, use_rep=latent_key, shape_col=shape_col, color_col=color_col, **specific_plot_params)
-            print("\nfinished plots")
-            print("\ncalculating scores ..")
-            # if return_scores:
-            #     df_scores = calculate_merge_scores(latent_list, adata, labels=[batch_col, bio_col])
-            #     df_scores_dict[data_type] = df_scores
+            print("\nFinished plots")
+            
+            if return_scores:
+                print("\nCalculating scores ..")
+                df_scores = calculate_merge_scores(latent_list, adata, labels=[batch_col, bio_col],sample_size=sample_size)
+                df_scores_dict[data_type] = df_scores
 
-            #     df_scores.to_csv(os.path.join(model_params.latent_path, f"scores_{data_type}.csv"))
-            #     #plot_table(df=np.round(df_scores, 4), out_name=data_type, model_path=model_params.latent_path)
-            #     print("\nscores retrived")
+                df_scores.to_csv(os.path.join(model_params.latent_path, f"scores_{data_type}_samplesize-{sample_size}.csv"))
+                #plot_table(df=np.round(df_scores, 4), out_name=data_type, model_path=model_params.latent_path)
+                print("\nscores retrived")
 
             # plot_rep(adata, use_rep=latent_key, **plot_params)
             # plot_rep(adata,use_rep=latent_key, shape_col="celltype", color_col="celltype", palette_choice="tab20",file_name="celltype_colors",**plot_params)
@@ -1167,7 +1215,62 @@ def get_encoder_latentandscores(adata_dict, model_encoder, model_params, batch_c
 
     return (adata_dict, df_scores_dict) if return_scores else adata_dict
 
+# def get_latent_scores(adata_dict, model_encoder, model_params, batch_col, bio_col, plot_params, save_model=False, return_scores=False, z_ohe_dict=None, model_type="ae_da", other_inputs=None, shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}},sample_size=None):
+#     """
+#     Processes latent representations and calculates clustering scores for provided datasets using the given model encoder.
 
+#     Parameters:
+#     - adata_dict (dict): Dictionary of AnnData objects for 'train', 'val', and 'test' datasets. Each adataset contains an annData object.
+#     - model_encoder: Encoder method of the trained model to compute latent representations.
+#     - model_params: Object containing model parameters and paths for saving data.
+#     - batch_col (str): Batch column name used for calculating clustering scores.
+#     - bio_col (str): Biological column name used for calculating clustering scores.
+#     - plot_params (dict): Parameters for plotting functions.
+#     - save_model (bool): Flag indicating whether to save latent representations.
+#     - return_scores (bool): Flag indicating whether to return clustering scores.
+#     - z_ohe_dict (dict, optional): One-hot encoded dictionary for different data types.
+#     - model_type (str): Type of model (default "ae_da").
+#     - other_inputs (dict, optional): Inputs for the mec model, nested dictionary in which each train, val and test dataset is a dictionary with keys = ['fe_latent','re_latent']
+#     - shape_color_dict (dict, optional): Dictionary with shape_col and color_col combinations for plotting.
+
+#     Returns:
+#     - (dict): Updated AnnData objects with latent representations.
+#     - (dict): DataFrames containing clustering scores for each dataset (if return_scores is True).
+#     - sample_size (int): sample size used to calculate clustering scores on a random subset of the latent space
+#     """
+#     def get_latent_list(base_latent_name, include_pca, include_baseline):
+#         latent_list = [base_latent_name]
+#         if include_pca:
+#             latent_list = ['X_pca_' + base_latent_name.split('_')[-1]] + latent_list
+#         if include_baseline:
+#             latent_list = ['X'] + latent_list
+#         return latent_list
+
+#     df_scores_dict = {}
+#     valid_data_types = ['train', 'val', 'test']
+
+#     print("\n\ngetting encoder latent space and clustering scores")
+
+#     for data_type, adata in adata_dict.items():
+#         # Proceed only if data_type is one of the valid types
+#         if data_type in valid_data_types:
+
+
+                
+
+#                 latent_key = f"{model_params.encoder_latent_name}_{data_type}"
+
+
+#             latent_list = get_latent_list(latent_key, model_params.get_pca, model_params.get_baseline)
+
+
+#             if return_scores:
+#                 df_scores = calculate_merge_scores(latent_list, adata, labels=[batch_col, bio_col],sample_size=sample_size)
+#                 df_scores_dict[data_type] = df_scores
+
+#                 df_scores.to_csv(os.path.join(model_params.latent_path, f"scores_{data_type}_samplesize-{sample_size}.csv"))
+#                 #plot_table(df=np.round(df_scores, 4), out_name=data_type, model_path=model_params.latent_path)
+#                 print("\nscores retrived")
 
 
 
@@ -1184,10 +1287,9 @@ def save_latent_representation(latent_path, latent_key, adata):
 
 
 
-def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, model_params, save_model, batch_col, bio_col, batch_col_categories=None, bio_col_categories=None, return_scores=False, return_adata_dict=False, return_trained_model=False,model_type="ae_da",issparse=False, load_dense=True,shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}}):
+def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, model_params, save_model, batch_col, bio_col, batch_col_categories=None, bio_col_categories=None, return_scores=False, return_adata_dict=False, return_trained_model=False,model_type="ae_da",issparse=False, load_dense=True,shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}},sample_size=None,return_history=False):
     """
     Runs the full pipeline from loading data to training the model and processing latent representations. This is useful for AE,AEC,AE_DA,AE_RE,AE_conv
-s
     Parameters:
     - Model: The model class to be instantiated and trained.
     - input_path_dict (dict): Dictionary containing paths to the training, validation, and optionally test datasets.
@@ -1205,10 +1307,12 @@ s
     - model_type (str): For plotting loss. Options: ["ae_da","ae"]
     - issparse (bool): data is saved as sparse npy array
     - shape_color_dict (dict, optional): Dictionary with shape_col and color_col combinations for plotting.
+    - sample_size (int): sample size used to calculate clustering scores on a random subset of the latent space
+    - return history (bool): Flag to return the history dataframe
 
 
     Returns:
-    - dict: A dictionary of results, which may include the trained model, clustering scores, and AnnData dictionary.
+    - dict: A dictionary of results, which may include the trained model, clustering scores, AnnData dictionary and history dataframe.
     """
     import gc
     print("input path dict",input_path_dict)
@@ -1256,16 +1360,32 @@ s
         trained_model, history = train_and_save_model(model, train_in, train_out_dict, val_in, val_out_dict, model_params, save_model)
     else:
         trained_model, history = train_and_save_model(model, train_in, train_out, val_in, val_out, model_params, save_model)
+    print(trained_model.summary())
     # 4. Plot Loss graph
     plot_params = {"outpath": model_params.plots_path}
-    print("starting plots")
+    print("Starting plots")
+
     PlotLoss(history, model_params, save_model=save_model, model_type=model_type)
+
+    # Ensure 'history' is in the correct format
+    if isinstance(history, tf.keras.callbacks.History):
+        history = history.history
+
+    # Create a DataFrame from the history dictionary and save it to a CSV file
+    history_df = pd.DataFrame(history)
+    history_csv_path = os.path.join(model_params.latent_path, "history.csv")  # corrected path and added file extension
+    
+    history_df["epochs"]=history_df.index
+    history_df.to_csv(history_csv_path)
+
+    print(f"History saved to {history_csv_path}")
+
     # Before starting intensive computation or after completing a significant data processing step
     gc.collect()
     # 5. Perform PCA if requested
     if model_params.get_pca:
         print("\ngetting pca")
-        adata_dict = get_pca_scoresandplots(adata_dict, plot_params, eval_test=model_params.eval_test,shape_color_dict=shape_color_dict)
+        adata_dict = get_pca_andplot(adata_dict, plot_params, eval_test=model_params.eval_test,shape_color_dict=shape_color_dict)
 
     # Initialize z_ohe_dict
     z_ohe_dict = None
@@ -1277,7 +1397,8 @@ s
     print("\ngetting encoder")
     # 6. Process latent representations and calculate clustering scores
     encoder_method = trained_model.re_encoder if model_type == "ae_re" else trained_model.encoder
-    adata_dict, df_scores_dict = get_encoder_latentandscores(
+    
+    encoder_out = get_encoder_latentandscores(
         adata_dict=adata_dict,
         model_encoder=encoder_method,
         model_params=model_params,
@@ -1288,7 +1409,13 @@ s
         return_scores=return_scores,
         z_ohe_dict=z_ohe_dict,
         model_type=model_type,
-        shape_color_dict=shape_color_dict)
+        shape_color_dict=shape_color_dict,
+        sample_size=sample_size)
+    if return_scores:
+        adata_dict, df_scores_dict = encoder_out
+    else: 
+        adata_dict = encoder_out
+
     gc.collect()
 
     # 7. Collect results based on flags
@@ -1299,12 +1426,15 @@ s
         results["scores"] = df_scores_dict
     if return_adata_dict:
         results["adata"] = adata_dict
+    if return_history:
+        results["history"]=history_df
+
 
     return results
 
 
 
-def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_name, model_params_dict, build_model_dict, compile_dict, save_model, batch_col, bio_col, batch_col_categories, bio_col_categories,model_type="ae_da",issparse=False, load_dense=True,shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}}):
+def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_name, model_params_dict, build_model_dict, compile_dict, save_model, batch_col, bio_col, batch_col_categories, bio_col_categories,model_type="ae_da",issparse=False, load_dense=True,shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}},sample_size=None):
     """
     Executes a model training pipeline across multiple folds, typically for cross-validation.
 
@@ -1324,20 +1454,30 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
     - bio_col_categories: Categories for the biological column for one-hot encoding.
     - model_type (str): For plotting loss. Options: ["ae_da","ae"]
     - issparse (bool): data is saved as sparse npy array
+    - shape_color_dict (dict, optional): Dictionary with shape_col and color_col combinations for plotting.
+    - sample_size (int): sample size used to calculate clustering scores on a random subset of the latent space
 
     Returns:
     - Dict of DataFrames: A dictionary containing the mean scores aggregated from all folds for each dataset type (train, val, test).
     """
-
+    import time
+    import gc
     # Initialize dictionaries to hold results for each dataset type
     all_scores = {
         'train': [],
         'val': [],
         'test': []
     }
+    #initialize empty dictionaries to collect results from all folds
+    all_folds_adata = {}
+    all_folds_model_params = {}
+    all_history_df = pd.DataFrame()
 
+    # Set return_scores_temp to True if you want to calculate scores within the fold loop
+    return_scores_temp = False
+    
     for intFold in folds_list:
-        print(f"\nRunning Fold {intFold}")
+        print(f"\n\nRunning Fold {intFold}\n\n")
 
         # Update model parameters for the current fold
         model_manager = ModelManager(params_dict=model_params_dict, base_paths_dict=out_base_paths_dict, run_name=run_name, save_model=save_model, use_kfolds=True, kfold=intFold)
@@ -1346,7 +1486,7 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
 
         # Get paths_dict with train, test and val paths
         input_path_dict = get_split_paths(base_path=input_base_path, fold=intFold)
-        print("input_path_dict:\n", input_path_dict)
+        print("\ninput_path_dict:\n", input_path_dict)
         # print("input_path_dict keys:", input_path_dict.keys())
 
 
@@ -1361,44 +1501,125 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
                                           bio_col=bio_col,
                                           batch_col_categories=batch_col_categories,
                                           bio_col_categories=bio_col_categories,
-                                          return_scores=True, 
-                                          return_adata_dict=False, 
+                                          return_scores=return_scores_temp, 
+                                          return_adata_dict=True, 
                                           return_trained_model=False,
                                           model_type=model_type,
                                           issparse=issparse,
                                           load_dense=load_dense,
-                                          shape_color_dict=shape_color_dict)
+                                          shape_color_dict=shape_color_dict,
+                                          sample_size = sample_size,
+                                          return_history=True)
         
-        # Append the scores for each dataset type to the respective list in all_scores
-        for dataset_type in all_scores.keys():
-            if dataset_type in fold_results['scores']:
-                scores_df = fold_results['scores'][dataset_type]
+        # add adata dictionaries per fold to all_folds_adata dict
+        print("Output fold adata",fold_results["adata"])
+        all_folds_adata[intFold] = fold_results["adata"]
+        # add model params to all_folds_model_params dict
+        all_folds_model_params[intFold] = model_params
+
+
+        # Process history if available in fold_results
+        if "history" in fold_results:
+            history_df = pd.DataFrame(fold_results["history"])
+            history_df['fold'] = intFold
+            all_history_df = all_history_df.append(history_df, ignore_index=True)
+            
+
+
+
+        # Reminder: Set return_scores_temp to True if you want to calculate scores within the fold loop
+        if return_scores_temp:
+            # Append the scores for each dataset type to the respective list in all_scores
+            for dataset_type in all_scores.keys():
+                if dataset_type in fold_results['scores']:
+                    scores_df = fold_results['scores'][dataset_type]
+                    scores_df['fold'] = intFold
+                    scores_df['dataset_type'] = scores_df.index
+                    all_scores[dataset_type].append(scores_df)
+    # save history in a single df
+    all_history_df.to_csv(os.path.join(model_params.latent_path_main, f"history_allfolds.csv"))
+    average_history_df = all_history_df.groupby('epochs').mean() 
+    average_history_df.to_csv(os.path.join(model_params.latent_path_main, f"mean_history_allfolds.csv"))
+    PlotLoss(average_history_df, model_params, save_model=save_model, model_type=model_type,average_curve=True)
+    print("\nPipeline finished running for all folds")
+    # clean trash
+    gc.collect()
+        
+    # if return_scores_temp==False the scores are calculated after training all models
+    if return_scores_temp ==False:
+        print("\nStarted iteration through the folds to calculate scores..")
+        start_time = time.time()
+        # Loop through each fold and dataset type to calculate scores for each latent space representation
+        for intFold in folds_list:
+            for dataset_type, adata_subset in all_folds_adata[intFold].items():
+                latent_list = list(adata_subset.obsm.keys())
+                # for latent_name in adata_subset.obsm.keys():
+                print(f"Processing clustering scores {latent_list} for dataset {dataset_type} in fold {intFold}..")
+                scores_df = calculate_merge_scores(latent_list=latent_list, 
+                                                    adata=adata_subset, 
+                                                    labels=[batch_col, bio_col], 
+                                                    sample_size=sample_size)
+                scores_df.to_csv(os.path.join(all_folds_model_params[intFold].latent_path, f"scores_{dataset_type}_samplesize-{sample_size}.csv"))
+                print(f"Scores calculated for {latent_list} on {dataset_type} dataset in fold {intFold}")
                 scores_df['fold'] = intFold
                 scores_df['dataset_type'] = scores_df.index
                 all_scores[dataset_type].append(scores_df)
+        #count time
+        total_time = time.time() - start_time
+        print(f"\nTotal computation time for clustering scores: {total_time} seconds")
+        print("\nScores obtained for all folds")
+
 
     # Process all scores for each dataset type and save the results
     mean_scores_dict = {}
     for dataset_type, scores_list in all_scores.items():
         if scores_list:  # Check if there are scores to process
-            print("computing scores for ",dataset_type)
+            print("Averaging scores for ",dataset_type)
             # Concatenate all results for the dataset type into a single DataFrame
             df_all_results = pd.concat(scores_list, ignore_index=True)
             # Calculate the mean across all rows (folds)
 #            mean_scores = df_all_results.mean()
             if not (model_params.get_pca or model_params.get_baseline):
+                # calculate mean
                 mean_scores = df_all_results.mean().to_frame('mean')
                 # fill the dict
                 mean_scores_dict[dataset_type] = mean_scores
+
+                # Calculate sample standard deviation scores
+                std_scores = df_all_results.std(ddof=1).to_frame('std')  # Using sample standard deviation
+
+                # Calculate standard error of the mean (SEM)
+                se_scores = std_scores / (len(folds_list) ** 0.5)  # SEM calculation
+
+                # Combine mean, std, and se into a single DataFrame
+                summary_df = pd.concat([mean_scores, std_scores, se_scores], axis=1)
+                summary_df.columns = ['mean', 'std', 'sem']
+
+
+            else:
+                # Group by 'dataset_type'
+                grouped = df_all_results.groupby('dataset_type')
+
+                # Calculate mean, standard deviation, and SEM for each group
+                mean_scores = grouped.mean()
+                std_scores = grouped.std(ddof=1)  # Sample standard deviation
+                sem_scores = std_scores / np.sqrt(grouped.size())  # Standard Error of the Mean
+
+                # Combine mean, std, and sem into a single DataFrame
+                summary_df = pd.concat([mean_scores, std_scores, sem_scores], axis=1, keys=['mean', 'std', 'sem'])
+
+            # Display the final DataFrame
+            print("\nSummary scores for all 5 folds:\n",summary_df)
+
 
             # Save results if required
             if save_model:
                 all_scores_path = os.path.join(model_params.latent_path_main, f'all_scores_{dataset_type}.csv')
                 
                 df_all_results.to_csv(all_scores_path)
-                if not (model_params.get_pca or model_params.get_baseline):
-                    mean_scores_path = os.path.join(model_params.latent_path_main, f'mean_scores_{dataset_type}.csv')
-                    mean_scores.to_csv(mean_scores_path)
+#                if not (model_params.get_pca or model_params.get_baseline):
+                mean_scores_path = os.path.join(model_params.latent_path_main, f'mean_scores_{dataset_type}.csv')
+                summary_df.to_csv(mean_scores_path)
 
     if not (model_params.get_pca or model_params.get_baseline):
         return mean_scores_dict

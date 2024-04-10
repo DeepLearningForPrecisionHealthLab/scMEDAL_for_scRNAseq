@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from matplotlib import pyplot as plt
 from scipy.sparse import csr_matrix
 import h5py
+import time
 # Some docstring are written using chatgpt4
 # If we want to re run the whole clustering analysis, we have to delete the results
 def del_clustering_analysis(adata):
@@ -78,39 +79,126 @@ def get_clustering_scores(adata,use_rep, labels):
     return df_scores
 
 
-def get_clustering_scores_optimized(adata, use_rep, labels):
+
+
+# def get_clustering_scores_optimized(adata, use_rep, labels, sample_size=None):
+#     from sklearn.metrics import davies_bouldin_score, calinski_harabasz_score, silhouette_score
+#     """
+#     Optimized version of getting clustering scores from an AnnData object with optional subsampling for all scores.
+
+#     Args:
+#     - adata: An AnnData object.
+#     - use_rep: Representation to use. Any key for .obsm is valid. If 'X', then adata.X is used.
+#     - labels: Labels for clustering. Any key for .obs is valid.
+#     - sample_size: Optional integer. If specified, subsamples this number of instances for score calculation.
+
+#     Returns:
+#     - A pandas DataFrame with Davies-Bouldin (DB), inverse DB, Calinski-Harabasz (CH), and Silhouette scores for each label.
+#     """
+    
+#     print("Computing scores \nDB: lower values --> better clustering")
+#     print("1/DB, CH, Silhouette: higher values --> better clustering")
+
+#     # Determine the data representation
+#     data_rep = adata.X if use_rep == "X" else adata.obsm[use_rep]
+
+#     dict_scores = {}
+
+#     # Subsample the data if a sample size is specified
+#     if sample_size and sample_size < data_rep.shape[0]:
+#         indices = np.random.choice(data_rep.shape[0], sample_size, replace=False)
+#         subsampled_data_rep = data_rep[indices]
+#     else:
+#         subsampled_data_rep = data_rep
+
+#     # Compute scores for each label and store in dict
+#     for label in labels:
+#         labels_array = adata.obs[label].to_numpy()
+#         if sample_size and sample_size < data_rep.shape[0]:
+#             subsampled_labels = labels_array[indices]
+#         else:
+#             subsampled_labels = labels_array
+
+#         db_score = davies_bouldin_score(subsampled_data_rep, subsampled_labels)
+#         ch_score = calinski_harabasz_score(subsampled_data_rep, subsampled_labels)
+#         silhouette = silhouette_score(subsampled_data_rep, subsampled_labels)
+
+#         dict_scores[label] = [db_score, 1/db_score, ch_score, silhouette]
+
+#     # Create DataFrame from dict
+#     df_scores = pd.DataFrame(dict_scores, index=['db', '1/db', 'ch', 'silhouette'])
+
+#     return df_scores
+
+
+def get_clustering_scores_optimized(adata, use_rep, labels, sample_size=None):
     from sklearn.metrics import davies_bouldin_score, calinski_harabasz_score, silhouette_score
     """
-    Optimized version of getting clustering scores from an AnnData object.
+    Optimized version of getting clustering scores from an AnnData object with optional subsampling for all scores.
 
     Args:
     - adata: An AnnData object.
     - use_rep: Representation to use. Any key for .obsm is valid. If 'X', then adata.X is used.
     - labels: Labels for clustering. Any key for .obs is valid.
+    - sample_size: Optional integer. If specified, subsamples this number of instances for score calculation.
 
     Returns:
     - A pandas DataFrame with Davies-Bouldin (DB), inverse DB, Calinski-Harabasz (CH), and Silhouette scores for each label.
     """
     
-    print("Computing scores \nDB: lower values --> better clustering")
+    start_time = time.time()
+    print("Computing scores..")
+    if sample_size is not None:
+        print("sample_size:",sample_size)
+    else:
+        print("all cells used")
+        
+    print("\nDB: lower values --> better clustering")
     print("1/DB, CH, Silhouette: higher values --> better clustering")
 
     # Determine the data representation
     data_rep = adata.X if use_rep == "X" else adata.obsm[use_rep]
 
     dict_scores = {}
+    time_per_score = {}
+
+    # Subsample the data if a sample size is specified
+    if sample_size and sample_size < data_rep.shape[0]:
+        indices = np.random.choice(data_rep.shape[0], sample_size, replace=False)
+        subsampled_data_rep = data_rep[indices]
+    else:
+        subsampled_data_rep = data_rep
 
     # Compute scores for each label and store in dict
     for label in labels:
-        db_score = davies_bouldin_score(data_rep, adata.obs[label])
-        ch_score = calinski_harabasz_score(data_rep, adata.obs[label])
-        # silhouette = silhouette_score(data_rep, adata.obs[label], sample_size=10000) # sample_size parameter added for speed
-        silhouette = silhouette_score(data_rep, adata.obs[label]) 
+        labels_array = adata.obs[label].to_numpy()
+        if sample_size and sample_size < data_rep.shape[0]:
+            subsampled_labels = labels_array[indices]
+        else:
+            subsampled_labels = labels_array
+
+        score_start_time = time.time()
+        db_score = davies_bouldin_score(subsampled_data_rep, subsampled_labels)
+        db_time = time.time() - score_start_time
+
+        score_start_time = time.time()
+        ch_score = calinski_harabasz_score(subsampled_data_rep, subsampled_labels)
+        ch_time = time.time() - score_start_time
+
+        score_start_time = time.time()
+        silhouette = silhouette_score(subsampled_data_rep, subsampled_labels)
+        silhouette_time = time.time() - score_start_time
 
         dict_scores[label] = [db_score, 1/db_score, ch_score, silhouette]
+        time_per_score[label] = [db_time, ch_time, silhouette_time]
 
     # Create DataFrame from dict
-    df_scores = pd.DataFrame(dict_scores, index=['DB', '1/DB', 'CH', 'Silhouette'])
+    df_scores = pd.DataFrame(dict_scores, index=['db', '1/db', 'ch', 'silhouette'])
+    total_time = time.time() - start_time
+
+    print(f"Total computation time: {total_time} seconds")
+    for label, times in time_per_score.items():
+        print(f"Time per score for {label} - DB: {times[0]:.4f}, CH: {times[1]:.4f}, Silhouette: {times[2]:.4f} seconds")
 
     return df_scores
 
@@ -868,7 +956,7 @@ def compute_kmeans_acc(n_clusters, x, x_test, y_test):
 #     return combined_df
 #     import pandas as pd
 
-def calculate_merge_scores(latent_list, adata, labels):
+def calculate_merge_scores(latent_list, adata, labels,sample_size=None):
     """
     Calculates clustering scores for multiple latent representations using the provided labels,
     and then aggregates them into a single DataFrame.
@@ -879,7 +967,7 @@ def calculate_merge_scores(latent_list, adata, labels):
     # Iterate over each latent representation and calculate clustering scores
     for latent in latent_list:
         # Assuming get_clustering_scores_optimized returns a DataFrame with the scores
-        scores = get_clustering_scores(adata, latent, labels)
+        scores = get_clustering_scores_optimized(adata, latent, labels,sample_size)
         
         # Assuming restructure_dataframe restructures the scores DataFrame as needed for aggregation
         scores_row = restructure_dataframe(scores, labels)

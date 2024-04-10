@@ -1,41 +1,23 @@
-import pandas
+# import pandas
 import numpy as np
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from sklearn.manifold import TSNE
 import pandas as pd
-from matplotlib import pyplot as plt
-import seaborn as sns
-
-#from cv2 import transpose
-import numpy as np
 import tensorflow as tf
-import tensorflow.keras.layers as tkl
 
-from tensorflow.python.framework import tensor_shape
-from tensorflow.python.keras.engine.input_spec import InputSpec
 import sys
-sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/utilities")
-from tensorflow_utilities import use_specific_gpu
-from tensorflow.keras.callbacks import History 
-from sklearn.model_selection import train_test_split
-from matplotlib import pyplot as plt
-
-import scanpy as sc
-import anndata as ad
+# sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/utilities")
+# from tensorflow_utilities import use_specific_gpu
 
 print(tf.__version__)
-import copy
-import os
-# path to utils
-sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics/utils")
+
+# change path to utils
+sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
 from utils import *
 from model_train_utils import run_all_folds,get_metric2optimizemodel#,run_model_pipeline,ModelManager,get_train_val_data,load_data,train_and_save_model,PlotLoss,get_pca_scoresandplots,get_encoder_latentandscores
 # path to model_config
 sys.path.append("../")
 from model_config import *
 # path to models
-sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics/models")
+sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/models")
 import glob
 # import models
 from AE_v4 import DomainEnhancingAutoencoderClassifier
@@ -115,7 +97,8 @@ mean_scores = run_all_folds(Model=DomainEnhancingAutoencoderClassifier,
                 model_type="ae_re",
                 issparse=True,
                 load_dense=True,                
-                shape_color_dict=shape_color_dict)
+                shape_color_dict=shape_color_dict,
+                sample_size=10000)
 
 # maximizing biological clustering and minimizing batch cluster
 # metric2optimize = bio_mean - batch_mean

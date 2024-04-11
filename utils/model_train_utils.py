@@ -586,7 +586,7 @@ class PlotLoss:
             self.plot_mec()
         else:
             print("No training loss plotted. Type a valid model_type [ae_da, ae, ae_re,aec,mec]")
-        print("Training loss plots completed")
+        print("Loss plots completed")
 
 
     def plot_ae_re(self):
@@ -1190,7 +1190,7 @@ def get_encoder_latentandscores(adata_dict, model_encoder, model_params, batch_c
                     file_name = f"{shape_col}-{color_col}_{latent_key}"
                     specific_plot_params = {**plot_params, "file_name": file_name}
                     plot_rep(adata, use_rep=latent_key, shape_col=shape_col, color_col=color_col, **specific_plot_params)
-            print("\nFinished plots")
+            print("Finished plots")
             
             if return_scores:
                 print("\nCalculating scores ..")
@@ -1475,6 +1475,7 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
 
     # Set return_scores_temp to True if you want to calculate scores within the fold loop
     return_scores_temp = False
+    start_time_train = time.time()
     
     for intFold in folds_list:
         print(f"\n\nRunning Fold {intFold}\n\n")
@@ -1536,25 +1537,30 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
                     scores_df['fold'] = intFold
                     scores_df['dataset_type'] = scores_df.index
                     all_scores[dataset_type].append(scores_df)
+    total_time_train = time.time() - start_time_train
+
+    print(f"\n\nTotal time for training all folds: {total_time_train} seconds")
+        
+
     # save history in a single df
     all_history_df.to_csv(os.path.join(model_params.latent_path_main, f"history_allfolds.csv"))
     average_history_df = all_history_df.groupby('epochs').mean() 
     average_history_df.to_csv(os.path.join(model_params.latent_path_main, f"mean_history_allfolds.csv"))
     PlotLoss(average_history_df, model_params, save_model=save_model, model_type=model_type,average_curve=True)
-    print("\nPipeline finished running for all folds")
+    print("Pipeline finished running for all folds")
     # clean trash
     gc.collect()
-        
+    #for sample_size in [10000,25000,None]:
     # if return_scores_temp==False the scores are calculated after training all models
     if return_scores_temp ==False:
         print("\nStarted iteration through the folds to calculate scores..")
-        start_time = time.time()
+        start_time_scores = time.time()
         # Loop through each fold and dataset type to calculate scores for each latent space representation
         for intFold in folds_list:
             for dataset_type, adata_subset in all_folds_adata[intFold].items():
                 latent_list = list(adata_subset.obsm.keys())
                 # for latent_name in adata_subset.obsm.keys():
-                print(f"Processing clustering scores {latent_list} for dataset {dataset_type} in fold {intFold}..")
+                print(f"\n\nProcessing clustering scores {latent_list} for dataset {dataset_type} in fold {intFold}..")
                 scores_df = calculate_merge_scores(latent_list=latent_list, 
                                                     adata=adata_subset, 
                                                     labels=[batch_col, bio_col], 
@@ -1565,9 +1571,10 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
                 scores_df['dataset_type'] = scores_df.index
                 all_scores[dataset_type].append(scores_df)
         #count time
-        total_time = time.time() - start_time
-        print(f"\nTotal computation time for clustering scores: {total_time} seconds")
+        total_time_scores = time.time() - start_time_scores
         print("\nScores obtained for all folds")
+        print(f"\n\nTotal computation time for clustering scores: {total_time_scores} seconds")
+        
 
 
     # Process all scores for each dataset type and save the results
@@ -1597,16 +1604,28 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
 
 
             else:
-                # Group by 'dataset_type'
+                # # Group by 'dataset_type'
+                # grouped = df_all_results.groupby('dataset_type')
+
+                # # Calculate mean, standard deviation, and SEM for each group
+                # mean_scores = grouped.mean()
+                # std_scores = grouped.std(ddof=1)  # Sample standard deviation
+                # sem_scores = std_scores / np.sqrt(grouped.size())  # Standard Error of the Mean
+
+                # # Combine mean, std, and sem into a single DataFrame
+                # summary_df = pd.concat([mean_scores, std_scores, sem_scores], axis=1, keys=['mean', 'std', 'sem'])
+            # Calculate metrics for each dataset type by grouping
                 grouped = df_all_results.groupby('dataset_type')
-
-                # Calculate mean, standard deviation, and SEM for each group
+                print(grouped)
                 mean_scores = grouped.mean()
-                std_scores = grouped.std(ddof=1)  # Sample standard deviation
-                sem_scores = std_scores / np.sqrt(grouped.size())  # Standard Error of the Mean
+                print(mean_scores)
+                std_scores = grouped.std(ddof=1)
+                print(std_scores)
+                # Calculate SEM correctly aligning DataFrame and Series indices
+                sem_scores = std_scores.div(np.sqrt(grouped.size()), axis='index').rename(columns=lambda x: 'sem_' + x)
 
-                # Combine mean, std, and sem into a single DataFrame
-                summary_df = pd.concat([mean_scores, std_scores, sem_scores], axis=1, keys=['mean', 'std', 'sem'])
+                # Combine mean, std, and sem into a single DataFrame, preserving multi-level column structure
+                summary_df = pd.concat({'mean': mean_scores, 'std': std_scores, 'sem': sem_scores}, axis=1)
 
             # Display the final DataFrame
             print("\nSummary scores for all 5 folds:\n",summary_df)
@@ -1614,11 +1633,11 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
 
             # Save results if required
             if save_model:
-                all_scores_path = os.path.join(model_params.latent_path_main, f'all_scores_{dataset_type}.csv')
+                all_scores_path = os.path.join(model_params.latent_path_main, f'all_scores_{dataset_type}_samplesize-{sample_size}.csv')
                 
                 df_all_results.to_csv(all_scores_path)
 #                if not (model_params.get_pca or model_params.get_baseline):
-                mean_scores_path = os.path.join(model_params.latent_path_main, f'mean_scores_{dataset_type}.csv')
+                mean_scores_path = os.path.join(model_params.latent_path_main, f'mean_scores_{dataset_type}_samplesize-{sample_size}.csv')
                 summary_df.to_csv(mean_scores_path)
 
     if not (model_params.get_pca or model_params.get_baseline):

@@ -1539,7 +1539,7 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
                     all_scores[dataset_type].append(scores_df)
     total_time_train = time.time() - start_time_train
 
-    print(f"\n\nTotal time for training all folds: {total_time_train} seconds")
+    print(f"\n\nTotal time for training all folds and getting latent spaces: {total_time_train} seconds")
         
 
     # save history in a single df

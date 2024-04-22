@@ -66,7 +66,7 @@ class TiedDenseTranspose(tf.keras.layers.Layer):
         """Apply the layer operations on the input tensor."""
         return self.activation(tf.matmul(inputs, self.kernel, transpose_b=True) + self.bias_t)
 
-class Encoder(tf.keras.layers.Layer):
+class Encoder(tf.keras.Model):
     """
     Encoder Layer for Neural Networks.
 
@@ -107,7 +107,7 @@ class Encoder(tf.keras.layers.Layer):
 
         # Create dictionaries for the blocks and layers
         self.dense_blocks = {}
-        self.layers = {}
+        self.all_layers = {}
 
         # Fill the dictionaries using a for loop
         for i, n_units in enumerate(self.layer_units):
@@ -118,7 +118,7 @@ class Encoder(tf.keras.layers.Layer):
         self.dense_latent = Dense(units=self.n_latent_dim, activation="selu", name="dense_latent")
 
         # Store all layers in the layers dictionary
-        self.layers = {**self.dense_blocks, "dense_latent": self.dense_latent}
+        self.all_layers = {**self.dense_blocks, "dense_latent": self.dense_latent}
 
     def call(self, inputs, training=None):
         """
@@ -139,18 +139,18 @@ class Encoder(tf.keras.layers.Layer):
         layer_activations = []
 
         # Iterate through the layers using the dictionary
-        for key, layer in self.layers.items():
+        for key, layer in self.all_layers.items():
             x = layer(x)
             layer_activations.append(x)
 
         if self.return_layer_activations:
             return layer_activations
         elif self.return_encoder_layers:
-            return self.layers, x
+            return self.all_layers, x
         else:
             return x
 
-class Decoder(tf.keras.layers.Layer):
+class Decoder(tf.keras.Model):
     """
     Decoder Layer for Neural Networks. 
     The Decoder layers can be Tied with the Encoder layers if encoder layers are provided and if the tied_weights = True.
@@ -188,7 +188,7 @@ class Decoder(tf.keras.layers.Layer):
         self.layer_units = layer_units
         self.last_activation = last_activation
 
-        self.layers = {}
+        self.all_layers = {}
 
         self.tied_weights = tied_weights
 
@@ -201,24 +201,24 @@ class Decoder(tf.keras.layers.Layer):
             # build the decoder reverse looping through the encoder layers
             for n_units, e_layer in zip(self.layer_units[::-1], self.encoder_dense_layers[1:][::-1]):
                 key_name = e_layer.name + "_t"
-                self.layers[key_name] = TiedDenseTranspose(source_layer=e_layer, units=n_units, activation="selu", name=key_name)
+                self.all_layers[key_name] = TiedDenseTranspose(source_layer=e_layer, units=n_units, activation="selu", name=key_name)
 
             # out decoder: out layer shares weights with encoder first layer
             # defining layer with last activation      
             # the last activation is sigmoid to make sure the values are between zero and one
             key_name = "dense_out"
-            self.layers[key_name] = TiedDenseTranspose(source_layer=self.encoder_dense_layers[0], units=self.in_shape[-1], activation=self.last_activation, name=key_name)
+            self.all_layers[key_name] = TiedDenseTranspose(source_layer=self.encoder_dense_layers[0], units=self.in_shape[-1], activation=self.last_activation, name=key_name)
 
         else:
             #If tied weights = False --> decoder layers are Dense layers
             # build the decoder reverse looping through the layer units
             for i,n_units in enumerate(self.layer_units[::-1]):
                 key_name = "dense_"+str(len(self.layer_units)-i)
-                self.layers[key_name] = Dense(units=n_units, activation="selu", name=key_name)
+                self.all_layers[key_name] = Dense(units=n_units, activation="selu", name=key_name)
     
             # the last activation is sigmoid to make sure the values are between zero and one
             key_name = "dense_out"
-            self.layers[key_name] = Dense(units=self.in_shape[-1], activation=self.last_activation, name=key_name)
+            self.all_layers[key_name] = Dense(units=self.in_shape[-1], activation=self.last_activation, name=key_name)
 
     def call(self, inputs, training=None):
         """
@@ -233,7 +233,7 @@ class Decoder(tf.keras.layers.Layer):
         """
         x = inputs
         # apply transposed dense layers (decoder)
-        for key, layer in self.layers.items():
+        for key, layer in self.all_layers.items():
             #print(layer.name)
             x = layer(x)
         return x
@@ -287,7 +287,7 @@ class AE(tf.keras.Model):
                                return_layer_activations=self.return_layer_activations)
         
         # Assuming the Encoder class returns a dictionary for its layers attribute
-        encoder_layers_list = list(self.encoder.layers.values())
+        encoder_layers_list = list(self.encoder.all_layers.values())
         self.decoder = Decoder(in_shape=self.in_shape, encoder_layers=encoder_layers_list,
                                layer_units=self.layer_units, 
                                last_activation=self.last_activation)
@@ -371,7 +371,7 @@ class AEC(tf.keras.Model):
                                return_layer_activations=self.return_layer_activations)
         
         # Assuming the Encoder class returns a dictionary for its layers attribute
-        encoder_layers_list = list(self.encoder.layers.values())
+        encoder_layers_list = list(self.encoder.all_layers.values())
         # Tied AE. ENCODER WEIGHTS = DECODER
         self.decoder = Decoder(in_shape=self.in_shape, encoder_layers=encoder_layers_list,
                                layer_units=self.layer_units, 
@@ -424,19 +424,19 @@ class AdversarialClassifier(tkl.Layer):
         self.n_clusters = n_clusters
         self.layer_units = layer_units
         
-        self.layers = []
+        self.all_layers = []
         for iLayer, neurons in enumerate(layer_units):
-            self.layers += [tkl.Dense(neurons, 
+            self.all_layers += [tkl.Dense(neurons, 
                                       activation='relu', 
                                       name=name + '_dense' + str(iLayer))]
             
-        self.layers += [tkl.Dense(self.n_clusters , activation='softmax', name=name + '_dense_out')]
+        self.all_layers += [tkl.Dense(self.n_clusters , activation='softmax', name=name + '_dense_out')]
         
     def call(self, inputs):
         if type(inputs) is list:
             inputs = tf.concat(inputs, axis=-1)
         x = inputs
-        for layer in self.layers:
+        for layer in self.all_layers:
             x = layer(x)
             
         return x
@@ -690,7 +690,7 @@ class DomainAdversarialAE(AE):
         
         #autoencoder: encoder +decoder
         self.encoder = Encoder(n_latent_dims = n_latent_dims, layer_units=layer_units,return_layer_activations=True)
-        encoder_layers_list = list(self.encoder.layers.values())
+        encoder_layers_list = list(self.encoder.all_layers.values())
         self.decoder = Decoder(in_shape=self.in_shape,encoder_layers = encoder_layers_list,layer_units = self.layer_units, last_activation = self.last_activation)
         #adversarial classifier
         self.adversary = AdversarialClassifier(n_clusters = self.n_clusters, n_latent_dims = self.n_latent_dims,layer_units=self.layer_units)
@@ -898,7 +898,7 @@ class DomainAdversarialAE(AE):
             assert x.shape[0] == labels.shape[0], "Mismatch between x and labels"
 
         # apply model     
-        outputs = self(inputs=(x, clusters), training=True)
+        outputs = self(inputs=(x, clusters), training=False)
         if self.get_pred:
             pred_recon, pred_class, pred_cluster = outputs #(+ pred class)
         else:
@@ -1024,6 +1024,15 @@ class RandomEffectEncoder(Encoder):
             x = activation(x)
         x = self.dense_latent(x)  
         return x
+    # def summary(self):
+    #     print("RandomEffectEncoder Summary:")
+    #     print(f"{'Layer':<20} {'Output Shape':<20} {'# Params':<10}")
+    #     for name, (dense, re, activation) in self.layer_blocks.items():
+    #         # Assuming model has been built at least once so these methods can be accessed
+    #         print(f"{dense.name:<20} {str(dense.output_shape):<20} {dense.count_params():<10}")
+    #         print(f"{re.name:<20} {'-':<20} {re.count_params():<10}")
+    #         print(f"{activation.name:<20} {'-':<20} {'-':<10}")
+    #     print(f"{self.dense_latent.name:<20} {str(self.dense_latent.output_shape):<20} {self.dense_latent.count_params():<10}")
 
 
 class RandomEffectDecoder(Decoder):
@@ -1056,7 +1065,7 @@ class RandomEffectDecoder(Decoder):
         self.layer_blocks = {}
         #dense blocks are inherited from Encoder class
         
-        for key, layer in self.layers.items():
+        for key, layer in self.all_layers.items():
             #layer i 
             layer_i = key.split("_")[-1]
             #random effect layer
@@ -1099,7 +1108,14 @@ class RandomEffectDecoder(Decoder):
             x = re((x, z), training=training)
             x = activation(x)
         return x
-
+    # def summary(self):
+    #     print("RandomEffectDecoder Summary:")
+    #     print(f"{'Layer':<20} {'Output Shape':<20} {'# Params':<10}")
+    #     for name, (dense, re, activation) in self.layer_blocks.items():
+    #         # Assuming model has been built at least once so these methods can be accessed
+    #         print(f"{dense.name:<20} {str(dense.output_shape):<20} {dense.count_params():<10}")
+    #         print(f"{re.name:<20} {'-':<20} {re.count_params():<10}")
+    #         print(f"{activation.name:<20} {'-':<20} {'-':<10}")
 
 class DomainEnhancingAutoencoderClassifier(tf.keras.Model):
     """
@@ -1382,7 +1398,7 @@ class DomainEnhancingAutoencoderClassifier(tf.keras.Model):
 
         sample_weights = None if len(data) != 3 else data[2]
                         
-        outputs = self((x, clusters), training=True)
+        outputs = self((x, clusters), training=False)
         recon = outputs['recon']
         pred_c_latent = outputs['pred_c_latent']
 

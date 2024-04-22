@@ -2,7 +2,7 @@ import numpy as np
 import anndata as ad
 import sys
 # you can change this path to your own utils folder
-sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics/utils")
+sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
 from utils import create_folder,read_adata,get_OHE,min_max_scaling,plot_rep,calculate_merge_scores,plot_table,get_split_paths
 import os
 import tensorflow as tf
@@ -1550,7 +1550,88 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
     print("Pipeline finished running for all folds")
     # clean trash
     gc.collect()
-    #for sample_size in [10000,25000,None]:
+    print("\n\nComputing scores for different sampel sizes")
+    # for sample_size in [10000,25000,90000,None]:
+    #     print("sample size",sample_size)
+    #     # if return_scores_temp==False the scores are calculated after training all models
+    #     if return_scores_temp ==False:
+    #         print("\nStarted iteration through the folds to calculate scores..")
+    #         start_time_scores = time.time()
+    #         # Loop through each fold and dataset type to calculate scores for each latent space representation
+    #         for intFold in folds_list:
+    #             for dataset_type, adata_subset in all_folds_adata[intFold].items():
+    #                 latent_list = list(adata_subset.obsm.keys())
+    #                 # for latent_name in adata_subset.obsm.keys():
+    #                 print(f"\n\nProcessing clustering scores {latent_list} for dataset {dataset_type} in fold {intFold}..")
+    #                 scores_df = calculate_merge_scores(latent_list=latent_list, 
+    #                                                     adata=adata_subset, 
+    #                                                     labels=[batch_col, bio_col], 
+    #                                                     sample_size=sample_size)
+    #                 scores_df.to_csv(os.path.join(all_folds_model_params[intFold].latent_path, f"scores_{dataset_type}_samplesize-{sample_size}.csv"))
+    #                 print(f"Scores calculated for {latent_list} on {dataset_type} dataset in fold {intFold}")
+    #                 scores_df['fold'] = intFold
+    #                 scores_df['dataset_type'] = scores_df.index
+    #                 all_scores[dataset_type].append(scores_df)
+    #         #count time
+    #         total_time_scores = time.time() - start_time_scores
+    #         print("\nScores obtained for all folds")
+    #         print(f"\n\nTotal computation time for clustering scores: {total_time_scores} seconds")
+            
+
+
+    #     # Process all scores for each dataset type and save the results
+    #     mean_scores_dict = {}
+    #     for dataset_type, scores_list in all_scores.items():
+    #         if scores_list:  # Check if there are scores to process
+    #             print("Averaging scores for ",dataset_type)
+    #             # Concatenate all results for the dataset type into a single DataFrame
+    #             df_all_results = pd.concat(scores_list, ignore_index=True)
+    #             # Calculate the mean across all rows (folds)
+    # #            mean_scores = df_all_results.mean()
+    #             if not (model_params.get_pca or model_params.get_baseline):
+    #                 # calculate mean
+    #                 mean_scores = df_all_results.mean().to_frame('mean')
+    #                 # fill the dict
+    #                 mean_scores_dict[dataset_type] = mean_scores
+
+    #                 # Calculate sample standard deviation scores
+    #                 std_scores = df_all_results.std(ddof=1).to_frame('std')  # Using sample standard deviation
+
+    #                 # Calculate standard error of the mean (SEM)
+    #                 se_scores = std_scores / (len(folds_list) ** 0.5)  # SEM calculation
+
+    #                 # Combine mean, std, and se into a single DataFrame
+    #                 summary_df = pd.concat([mean_scores, std_scores, se_scores], axis=1)
+    #                 summary_df.columns = ['mean', 'std', 'sem']
+
+
+    #             else:
+
+    #                 grouped = df_all_results.groupby('dataset_type')
+    #                 print(grouped)
+    #                 mean_scores = grouped.mean()
+    #                 print(mean_scores)
+    #                 std_scores = grouped.std(ddof=1)
+    #                 print(std_scores)
+    #                 # Calculate SEM correctly aligning DataFrame and Series indices
+    #                 sem_scores = std_scores.div(np.sqrt(grouped.size()), axis='index').rename(columns=lambda x: 'sem_' + x)
+
+    #                 # Combine mean, std, and sem into a single DataFrame, preserving multi-level column structure
+    #                 summary_df = pd.concat({'mean': mean_scores, 'std': std_scores, 'sem': sem_scores}, axis=1)
+
+    #             # Display the final DataFrame
+    #             print("\nSummary scores for all 5 folds:\n",summary_df)
+
+
+    #             # Save results if required
+    #             if save_model:
+    #                 all_scores_path = os.path.join(model_params.latent_path_main, f'all_scores_{dataset_type}_samplesize-{sample_size}.csv')
+                    
+    #                 df_all_results.to_csv(all_scores_path)
+    # #                if not (model_params.get_pca or model_params.get_baseline):
+    #                 mean_scores_path = os.path.join(model_params.latent_path_main, f'mean_scores_{dataset_type}_samplesize-{sample_size}.csv')
+    #                 summary_df.to_csv(mean_scores_path)
+    print("sample size",sample_size)
     # if return_scores_temp==False the scores are calculated after training all models
     if return_scores_temp ==False:
         print("\nStarted iteration through the folds to calculate scores..")
@@ -1562,9 +1643,9 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
                 # for latent_name in adata_subset.obsm.keys():
                 print(f"\n\nProcessing clustering scores {latent_list} for dataset {dataset_type} in fold {intFold}..")
                 scores_df = calculate_merge_scores(latent_list=latent_list, 
-                                                    adata=adata_subset, 
-                                                    labels=[batch_col, bio_col], 
-                                                    sample_size=sample_size)
+                                                        adata=adata_subset, 
+                                                        labels=[batch_col, bio_col], 
+                                                        sample_size=sample_size)
                 scores_df.to_csv(os.path.join(all_folds_model_params[intFold].latent_path, f"scores_{dataset_type}_samplesize-{sample_size}.csv"))
                 print(f"Scores calculated for {latent_list} on {dataset_type} dataset in fold {intFold}")
                 scores_df['fold'] = intFold
@@ -1574,72 +1655,61 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
         total_time_scores = time.time() - start_time_scores
         print("\nScores obtained for all folds")
         print(f"\n\nTotal computation time for clustering scores: {total_time_scores} seconds")
-        
+            
 
 
-    # Process all scores for each dataset type and save the results
-    mean_scores_dict = {}
-    for dataset_type, scores_list in all_scores.items():
-        if scores_list:  # Check if there are scores to process
-            print("Averaging scores for ",dataset_type)
-            # Concatenate all results for the dataset type into a single DataFrame
-            df_all_results = pd.concat(scores_list, ignore_index=True)
-            # Calculate the mean across all rows (folds)
-#            mean_scores = df_all_results.mean()
-            if not (model_params.get_pca or model_params.get_baseline):
-                # calculate mean
-                mean_scores = df_all_results.mean().to_frame('mean')
-                # fill the dict
-                mean_scores_dict[dataset_type] = mean_scores
+        # Process all scores for each dataset type and save the results
+        mean_scores_dict = {}
+        for dataset_type, scores_list in all_scores.items():
+            if scores_list:  # Check if there are scores to process
+                print("Averaging scores for ",dataset_type)
+                # Concatenate all results for the dataset type into a single DataFrame
+                df_all_results = pd.concat(scores_list, ignore_index=True)
+                # Calculate the mean across all rows (folds)
+    #            mean_scores = df_all_results.mean()
+                if not (model_params.get_pca or model_params.get_baseline):
+                    # calculate mean
+                    mean_scores = df_all_results.mean().to_frame('mean')
+                    # fill the dict
+                    mean_scores_dict[dataset_type] = mean_scores
 
-                # Calculate sample standard deviation scores
-                std_scores = df_all_results.std(ddof=1).to_frame('std')  # Using sample standard deviation
+                    # Calculate sample standard deviation scores
+                    std_scores = df_all_results.std(ddof=1).to_frame('std')  # Using sample standard deviation
 
-                # Calculate standard error of the mean (SEM)
-                se_scores = std_scores / (len(folds_list) ** 0.5)  # SEM calculation
+                    # Calculate standard error of the mean (SEM)
+                    se_scores = std_scores / (len(folds_list) ** 0.5)  # SEM calculation
 
-                # Combine mean, std, and se into a single DataFrame
-                summary_df = pd.concat([mean_scores, std_scores, se_scores], axis=1)
-                summary_df.columns = ['mean', 'std', 'sem']
-
-
-            else:
-                # # Group by 'dataset_type'
-                # grouped = df_all_results.groupby('dataset_type')
-
-                # # Calculate mean, standard deviation, and SEM for each group
-                # mean_scores = grouped.mean()
-                # std_scores = grouped.std(ddof=1)  # Sample standard deviation
-                # sem_scores = std_scores / np.sqrt(grouped.size())  # Standard Error of the Mean
-
-                # # Combine mean, std, and sem into a single DataFrame
-                # summary_df = pd.concat([mean_scores, std_scores, sem_scores], axis=1, keys=['mean', 'std', 'sem'])
-            # Calculate metrics for each dataset type by grouping
-                grouped = df_all_results.groupby('dataset_type')
-                print(grouped)
-                mean_scores = grouped.mean()
-                print(mean_scores)
-                std_scores = grouped.std(ddof=1)
-                print(std_scores)
-                # Calculate SEM correctly aligning DataFrame and Series indices
-                sem_scores = std_scores.div(np.sqrt(grouped.size()), axis='index').rename(columns=lambda x: 'sem_' + x)
-
-                # Combine mean, std, and sem into a single DataFrame, preserving multi-level column structure
-                summary_df = pd.concat({'mean': mean_scores, 'std': std_scores, 'sem': sem_scores}, axis=1)
-
-            # Display the final DataFrame
-            print("\nSummary scores for all 5 folds:\n",summary_df)
+                    # Combine mean, std, and se into a single DataFrame
+                    summary_df = pd.concat([mean_scores, std_scores, se_scores], axis=1)
+                    summary_df.columns = ['mean', 'std', 'sem']
 
 
-            # Save results if required
-            if save_model:
-                all_scores_path = os.path.join(model_params.latent_path_main, f'all_scores_{dataset_type}_samplesize-{sample_size}.csv')
-                
-                df_all_results.to_csv(all_scores_path)
-#                if not (model_params.get_pca or model_params.get_baseline):
-                mean_scores_path = os.path.join(model_params.latent_path_main, f'mean_scores_{dataset_type}_samplesize-{sample_size}.csv')
-                summary_df.to_csv(mean_scores_path)
+                else:
 
+                    grouped = df_all_results.groupby('dataset_type')
+                    print(grouped)
+                    mean_scores = grouped.mean()
+                    print(mean_scores)
+                    std_scores = grouped.std(ddof=1)
+                    print(std_scores)
+                    # Calculate SEM correctly aligning DataFrame and Series indices
+                    sem_scores = std_scores.div(np.sqrt(grouped.size()), axis='index').rename(columns=lambda x: 'sem_' + x)
+
+                    # Combine mean, std, and sem into a single DataFrame, preserving multi-level column structure
+                    summary_df = pd.concat({'mean': mean_scores, 'std': std_scores, 'sem': sem_scores}, axis=1)
+
+                # Display the final DataFrame
+                print("\nSummary scores for all 5 folds:\n",summary_df)
+
+
+                # Save results if required
+                if save_model:
+                    all_scores_path = os.path.join(model_params.latent_path_main, f'all_scores_{dataset_type}_samplesize-{sample_size}.csv')
+                    
+                    df_all_results.to_csv(all_scores_path)
+    #                if not (model_params.get_pca or model_params.get_baseline):
+                    mean_scores_path = os.path.join(model_params.latent_path_main, f'mean_scores_{dataset_type}_samplesize-{sample_size}.csv')
+                    summary_df.to_csv(mean_scores_path)
     if not (model_params.get_pca or model_params.get_baseline):
         return mean_scores_dict
 

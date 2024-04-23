@@ -68,6 +68,7 @@ Explore the models used in the Heart Data Experiment:
 - **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)**
   - [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
   - [Fixed Effects Subnetwork (AEC_DA)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC_DA)
+  - [Fixed Effects Subnetwork (AE_DA)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_DA): This model does not have a classifier.
   - [Random Effects Subnetwork (AE_RE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE)
 
 ### 5-Fold Cross-Validation
@@ -89,3 +90,6 @@ Explore the models used in the Heart Data Experiment:
 
 ### Execution Environment
 - The experiments are executed within the ARMED_Aixa_v2 environment.
+
+### Notes
+Make sure to change the path to the utils folder in each of the files of the type: run_modelname_allfolds.py

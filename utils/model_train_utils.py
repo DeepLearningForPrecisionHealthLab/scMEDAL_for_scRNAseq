@@ -1173,8 +1173,12 @@ def get_encoder_latentandscores(adata_dict, model_encoder, model_params, batch_c
 
             print("use_layer_activations:",use_layer_activations)
 
-            # Get latent representation using model_encoder
-            adata.obsm[latent_key] = model_encoder(inputs, training=False)[-1].numpy() if use_layer_activations else model_encoder(inputs, training=False).numpy()
+            # Get latent representation using model_encoder(inputs). (Old version)
+#            adata.obsm[latent_key] = model_encoder(inputs, training=False)[-1].numpy() if use_layer_activations else model_encoder(inputs, training=False).numpy()
+            # Get latent representation using model_encoder.predict(inputs) to ensure inference mode and simplify code (New version)
+            outputs = model_encoder.predict(inputs, batch_size=model_params.batch_size)
+            adata.obsm[latent_key] = outputs[-1] if use_layer_activations else outputs
+
             print("\nLatent_representation retrived using the encoder:",latent_key)
 
             if save_model:

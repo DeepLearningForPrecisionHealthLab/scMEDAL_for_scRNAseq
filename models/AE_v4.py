@@ -2,7 +2,8 @@
 import tensorflow as tf
 
 from tensorflow import keras
-from tensorflow.keras.layers import Dense, Activation
+from tensorflow.keras.layers import Dense, Activation,BatchNormalization
+import collections
 try: 
     from models.random_effects import *
 except: 
@@ -67,6 +68,74 @@ class TiedDenseTranspose(tf.keras.layers.Layer):
         return self.activation(tf.matmul(inputs, self.kernel, transpose_b=True) + self.bias_t)
 
 class Encoder(tf.keras.Model):
+    """
+    Encoder Layer for Neural Networks with optional batch normalization.
+
+    Attributes:
+        n_latent_dim (int): Number of latent dimensions.
+        layer_units (list): List of units for each dense layer.
+        return_layer_activations (bool): Flag to determine if layer activations should be returned.
+        return_encoder_layers (bool): Flag to determine if encoder layers should be returned.
+        layers (dict): Dictionary containing all the layers.
+        dense_blocks (dict): Dictionary containing dense layers and batch normalization layers.
+    """
+    def __init__(self,
+                 n_latent_dims: int=2, 
+                 layer_units: list=[9, 7, 5], 
+                 return_layer_activations: bool=False,
+                 return_encoder_layers: bool=False,
+                 use_batch_norm: bool=False, # Flag to determine if batch normalization should be used
+                 name='encoder', 
+                 **kwargs):
+        super(Encoder, self).__init__(name=name, **kwargs)
+        self.n_latent_dim = n_latent_dims        
+        self.layer_units = layer_units
+        self.return_layer_activations = return_layer_activations
+        self.return_encoder_layers = return_encoder_layers
+        self.use_batch_norm = use_batch_norm
+
+        # Create dictionaries for the blocks and layers
+        self.dense_blocks = {}
+        self.all_layers = {}
+
+        # Fill the dictionaries using a for loop
+        for i, n_units in enumerate(self.layer_units):
+            key_name = "dense_" + str(i)
+            dense_layer = Dense(units=n_units, activation=None, name=key_name)  # activation is None if batch norm is used
+            self.dense_blocks[key_name] = dense_layer
+            self.all_layers[key_name] = [dense_layer]
+
+            if self.use_batch_norm:
+                bn_key_name = "batch_norm_" + str(i)
+                bn_layer = BatchNormalization(name=bn_key_name)
+                self.all_layers[key_name].append(bn_layer)
+
+            # Add activation layer separately if using batch norm
+            activation_layer = tf.keras.layers.Activation('selu')
+            self.all_layers[key_name].append(activation_layer)
+
+        # Define the latent layer
+        self.dense_latent = Dense(units=self.n_latent_dim, activation="selu", name="dense_latent")
+        self.all_layers["dense_latent"] = [self.dense_latent]
+
+    def call(self, inputs, training=None):
+        x = inputs
+        layer_activations = []
+
+        # Iterate through the layers using the dictionary
+        for key, layers in self.all_layers.items():
+            for layer in layers:
+                x = layer(x, training=training)  # ensure to pass training parameter for batch normalization
+            layer_activations.append(x)
+
+        if self.return_layer_activations:
+            return layer_activations
+        elif self.return_encoder_layers:
+            return self.all_layers, x
+        else:
+            return x
+
+class Encoder_old(tf.keras.Model):
     """
     Encoder Layer for Neural Networks.
 
@@ -194,9 +263,18 @@ class Decoder(tf.keras.Model):
 
         if (self.tied_weights == True )& (len(encoder_layers)>0):  
             #If tied weights = True --> decoder layers are tied with the encoder layers 
-
+            print("encoder layers",encoder_layers)
             # get encoder dense layers
-            encoder_dense_layers = [layer for layer in encoder_layers if "dense" in layer.name]
+            # encoder_dense_layers = [layer for layer in encoder_layers if "dense" in layer.name]
+            def is_iterable(obj):
+                """ Check if the object is iterable but not a string """
+                return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, (str, bytes))
+
+            # Using a nested list comprehension to handle both nested and flat list scenarios
+            encoder_dense_layers = [layer for item in encoder_layers
+                                    for layer in (item if is_iterable(item) else [item])
+                                    if "dense" in layer.name]
+
             self.encoder_dense_layers = encoder_dense_layers    
             # build the decoder reverse looping through the encoder layers
             for n_units, e_layer in zip(self.layer_units[::-1], self.encoder_dense_layers[1:][::-1]):
@@ -235,7 +313,8 @@ class Decoder(tf.keras.Model):
         # apply transposed dense layers (decoder)
         for key, layer in self.all_layers.items():
             #print(layer.name)
-            x = layer(x)
+            #x = layer(x)
+            x = layer(x, training=training)
         return x
 
 
@@ -260,6 +339,7 @@ class AE(tf.keras.Model):
                  layer_units: list = [9,7,5], 
                  last_activation: str = "sigmoid",
                  return_layer_activations: bool = False,
+                 use_batch_norm: bool=False,
                  name='ae', 
                  **kwargs):
         """
@@ -281,10 +361,12 @@ class AE(tf.keras.Model):
         self.n_latent_dims = n_latent_dims
         self.last_activation = last_activation
         self.return_layer_activations = return_layer_activations
+        self.use_batch_norm = use_batch_norm
 
         self.encoder = Encoder(n_latent_dims=n_latent_dims, 
                                layer_units=layer_units,
-                               return_layer_activations=self.return_layer_activations)
+                               return_layer_activations=self.return_layer_activations,
+                               use_batch_norm=self.use_batch_norm)
         
         # Assuming the Encoder class returns a dictionary for its layers attribute
         encoder_layers_list = list(self.encoder.all_layers.values())
@@ -310,7 +392,7 @@ class AE(tf.keras.Model):
         # Determine the latent representation based on return_layer_activations flag
         latent = encoder_output[-1] if self.return_layer_activations else encoder_output
         
-        out = self.decoder(latent)
+        out = self.decoder(latent, training=training)
         return out
 
 class AEC(tf.keras.Model):
@@ -353,6 +435,7 @@ class AEC(tf.keras.Model):
                  return_layer_activations = False,
                  n_pred=20,
                  layer_units_latent_classifier=[2],
+                 use_batch_norm: bool=False,
                  name='aec', 
                  **kwargs):
 
@@ -365,10 +448,12 @@ class AEC(tf.keras.Model):
         self.return_layer_activations = return_layer_activations
         self.n_pred =  n_pred
         self.layer_units_latent_classifier = layer_units_latent_classifier
+        self.use_batch_norm = use_batch_norm
 
         self.encoder = Encoder(n_latent_dims=n_latent_dims, 
                                layer_units=layer_units,
-                               return_layer_activations=self.return_layer_activations)
+                               return_layer_activations=self.return_layer_activations,
+                               use_batch_norm=self.use_batch_norm)
         
         # Assuming the Encoder class returns a dictionary for its layers attribute
         encoder_layers_list = list(self.encoder.all_layers.values())
@@ -658,6 +743,7 @@ class DomainAdversarialAE(AE):
                  n_pred: int=10,
                  layer_units_latent_classifier: list=[2],
                  get_pred=False,
+                 use_batch_norm: bool=False,
                  name='da_ae', 
                  **kwargs):
         """
@@ -681,6 +767,7 @@ class DomainAdversarialAE(AE):
         self.layer_units = layer_units
         self.last_activation = last_activation
         self.get_pred = get_pred
+        self.use_batch_norm = use_batch_norm
                 
         if self.get_pred:
             self.n_pred = n_pred
@@ -689,7 +776,10 @@ class DomainAdversarialAE(AE):
             self.latent_classifier = Classifier(n_clusters=self.n_pred,layer_units = self.layer_units_latent_classifier)
         
         #autoencoder: encoder +decoder
-        self.encoder = Encoder(n_latent_dims = n_latent_dims, layer_units=layer_units,return_layer_activations=True)
+        self.encoder = Encoder(n_latent_dims = n_latent_dims,
+                                 layer_units=layer_units,
+                                 return_layer_activations=True,
+                                 use_batch_norm=self.use_batch_norm)
         encoder_layers_list = list(self.encoder.all_layers.values())
         self.decoder = Decoder(in_shape=self.in_shape,encoder_layers = encoder_layers_list,layer_units = self.layer_units, last_activation = self.last_activation)
         #adversarial classifier

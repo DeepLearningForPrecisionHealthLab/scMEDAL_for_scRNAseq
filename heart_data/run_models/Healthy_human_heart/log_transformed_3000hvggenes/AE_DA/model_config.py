@@ -25,6 +25,7 @@ build_model_dict = {
 #    "n_pred": 13,# n celltypes # not needed for ae_da
     "get_pred": False, #In this case we want AE_DA model Set to true if you want to train the model with a celltype classification loss function
     "last_activation": "sigmoid",
+    "use_batch_norm":True, #This is batch norm for encoder. Default is False
     "name": "ae_da" # Call the model that you want to use
 }
 
@@ -37,7 +38,7 @@ train_model_dict = {
     "batch_size": 512,  # training settings
 #    "epochs": 20,
 #    "epochs": 500,
-    "epochs":2,
+    "epochs":500,
     "monitor_metric": 'val_total_loss',
     "patience": 30,
     "stop_criteria": "early_stopping"

@@ -25,6 +25,7 @@ build_model_dict = {
 #    "layer_units_latent_classifier": [2], # comment this line for AE
 #    "n_pred": 13, #n celltypes
     "last_activation": "sigmoid",
+    "use_batch_norm":True, #This is batch norm for encoder. Default is False
     "name": "AE" # Call the model that you want to use
 }
 
@@ -39,11 +40,16 @@ train_model_dict = {
 #    "batch_size": 60,  # training settings
     "batch_size": 512,
 #    "epochs": 20,
-    "epochs":2,
+    "epochs":500,
     "monitor_metric": 'val_loss',
     "patience": 30,
-    "stop_criteria": "early_stopping"
+    "stop_criteria": "early_stopping",
+    "compute_latents_callback": True,
+    "sample_size":10000,
+    "model_type":"ae" #This sample size is used in the clustering scores callback
 }
+
+
 
 get_scores_dict = {
     "encoder_latent_name":"AE_latent_2", #Modify depending on the model
@@ -51,10 +57,15 @@ get_scores_dict = {
     "get_baseline": True #take forever
 }
 
+expt_design_dict = {'batch_col':'batch', #name of the batch column
+                        'bio_col':'celltype',
+                        'donor_col':'DonorID' # optional, this may be useful for plotting
+                    }
+
 # Combine all dictionaries into model_params_dict
 
 # model_params_dict now contains all key-value pairs from the individual dictionaries
-model_params_dict = {**compile_dict, **build_model_dict, **load_data_dict, **train_model_dict, **get_scores_dict}
+model_params_dict = {**compile_dict, **build_model_dict, **load_data_dict, **train_model_dict, **get_scores_dict,**expt_design_dict}
 
 # Define common plotting parameters. You will update the outpath after creating model_params with ModelManager
 plot_params = {"shape_col": "celltype",
@@ -98,7 +109,9 @@ latent_space_base = os.path.join(outputs_path, "latent_space", folder_name, mode
 
 # Define the run name (ensure model_params_dict is defined before this point)
 #"layer_units"
-constant_keys = ["layer_units_latent_classifier", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test","optimizer","loss","loss_weights","metrics"]
+
+
+constant_keys = ['batch_col','bio_col','donor_col',"layer_units_latent_classifier", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test","optimizer","loss","loss_weights","metrics"]
 # run_name = generate_run_name(model_params_dict, constant_keys, name='run_HPO')
 run_name = generate_run_name(model_params_dict, constant_keys, name='run_crossval')
 print("run_name",run_name)

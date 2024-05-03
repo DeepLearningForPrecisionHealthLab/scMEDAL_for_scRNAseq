@@ -1,8 +1,9 @@
 import sys
-sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
+sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics/utils")
 from model_train_utils import generate_run_name
 import os
-import tensorflow as tf
+import tf
+
 
 #Define model parameters
 
@@ -16,26 +17,26 @@ compile_dict = {"loss_recon":tf.keras.losses.MeanSquaredError(),# recon loss
                 # multi classification metric
                 "metric_multiclass":tf.keras.metrics.CategoricalAccuracy(name='categorical_accuracy'),   
                 "optimizer":tf.keras.optimizers.Adam(lr=0.0001),
-                "loss_recon_weight":2.0,    
-                #"loss_class_weight":0.01, #compile params (These are default but can be called when compiling). Not relevant when "get_pred": False, 
+                "loss_recon_weight":2.0,    # recon loss weight
+                # (These are default but can be called when compiling). 
+                #"loss_class_weight":0.01,# Not relevant when "get_pred": False, 
                 "loss_latent_cluster_weight":0.1,
                 #"loss_recon_cluster_weight":0.001 #Not relevant If "get_recon_cluster": False,
                 }
 
 build_model_dict = {
-                "n_latent_dims":2, #init parameters
+                "n_latent_dims":2, #bottle neck dim
                 "n_clusters":147, #batches
-#                "layer_units":[10],
-                "layer_units": [512,132],
+                "layer_units":[10], # units for one layer encoder and one layer decoder
                 "layer_units_classifier":[5],
                 "n_pred":13, #n celltypes
-                "last_activation":"sigmoid",
-                "post_loc_init_scale":0.1,
-                "prior_scale": 0.25,
-                "kl_weight": 1e-5,
+                "last_activation":"sigmoid", #last activation (input between zero and one)
+                "post_loc_init_scale":0.1, # posterior initial std
+                "prior_scale": 0.25,# prior initial std
+                "kl_weight": 1e-5, # kld weight
                 "get_pred": False, #optional to add or remove class classification
                 "get_recon_cluster": False, #optional to add or remove reconstruction cluster loss
-                "name": "ae_re" # Call the model that you want to use
+                "name": "re_ae" # Call the model that you want to use
                 }
 
 load_data_dict = {
@@ -46,33 +47,22 @@ load_data_dict = {
 train_model_dict = {
     "batch_size": 512,  # training settings
 #    "epochs": 20,
-    "epochs": 500,
-    "monitor_metric": 'val_total_loss',
+    "epochs": 200,
+    "monitor_metric": 'val_total_loss', # for early stopping
     "patience": 30,
-    "stop_criteria": "early_stopping",
-    "compute_latents_callback": True,
-    "sample_size":10000,
-    "model_type":"ae_re" #This sample size is used in the clustering scores callback
+    "stop_criteria": "early_stopping"
 }
-
-
 
 get_scores_dict = {
     "encoder_latent_name":"RE_AE_latent_2", #Modify depending on the model
-    "get_pca": False,
-    "get_baseline": False
+    "get_pca": False,# PCA not commputed
+    "get_baseline": False# Baseline scores not computed
 }
 
-
-expt_design_dict = {'batch_col':'batch', #name of the batch column
-                        'bio_col':'celltype',
-                        'donor_col':'DonorID', # optional, this may be useful for plotting
-                        'tissue_col':'TissueDetail'
-                    }
 # Combine all dictionaries into model_params_dict
 
 # model_params_dict now contains all key-value pairs from the individual dictionaries
-model_params_dict = {**compile_dict, **build_model_dict, **load_data_dict, **train_model_dict, **get_scores_dict,**expt_design_dict}
+model_params_dict = {**compile_dict, **build_model_dict, **load_data_dict, **train_model_dict, **get_scores_dict}
 
 # Define common plotting parameters. You will update the outpath after creating model_params with ModelManager
 plot_params = {"shape_col": "celltype",
@@ -114,7 +104,7 @@ latent_space_base = os.path.join(outputs_path, "latent_space", folder_name, mode
 
 # Define the run name (ensure model_params_dict is defined before this point)
 #"layer_units"
-constant_keys = ["loss_recon","loss_multiclass","metric_multiclass", "optimizer",'model_type','tissue_col','batch_col','bio_col','donor_col',"layer_units_classifier","get_recon_cluster","prior_scale","post_loc_init_scale", "layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
+constant_keys = ["layer_units_classifier","get_recon_cluster","prior_scale","post_loc_init_scale", "layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
 run_name = generate_run_name(model_params_dict, constant_keys, name='run_crossval')
 print("run_name",run_name)
 

@@ -1,8 +1,9 @@
 import sys
-sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
+sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics/utils")
 from model_train_utils import generate_run_name
 import os
 import tensorflow as tf
+
 
 #Define model parameters
 
@@ -35,7 +36,7 @@ build_model_dict = {
                 "kl_weight": 1e-5,
                 "get_pred": False, #optional to add or remove class classification
                 "get_recon_cluster": False, #optional to add or remove reconstruction cluster loss
-                "name": "ae_re" # Call the model that you want to use
+                "name": "re_ae" # Call the model that you want to use
                 }
 
 load_data_dict = {
@@ -49,13 +50,8 @@ train_model_dict = {
     "epochs": 500,
     "monitor_metric": 'val_total_loss',
     "patience": 30,
-    "stop_criteria": "early_stopping",
-    "compute_latents_callback": True,
-    "sample_size":10000,
-    "model_type":"ae_re" #This sample size is used in the clustering scores callback
+    "stop_criteria": "early_stopping"
 }
-
-
 
 get_scores_dict = {
     "encoder_latent_name":"RE_AE_latent_2", #Modify depending on the model
@@ -63,16 +59,10 @@ get_scores_dict = {
     "get_baseline": False
 }
 
-
-expt_design_dict = {'batch_col':'batch', #name of the batch column
-                        'bio_col':'celltype',
-                        'donor_col':'DonorID', # optional, this may be useful for plotting
-                        'tissue_col':'TissueDetail'
-                    }
 # Combine all dictionaries into model_params_dict
 
 # model_params_dict now contains all key-value pairs from the individual dictionaries
-model_params_dict = {**compile_dict, **build_model_dict, **load_data_dict, **train_model_dict, **get_scores_dict,**expt_design_dict}
+model_params_dict = {**compile_dict, **build_model_dict, **load_data_dict, **train_model_dict, **get_scores_dict}
 
 # Define common plotting parameters. You will update the outpath after creating model_params with ModelManager
 plot_params = {"shape_col": "celltype",
@@ -114,7 +104,7 @@ latent_space_base = os.path.join(outputs_path, "latent_space", folder_name, mode
 
 # Define the run name (ensure model_params_dict is defined before this point)
 #"layer_units"
-constant_keys = ["loss_recon","loss_multiclass","metric_multiclass", "optimizer",'model_type','tissue_col','batch_col','bio_col','donor_col',"layer_units_classifier","get_recon_cluster","prior_scale","post_loc_init_scale", "layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
+constant_keys = ["layer_units_classifier","get_recon_cluster","prior_scale","post_loc_init_scale", "layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
 run_name = generate_run_name(model_params_dict, constant_keys, name='run_crossval')
 print("run_name",run_name)
 

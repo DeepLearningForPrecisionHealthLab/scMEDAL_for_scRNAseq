@@ -8,14 +8,14 @@ import sys
 # from tensorflow_utilities import use_specific_gpu
 
 print(tf.__version__)
-
-# change path to utils
-sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
-from utils import *
-from model_train_utils import run_all_folds,get_metric2optimizemodel#,run_model_pipeline,ModelManager,get_train_val_data,load_data,train_and_save_model,PlotLoss,get_pca_scoresandplots,get_encoder_latentandscores
 # path to model_config
 sys.path.append("../")
 from model_config import *
+# change path to utils
+# sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
+from utils import *
+from model_train_utils import run_all_folds,get_metric2optimizemodel#,run_model_pipeline,ModelManager,get_train_val_data,load_data,train_and_save_model,PlotLoss,get_pca_scoresandplots,get_encoder_latentandscores
+
 # path to models
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/models")
 import glob
@@ -35,16 +35,10 @@ intGPU = 1
 # If you need to run a quick test: Update the 'epochs' key in the dictionary. Note: This will not update the name of the folder.
 # model_params_dict["epochs"] = 20
 # Define the batch and bio column
-# batch_col = 'batch'
-# bio_col = "celltype"
-# donor_col = "DonorID"
-# tissue_col = "TissueDetail"
-
-batch_col = model_params_dict['batch_col']
-bio_col = model_params_dict['bio_col']
-donor_col = model_params_dict['donor_col'] #this column is optional
-
-tissue_col = model_params_dict['tissue_col']
+batch_col = 'batch'
+bio_col = "celltype"
+donor_col = "DonorID"
+tissue_col = "TissueDetail"
 
 # We will use this dictionary to plot latent spaces. The basic combination is  {"shape_col": bio_col, "color_col": batch_col}, but when we have lots of cells, we cannot distinguish shapes.
 # We only plot bio_col
@@ -104,7 +98,7 @@ mean_scores = run_all_folds(Model=DomainEnhancingAutoencoderClassifier,
                 issparse=True,
                 load_dense=True,                
                 shape_color_dict=shape_color_dict,
-                sample_size=model_params_dict["sample_size"])
+                sample_size=25000)
 
 # maximizing biological clustering and minimizing batch cluster
 # metric2optimize = bio_mean - batch_mean

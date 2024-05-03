@@ -42,9 +42,12 @@ intGPU = 1
 # model_params_dict["epochs"] = 20
 
 # Define the batch and bio column
-batch_col = 'batch'
-bio_col = "celltype"
-donor_col = "DonorID"
+# batch_col = 'batch'
+# bio_col = "celltype"
+# donor_col = "DonorID"
+batch_col = model_params_dict['batch_col']
+bio_col = model_params_dict['bio_col']
+donor_col = model_params_dict['donor_col'] #this column is optional
 
 # We will use this dictionary to plot latent spaces. The basic combination is  {"shape_col": bio_col, "color_col": batch_col}, but when we have lots of cells, we cannot distinguish shapes.
 # We only plot bio_col
@@ -101,7 +104,7 @@ mean_scores = run_all_folds(Model=DomainAdversarialAE,
                 issparse=True,
                 load_dense=True,                
                 shape_color_dict=shape_color_dict,
-                sample_size=10000)
+                sample_size=model_params_dict["sample_size"])
 
 # maximizing biological clustering and minimizing batch cluster
 # metric2optimize = bio_mean - batch_mean

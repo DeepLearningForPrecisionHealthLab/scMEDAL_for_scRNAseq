@@ -2,24 +2,30 @@ import sys
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics/utils")
 from model_train_utils import generate_run_name
 import os
+import tensorflow as tf
 
 
 # Define individual dictionaries
-compile_dict = {
-    "loss_gen_weight": 0.4,  # compile settings
-    "loss_recon_weight": 15,
-    "loss_class_weight": 1
+compile_dict = {"loss_recon":tf.keras.losses.MeanSquaredError(), #recon loss
+    "loss_multiclass":tf.keras.losses.CategoricalCrossentropy(), #class loss
+    "metric_multiclass":tf.keras.metrics.CategoricalAccuracy(name='acc'),
+    "opt_autoencoder":tf.keras.optimizers.Adam(lr=0.0001), #optimizer AEC
+    "opt_adversary":tf.keras.optimizers.Adam(lr=0.0001),#optimizer Adversary
+    "loss_gen_weight": 1,  # compile settings
+    "loss_recon_weight": 1050,
+    "loss_class_weight": 2
 }
 
 build_model_dict = {
     "n_latent_dims": 2,  # init settings
-    "layer_units": [10],
-#    "layer_units": [512,132],
+#    "layer_units": [10],
+    "layer_units": [512,132],
     "n_clusters":147,#n batches
     "layer_units_latent_classifier": [2],
     "n_pred": 13,# n celltypes
     "get_pred": True, # Set to true if you want to train the model with a celltype classification loss function
     "last_activation": "sigmoid",
+    "use_batch_norm":True, #This is batch norm for encoder. Default is False
     "name": "ae_da" # Call the model that you want to use
 }
 
@@ -30,11 +36,14 @@ load_data_dict = {
 
 train_model_dict = {
     "batch_size": 512,  # training settings
-    "epochs": 20,
-#    "epochs": 200,
+#    "epochs": 20,
+    "epochs": 500,
     "monitor_metric": 'val_total_loss',
     "patience": 30,
-    "stop_criteria": "early_stopping"
+    "stop_criteria": "early_stopping",
+    "compute_latents_callback": True,
+    "sample_size":10000, #This sample size is used in the clustering scores callback
+    "model_type":"ae_da"
 }
 
 get_scores_dict = {
@@ -43,10 +52,17 @@ get_scores_dict = {
     "get_baseline": False
 }
 
+
+expt_design_dict = {'batch_col':'batch', #name of the batch column
+                        'bio_col':'celltype',
+                        'donor_col':'DonorID' # optional, this may be useful for plotting
+                    }
+
+
 # Combine all dictionaries into model_params_dict
 
 # model_params_dict now contains all key-value pairs from the individual dictionaries
-model_params_dict = {**compile_dict, **build_model_dict, **load_data_dict, **train_model_dict, **get_scores_dict}
+model_params_dict = {**compile_dict, **build_model_dict, **load_data_dict, **train_model_dict, **get_scores_dict,**expt_design_dict}
 
 # Define common plotting parameters. You will update the outpath after creating model_params with ModelManager
 plot_params = {"shape_col": "celltype",
@@ -91,7 +107,8 @@ latent_space_base = os.path.join(outputs_path, "latent_space", folder_name, mode
 
 # Define the run name (ensure model_params_dict is defined before this point)
 # "layer_units"
-constant_keys = ["layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
+
+constant_keys = ['batch_col','bio_col','donor_col',"loss_recon","loss_multiclass","metric_multiclass","opt_autoencoder","opt_adversary","layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
 # run_name = generate_run_name(model_params_dict, constant_keys, name='run_HPO')
 run_name = generate_run_name(model_params_dict, constant_keys, name='run_crossval')
 print("run_name",run_name)

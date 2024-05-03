@@ -4,6 +4,7 @@ import sys
 # you can change this path to your own utils folder
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
 from utils import create_folder,read_adata,get_OHE,min_max_scaling,plot_rep,calculate_merge_scores,plot_table,get_split_paths
+from callbacks import ComputeLatentsCallback
 import os
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, History
@@ -446,9 +447,79 @@ class ModelManager:
             print(f"{key}: {value}")
 
 
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+
+def plot_clustering_scores_curve(train_output_dir, val_output_dir, label_col, save_path=None):
+    """
+    Plots the Davies-Bouldin Index, its inverse, and the Calinski-Harabasz Index over epochs from two CSV files,
+    comparing training and validation datasets. The inverse Davies-Bouldin Index is plotted on a twin axis due
+    to its different scale.
+
+    Parameters:
+    - train_output_dir (str): Directory path where the CSV file for training data is stored.
+    - val_output_dir (str): Directory path where the CSV file for validation data is stored.
+    - label_col (str): Label column for which the clustering scores are recorded. Used for identifying the dataset.
+    - save_path (str, optional): Path to save the resulting plot. If None, the plot is not saved to a file.
+
+    Outputs:
+    - A matplotlib plot displaying the three clustering scores over epochs for both training and validation datasets.
+      The plot includes a legend and is displayed via `plt.show()`.
+
+    Example:
+    plot_combined_clustering_scores('/path/to/train/output', '/path/to/val/output', 'batch', '/path/to/save/plot.png')
+    """
+    # Load training data
+    train_score_path = os.path.join(train_output_dir, f'clustering_scores_{label_col}.csv')
+    train_data = pd.read_csv(train_score_path)
+
+    # Load validation data
+    val_score_path = os.path.join(val_output_dir, f'clustering_scores_{label_col}.csv')
+    val_data = pd.read_csv(val_score_path)
+
+    # Plotting
+    fig, ax1 = plt.subplots(figsize=(12, 8))
+    
+    # Main axis for DB and CH indexes
+    ax1.plot(train_data['epoch'], train_data['DB'], label='Train DB Index', color='blue', marker='o')
+    ax1.plot(val_data['epoch'], val_data['DB'], label='Val DB Index', color='cyan', marker='x')
+    ax1.plot(train_data['epoch'], train_data['CH'], label='Train CH Index', color='red', linestyle='--')
+    ax1.plot(val_data['epoch'], val_data['CH'], label='Val CH Index', color='magenta', linestyle='--')
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('DB and CH Scores')
+    ax1.legend(loc='upper left')
+    ax1.grid(True)
+
+    # Twin axis for 1/DB index
+    ax2 = ax1.twinx()
+    ax2.plot(train_data['epoch'], train_data['1/DB'], label='Train Inverse DB Index', color='green', marker='o', linestyle=':')
+    ax2.plot(val_data['epoch'], val_data['1/DB'], label='Val Inverse DB Index', color='lightgreen', marker='x', linestyle=':')
+    ax2.set_ylabel('Inverse DB Score')
+    ax2.legend(loc='upper right')
+
+    plt.title(f'Combined Clustering Scores Over Epochs for {label_col}')
+
+    # Show plot
+    plt.show()
+
+    # Save plot to file if save_path is provided
+    if save_path:
+        os.path.join(save_path, f'clustering_scores_{label_col}.png')
+        fig.savefig(os.path.join(save_path, f'clustering_scores_{label_col}.png'))
+        print(f"Plot saved to {save_path}")
+
+# Example usage
+# train_output_dir = '/path/to/train/output'
+# val_output_dir = '/path/to/val/output'
+# label_col = 'batch'  # example label column
+# save_path = '/path/to/save/plot.png'
+# plot_combined_clustering_scores(train_output_dir, val_output_dir, label_col, save_path)
 
 
-def train_and_save_model(model, train_in, train_out, val_in, val_out, model_params, save_model=False):
+
+
+def train_and_save_model(model, train_in, train_out, val_in, val_out, model_params, save_model=False,metadata_dict=None):
     """
     Trains the provided model with given data and saves the model parameters and best weights.
 
@@ -461,6 +532,7 @@ def train_and_save_model(model, train_in, train_out, val_in, val_out, model_para
     - model_params: Namespace object with model parameters and hyperparameters:
         monitor_metric, patience, checkpoint_path, epochs, batch_size, model_path.
     - save_model (bool): Flag to determine if the model should be saved.
+    - metadata_dict (dict): Dictionary with pd.DataFrames containing the metadata for 'train' and 'val' keys
 
     Returns:
     - model: The trained model.
@@ -496,11 +568,44 @@ def train_and_save_model(model, train_in, train_out, val_in, val_out, model_para
         # Save initial weights at epoch 0 using the `checkpoint_path` format
         model.save_weights(model_params.checkpoint_path.format(epoch=0))
 
+    # Compute latent callback: gets latent and computes clustering scores
+    if model_params.compute_latents_callback and metadata_dict:
+        print("Adding ComputeLatentsCallback, which calcuates clustering scores on sample size: ", model_params.sample_size)
+        # Assuming `inputs` can be either a tuple or another type, and `modeltype` is a string
+        # define outpus path:
+        train_output_dir = os.path.join(model_params.latent_path, "train")
+        val_output_dir = os.path.join(model_params.latent_path, "val")
+
+
+        LatentsCallback_train = ComputeLatentsCallback(model,
+                                                        X=train_in,
+                                                        metadata = metadata_dict["train"],
+                                                        labels_list=[model_params.batch_col, model_params.bio_col],
+                                                        output_dir = train_output_dir,
+                                                        sample_size = model_params.sample_size,
+                                                        batch_size=model_params.batch_size,
+                                                        model_type = model_params.model_type)
+        LatentsCallback_val = ComputeLatentsCallback(model,
+                                                        X=val_in,
+                                                        metadata = metadata_dict["val"],
+                                                        labels_list=[model_params.batch_col, model_params.bio_col],
+                                                        output_dir = val_output_dir,
+                                                        sample_size = model_params.sample_size,
+                                                        batch_size = model_params.batch_size,
+                                                        model_type = model_params.model_type)
+        callbacks.append(LatentsCallback_train)
+        callbacks.append(LatentsCallback_val)
     # Train the model with the callbacks
     history = model.fit(train_in, train_out, epochs=model_params.epochs,
                         batch_size=model_params.batch_size, 
                         validation_data=(val_in, val_out), 
                         callbacks=callbacks)
+
+    if model_params.compute_latents_callback and metadata_dict:
+        # plot clustering scores curves
+        plot_clustering_scores_curve(train_output_dir, val_output_dir, model_params.batch_col, save_path=model_params.latent_path)
+        plot_clustering_scores_curve(train_output_dir, val_output_dir, model_params.bio_col, save_path=model_params.latent_path)
+
 
     if model_params.stop_criteria == "early_stopping":
         print("\nAdding early stopping params..")
@@ -517,6 +622,13 @@ def train_and_save_model(model, train_in, train_out, val_in, val_out, model_para
         print("\nSaving model..")
         keys2drop = ["optimizer","loss","loss_weights","metrics"]
         dict2save = {f"{key}:{value}" for key, value in model_params_dict.items() if key not in keys2drop}
+        # Check if 'loss_weights' is a key in the model_params_dict before proceeding
+        if "loss_weights" in model_params_dict:
+            # Getting the loss_weights sub-dictionary and prefixing keys with 'loss_weights_'
+            prefixed_loss_weights = {'loss_weights_' + key: value for key, value in model_params_dict["loss_weights"].items()}
+
+            # Adding the updated loss_weights dictionary to dict2save
+            dict2save.update(prefixed_loss_weights)
         # Correct once chatgpt is back (I want to add the tf elements)f
         # Save model parameters to a YAML file
         with open(model_params.model_path + '/model_params.yaml', 'w') as f:
@@ -1350,10 +1462,16 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
         train_out_dict = {
         'reconstruction_output': train_out[0],
         'classification_output': train_out[1]}
-    val_out_dict = {
-        'reconstruction_output': val_out[0],
-        'classification_output': val_out[1]}
+        val_out_dict = {
+            'reconstruction_output': val_out[0],
+            'classification_output': val_out[1]}
 
+    # Get metadata for callbacks
+    metadata_dict = None
+    if model_params.compute_latents_callback:
+        metadata_dict={}
+        metadata_dict["train"] = adata_dict["train"].obs 
+        metadata_dict["val"] = adata_dict["val"].obs 
 
 
     # 3. Build and train model
@@ -1361,10 +1479,23 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
     model.compile(**compile_dict)
     # Train the model with appropriate data format
     if model_type == "aec":
-        trained_model, history = train_and_save_model(model, train_in, train_out_dict, val_in, val_out_dict, model_params, save_model)
+        trained_model, history = train_and_save_model(model, train_in, train_out_dict, val_in, val_out_dict, model_params, save_model,metadata_dict)
     else:
-        trained_model, history = train_and_save_model(model, train_in, train_out, val_in, val_out, model_params, save_model)
+        trained_model, history = train_and_save_model(model, train_in, train_out, val_in, val_out, model_params, save_model,metadata_dict)
     print(trained_model.summary())
+    # if model_type == "ae_re":
+    #     print(trained_model.re_encoder.summary())
+    #     print(trained_model.re_decoder.summary())
+    if model_type == "ae_re":
+        print("Available keys in re_layers:", trained_model.re_decoder.re_layers.keys())
+        for key,layer in trained_model.re_decoder.re_layers.items():
+            print(key," re layer summary\n",layer.summary())
+    else:
+        print(trained_model.encoder.summary())
+        print(trained_model.decoder.summary())
+
+
+
     # 4. Plot Loss graph
     plot_params = {"outpath": model_params.plots_path}
     print("Starting plots")
@@ -1419,6 +1550,47 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
         adata_dict, df_scores_dict = encoder_out
     else: 
         adata_dict = encoder_out
+
+    # 6.1. Reconstruct input
+    outputs = {
+        "train": trained_model.predict(train_in, batch_size=model_params.batch_size),
+        "val": trained_model.predict(val_in, batch_size=model_params.batch_size)
+    }
+
+    # Check the model type and compute reconstructions accordingly
+    for dataset_type in outputs:
+        print("\nComputing reconstruction for ", dataset_type)
+        output = outputs[dataset_type]
+
+        if model_type == "ae":
+            recon = output
+        elif model_type == "aec":
+            recon = output['reconstruction_output']
+        elif model_type == "ae_da":
+            if model_params.get_pred:
+                recon, pred_class, pred_cluster = output
+            else:
+                recon, pred_cluster = output
+        elif model_type == "ae_re":
+            recon = output['recon']
+
+        # Ensure recon is a numpy array
+        if not isinstance(recon, np.ndarray):
+            recon = np.array(recon)
+
+        # Save recon outputs to a file at the specified latent path
+        np.save(os.path.join(model_params.latent_path, "recon_" + dataset_type), recon)
+        
+        # Calculate and print standard deviations of the original and reconstructed data
+        std_X = np.std(adata_dict[dataset_type].X, axis=1, ddof=1)  # Std of original data
+        print(f"{dataset_type} std of X:", std_X)
+        print(f"{dataset_type} Mean of std of X:", np.mean(std_X))
+        
+        std_recon = np.std(recon, axis=1, ddof=1)  # Std of reconstructed data
+        print(f"{dataset_type} std of recon(X):", std_recon)
+        print(f"Mean of std of recon(X):", np.mean(std_recon))
+
+
 
     gc.collect()
 

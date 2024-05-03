@@ -300,6 +300,8 @@ def get_OHE(adata, categories, col):
     Generates one-hot encoded data for a specified column in an AnnData object.
     If categories are provided, the one-hot encoding will be ordered by these categories.
     If categories is None, the categories are inferred from the data.
+    Note: The function doesn't alter the order of the rows in the original AnnData object.
+    Instead, it affects how the data is encoded into one-hot format based on the column specified. 
 
     Parameters:
     - adata: AnnData object containing the data.

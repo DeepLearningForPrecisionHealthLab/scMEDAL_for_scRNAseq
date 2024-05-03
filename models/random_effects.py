@@ -227,7 +227,7 @@ class GammaRandomEffects(RandomEffects):
                 'l1_weight': self.l1_weight}
         
 
-class ClusterScaleBiasBlock(tkl.Layer):
+class ClusterScaleBiasBlock(tf.keras.Model):
     
     def __init__(self,
                  n_features, 

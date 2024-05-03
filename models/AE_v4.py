@@ -263,7 +263,7 @@ class Decoder(tf.keras.Model):
 
         if (self.tied_weights == True )& (len(encoder_layers)>0):  
             #If tied weights = True --> decoder layers are tied with the encoder layers 
-            print("encoder layers",encoder_layers)
+            #print("encoder layers",encoder_layers)
             # get encoder dense layers
             # encoder_dense_layers = [layer for layer in encoder_layers if "dense" in layer.name]
             def is_iterable(obj):
@@ -777,13 +777,15 @@ class DomainAdversarialAE(AE):
         
         #autoencoder: encoder +decoder
         self.encoder = Encoder(n_latent_dims = n_latent_dims,
-                                 layer_units=layer_units,
+                                 layer_units=self.layer_units,
                                  return_layer_activations=True,
                                  use_batch_norm=self.use_batch_norm)
         encoder_layers_list = list(self.encoder.all_layers.values())
         self.decoder = Decoder(in_shape=self.in_shape,encoder_layers = encoder_layers_list,layer_units = self.layer_units, last_activation = self.last_activation)
         #adversarial classifier
-        self.adversary = AdversarialClassifier(n_clusters = self.n_clusters, n_latent_dims = self.n_latent_dims,layer_units=self.layer_units)
+        self.adversary = AdversarialClassifier(n_clusters = self.n_clusters,
+                                                 n_latent_dims = self.n_latent_dims,
+                                                 layer_units=self.layer_units)
     
     def call(self, inputs,training=None):
 

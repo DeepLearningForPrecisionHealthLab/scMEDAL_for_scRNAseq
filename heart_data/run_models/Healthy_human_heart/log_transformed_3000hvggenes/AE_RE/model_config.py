@@ -16,7 +16,7 @@ compile_dict = {"loss_recon":tf.keras.losses.MeanSquaredError(),# recon loss
                 # multi classification metric
                 "metric_multiclass":tf.keras.metrics.CategoricalAccuracy(name='categorical_accuracy'),   
                 "optimizer":tf.keras.optimizers.Adam(lr=0.0001),
-                "loss_recon_weight":2.0,    
+                "loss_recon_weight":110.0,    
                 #"loss_class_weight":0.01, #compile params (These are default but can be called when compiling). Not relevant when "get_pred": False, 
                 "loss_latent_cluster_weight":0.1,
                 #"loss_recon_cluster_weight":0.001 #Not relevant If "get_recon_cluster": False,
@@ -29,7 +29,8 @@ build_model_dict = {
                 "layer_units": [512,132],
                 "layer_units_classifier":[5],
                 "n_pred":13, #n celltypes
-                "last_activation":"sigmoid",
+#                "last_activation":"sigmoid",
+                "last_activation": "linear", #last activation of the decoder (will determine how the reconstructed outputs look)
                 "post_loc_init_scale":0.1,
                 "prior_scale": 0.25,
                 "kl_weight": 1e-5,
@@ -46,11 +47,11 @@ load_data_dict = {
 train_model_dict = {
     "batch_size": 512,  # training settings
 #    "epochs": 20,
-    "epochs": 500,
+    "epochs": 20,
     "monitor_metric": 'val_total_loss',
     "patience": 30,
     "stop_criteria": "early_stopping",
-    "compute_latents_callback": True,
+    "compute_latents_callback": False,
     "sample_size":10000,
     "model_type":"ae_re" #This sample size is used in the clustering scores callback
 }
@@ -58,8 +59,9 @@ train_model_dict = {
 
 
 get_scores_dict = {
-    "encoder_latent_name":"RE_AE_latent_2", #Modify depending on the model
+    "encoder_latent_name":"RE_AE_latent_50", #Modify depending on the model
     "get_pca": False,
+    "n_components":50,
     "get_baseline": False
 }
 
@@ -114,7 +116,7 @@ latent_space_base = os.path.join(outputs_path, "latent_space", folder_name, mode
 
 # Define the run name (ensure model_params_dict is defined before this point)
 #"layer_units"
-constant_keys = ["loss_recon","loss_multiclass","metric_multiclass", "optimizer",'model_type','tissue_col','batch_col','bio_col','donor_col',"layer_units_classifier","get_recon_cluster","prior_scale","post_loc_init_scale", "layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
+constant_keys = ["n_components","loss_recon","loss_multiclass","metric_multiclass", "optimizer",'model_type','tissue_col','batch_col','bio_col','donor_col',"layer_units_classifier","get_recon_cluster","prior_scale","post_loc_init_scale", "layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
 run_name = generate_run_name(model_params_dict, constant_keys, name='run_crossval')
 print("run_name",run_name)
 

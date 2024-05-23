@@ -919,6 +919,7 @@ class DomainAdversarialAE(AE):
         
         #apply gradients
         grads_adv = gt.gradient(loss_adv, self.adversary.trainable_variables)
+        # minimizing adv loss (remove comments)
         self.opt_adversary.apply_gradients(zip(grads_adv, self.adversary.trainable_variables))
         
         # Update adversarial loss tracker

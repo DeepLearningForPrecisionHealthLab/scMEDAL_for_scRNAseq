@@ -624,8 +624,14 @@ def train_and_save_model(model, train_in, train_out, val_in, val_out, model_para
         dict2save = {f"{key}:{value}" for key, value in model_params_dict.items() if key not in keys2drop}
         # Check if 'loss_weights' is a key in the model_params_dict before proceeding
         if "loss_weights" in model_params_dict:
-            # Getting the loss_weights sub-dictionary and prefixing keys with 'loss_weights_'
-            prefixed_loss_weights = {'loss_weights_' + key: value for key, value in model_params_dict["loss_weights"].items()}
+            # Check if the type of model_params_dict["loss_weights"] is a dictionary
+            if isinstance(model_params_dict["loss_weights"], dict):
+                # Getting the loss_weights sub-dictionary and prefixing keys with 'loss_weights_'
+                prefixed_loss_weights = {'loss_weights_' + key: value for key, value in model_params_dict["loss_weights"].items()}
+            else:
+                # If it's not a dictionary, treat it as a single value under the key 'loss_weights'
+                prefixed_loss_weights = {"loss_weights": model_params_dict["loss_weights"]}
+
 
             # Adding the updated loss_weights dictionary to dict2save
             dict2save.update(prefixed_loss_weights)
@@ -962,7 +968,7 @@ class PlotLoss:
 
 
 
-def get_pca_andplot(adata_dict, plot_params, eval_test=False, shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}}):
+def get_pca_andplot(adata_dict, plot_params, eval_test=False, shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}},n_components=2):
     from sklearn.decomposition import PCA
     import time
     """
@@ -973,13 +979,14 @@ def get_pca_andplot(adata_dict, plot_params, eval_test=False, shape_color_dict={
     - plot_params (dict): Parameters to be used for plotting.
     - eval_test (bool, optional): A flag indicating whether test data is included and should be processed. Defaults to False.
     - shape_color_dict (dict, optional): Dictionary with shape_col and color_col combinations for plotting.
+    - n_components (int): number of pca components
 
     Returns:
     - dict: A dictionary of updated AnnData objects with PCA transformations applied.
     """
     start_time = time.time()
-    print("Calculating PCA ncomponents=2")
-    pca = PCA(n_components=2)
+    print("Calculating PCA ncomponents=",n_components)
+    pca = PCA(n_components=n_components)
     variance_ratio = None  # Initialize variance_ratio
 
     # Loop through each dataset type: 'train', 'val', 'test'
@@ -1520,7 +1527,7 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
     # 5. Perform PCA if requested
     if model_params.get_pca:
         print("\ngetting pca")
-        adata_dict = get_pca_andplot(adata_dict, plot_params, eval_test=model_params.eval_test,shape_color_dict=shape_color_dict)
+        adata_dict = get_pca_andplot(adata_dict, plot_params, eval_test=model_params.eval_test,shape_color_dict=shape_color_dict,n_components=model_params.n_components)
 
     # Initialize z_ohe_dict
     z_ohe_dict = None
@@ -1910,6 +1917,28 @@ def get_metric2optimizemodel(mean_scores, subset='val', metric='silhouette', bat
     # Aim to maximize biological mean and minimize batch mean
     metric2optimize = bio_mean - batch_mean
     return metric2optimize
+
+def get_metric2optimize_re(mean_scores, subset='val', metric='silhouette', batch_col='donor'):
+    """
+    Calculates a metric to optimize a model by maximizing biological clustering and minimizing batch clustering.
+
+    Parameters:
+    - mean_scores (DataFrame): DataFrame containing mean scores (mean across folds).
+    - subset (str): Subset of data to consider (e.g., 'train', 'val', 'test').
+    - metric (str): Metric to be used for optimization, typically 'silhouette'.
+    - batch_col (str): Column name for batch data.
+    - bio_col (str): Column name for biological data.
+
+    Returns:
+    - float: Calculated metric value to optimize.
+    """
+    batch_mean = mean_scores[subset].loc[(batch_col, metric), 'mean']
+    # bio_mean = mean_scores[subset].loc[(bio_col, metric), 'mean']
+
+    # Aim to maximize biological mean and minimize batch mean
+    metric2optimize = batch_mean
+    return metric2optimize
+
 
 
 

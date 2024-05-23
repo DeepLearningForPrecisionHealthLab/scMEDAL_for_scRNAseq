@@ -88,6 +88,7 @@ class Trial(tune.Trainable):
 
     def setup(self, config: dict):
         self.config = config
+        print(os.system('nvidia-smi'))
 
     def step(self):
         os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
@@ -149,7 +150,7 @@ if not RAY_RUN:
     use_specific_gpu(intGPU, fraction=1)
 else:
     num_GPU = 0.5
-    num_CPU = 4
+    num_CPU = 1 #CHANGED BECAUSE OF MEMORY issues
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
     if "ip_head" not in os.environ:
         # If ip_head is not set, then set it to the IP address of current node
@@ -198,7 +199,7 @@ else:
 
     local_dir = ray_base
     #Total number of models to run
-    num_models = 3
+    num_models = 2
 
 
     # Define the search space

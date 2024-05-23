@@ -45,9 +45,9 @@ load_data_dict = {
 }
 
 train_model_dict = {
-    "batch_size": 512,  # training settings
+    "batch_size": 64,  # training settings
 #    "epochs": 20,
-    "epochs": 20,
+    "epochs": 500,
     "monitor_metric": 'val_total_loss',
     "patience": 30,
     "stop_criteria": "early_stopping",

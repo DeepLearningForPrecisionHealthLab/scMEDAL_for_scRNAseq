@@ -595,11 +595,13 @@ def train_and_save_model(model, train_in, train_out, val_in, val_out, model_para
                                                         model_type = model_params.model_type)
         callbacks.append(LatentsCallback_train)
         callbacks.append(LatentsCallback_val)
+    print(os.system('nvidia-smi'))
     # Train the model with the callbacks
     history = model.fit(train_in, train_out, epochs=model_params.epochs,
                         batch_size=model_params.batch_size, 
                         validation_data=(val_in, val_out), 
                         callbacks=callbacks)
+    print(os.system('nvidia-smi'))
 
     if model_params.compute_latents_callback and metadata_dict:
         # plot clustering scores curves

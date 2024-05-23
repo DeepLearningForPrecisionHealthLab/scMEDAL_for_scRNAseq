@@ -83,6 +83,49 @@ Explore the models used in the Heart Data Experiment:
   - There is a model_config.py file for each model. See AEC example [here](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC/model_config.py)
   - Updates model settings and defines output paths.
 
+
+```markdown
+# Experiment Configuration
+
+Make sure you update your data paths in `model_config.py`:
+
+```python
+data_base_path = "path to base path with all variants of the experiment"
+scenario_id = "path to specific pre-processing of your experiment"
+```
+
+## Construct the Data Paths
+
+- **Path to the data from the experiment you want to run:**
+
+```python
+data_path = os.path.join(data_base_path, scenario_id)
+```
+
+- **Path to the folder that contains the specific splits (for k-fold cross validation you are running):**
+
+```python
+data_seen = os.path.join(data_base_path, scenario_id, 'splits')
+print(f"Parent folder: {data_seen}")
+```
+
+## Base Output Path
+
+Update the following variable in your script:
+
+```python
+outputs_path = "/path/to/outputs"
+```
+
+## Folder and Model Naming
+
+Define how you want to name your experiment and the model folder name:
+
+```python
+folder_name = "how you want to name your expt"
+model_name = "AE_RE"  # the folder name of your output
+```
+```
 ### Script Execution
 - **Run Model Across All Folds**
   - Command: `python run_modelname_allfolds.py`

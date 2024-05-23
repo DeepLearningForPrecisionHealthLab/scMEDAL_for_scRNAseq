@@ -126,7 +126,7 @@ folder_name = "how you want to name your expt"
 model_name = "AE_RE"  # the folder name of your output
 ```
 
-### Script Execution
+# Script Execution
 
 - **Run Model Across All Folds**
   - Command: `python run_modelname_allfolds.py`

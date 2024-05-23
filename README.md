@@ -78,14 +78,14 @@ Explore the models used in the Heart Data Experiment:
   - [Config Split Paths Script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/config_split_paths.py): Manages paths for input data and data splits.
   - [Check Splits Notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/check_splits.ipynb): Ensures no data leakage between training, testing, and validation sets.
 
-### Experiment Configuration
-- **Model Configuration Script**
-  - There is a model_config.py file for each model. See AEC example [here](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC/model_config.py)
-  - Updates model settings and defines output paths.
 
-
-```markdown
 # Experiment Configuration
+
+### Model Configuration Script
+
+- **Model Configuration**
+  - Each model has its own `model_config.py` file. For an example, see the [AEC model configuration](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC/model_config.py).
+  - This script updates model settings and defines output paths.
 
 Make sure you update your data paths in `model_config.py`:
 
@@ -125,15 +125,19 @@ Define how you want to name your experiment and the model folder name:
 folder_name = "how you want to name your expt"
 model_name = "AE_RE"  # the folder name of your output
 ```
-```
+
 ### Script Execution
+
 - **Run Model Across All Folds**
   - Command: `python run_modelname_allfolds.py`
 - **Slurm Submission Script**
   - Command: `sbatch sbatch_run_modelname.sh`
 
 ### Execution Environment
+
 - The experiments are executed within the ARMED_Aixa_v2 environment.
 
 ### Notes
-Make sure to change the path to the utils folder in each of the files of the type: run_modelname_allfolds.py
+
+Make sure to change the path to the utils folder in each of the files of the type: `run_modelname_allfolds.py`.
+```

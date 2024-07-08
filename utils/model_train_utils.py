@@ -18,6 +18,34 @@ import scipy
 
 
 
+# def generate_run_name(model_params_dict, constant_keys, name='run'):
+#     """
+#     Generates a run name by concatenating key-value pairs from the model parameters dictionary.
+
+#     Parameters:
+#     - model_params_dict (dict): Dictionary containing model parameters.
+#     - constant_keys (list): List of keys to be excluded from the run name.
+#     - name (str): Prefix for the run name.
+
+#     Returns:
+#     - str: A string representing the run name.
+#     """
+#     def safe_round(value):
+#         try:
+#             return np.round(value, 2)
+#         except TypeError:
+#             return value
+
+#     #run_name_parts = [f"{key}:{safe_round(value)}" for key, value in model_params_dict.items() if key not in constant_keys]
+#     run_name_parts = [f"{key}-{safe_round(value)}" for key, value in model_params_dict.items() if key not in constant_keys]
+#     # Format the timestamp to include only date, hours, and minutes
+#     timestamp = pd.Timestamp.now().strftime('%Y-%m-%d_%H-%M')
+    
+#     run_name = f"{name}_" + "_".join(run_name_parts) + '_' + timestamp
+#     return run_name
+
+
+
 def generate_run_name(model_params_dict, constant_keys, name='run'):
     """
     Generates a run name by concatenating key-value pairs from the model parameters dictionary.
@@ -36,12 +64,18 @@ def generate_run_name(model_params_dict, constant_keys, name='run'):
         except TypeError:
             return value
 
-    run_name_parts = [f"{key}:{safe_round(value)}" for key, value in model_params_dict.items() if key not in constant_keys]
+    def format_value(value):
+        if isinstance(value, list):
+            return '-'.join(map(str, value))
+        return str(safe_round(value))
+
+    run_name_parts = [f"{key}-{format_value(value)}" for key, value in model_params_dict.items() if key not in constant_keys]
     # Format the timestamp to include only date, hours, and minutes
     timestamp = pd.Timestamp.now().strftime('%Y-%m-%d_%H-%M')
     
     run_name = f"{name}_" + "_".join(run_name_parts) + '_' + timestamp
     return run_name
+
 
 
 def get_x_y_z(adata, batch_col, bio_col, batch_col_categories, bio_col_categories, use_rep="X"):
@@ -1564,7 +1598,7 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
     outputs = {
         "train": trained_model.predict(train_in, batch_size=model_params.batch_size),
         "val": trained_model.predict(val_in, batch_size=model_params.batch_size)
-    }
+    }       
 
     # Check the model type and compute reconstructions accordingly
     for dataset_type in outputs:
@@ -1613,6 +1647,30 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
         results["adata"] = adata_dict
     if return_history:
         results["history"]=history_df
+
+    #
+    if model_type == "ae_re" and getattr(model_params, 'get_cf_batch', False):
+        print("\nComputing counterfactual for all batches")
+        inputs_dict = {"train": train_in, "val": val_in}
+        for dataset, inputs in inputs_dict.items():
+            x, z = inputs
+            cols = z.shape[1]
+            rows = z.shape[0]
+
+            for i, z_batch in zip(range(cols), batch_col_categories):
+                print("Getting recon for batch: ", z_batch)
+                z_batch_matrix = np.zeros((rows, cols))
+                z_batch_matrix[:, i] = 1
+
+                # Assuming re_ae_model.predict takes a tuple (x, z_batch_matrix) and returns the reconstruction
+                output_batch = trained_model.predict((x, z_batch_matrix))
+                z_batch_recon = output_batch['recon']
+
+                # Save the reconstructed batch matrix to a .npy file
+                np.save(os.path.join(model_params.latent_path, f'recon_batch_{dataset}_{z_batch}.npy'), z_batch_recon)
+
+                # Collect garbage to free up memory
+                gc.collect()
 
 
     return results

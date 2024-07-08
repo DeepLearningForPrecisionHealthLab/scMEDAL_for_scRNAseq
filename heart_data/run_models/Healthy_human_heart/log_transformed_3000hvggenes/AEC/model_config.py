@@ -57,7 +57,7 @@ train_model_dict = {
 }
 
 get_scores_dict = {
-    "encoder_latent_name":"AEC_latent_2", #Modify depending on the model
+    "encoder_latent_name":"AEC_latent_50", #Modify depending on the model
     "get_pca": True,
     "n_components":50,
     "get_baseline": True #take forever

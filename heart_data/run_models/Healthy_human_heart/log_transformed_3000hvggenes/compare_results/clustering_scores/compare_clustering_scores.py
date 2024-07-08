@@ -10,7 +10,7 @@ import numpy as np
 import scipy.stats as stats
 
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
-from compare_results_utils import preprocess_results_model_pca_format,process_single_model_format,calculate_and_append_ci
+from compare_results_utils import preprocess_results_model_pca_format,process_single_model_format,calculate_and_append_ci,glob_like
 
 
 #Normally I run it with Aixa_ARMED_2.

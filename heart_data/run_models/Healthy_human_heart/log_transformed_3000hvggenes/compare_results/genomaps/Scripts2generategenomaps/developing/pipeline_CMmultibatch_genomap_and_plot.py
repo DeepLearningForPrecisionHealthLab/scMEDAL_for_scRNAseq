@@ -33,17 +33,12 @@ from utils import read_adata
 # import the path
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results")
 # Make sure you update the expt. For example expt=="expt3_batch_cf" has an example of getting counterfactuals of batch effects
-from path2results import run_names_dict,results_path_dict,run_names_dict,compare_models_path 
+from path2results import run_names_dict,results_path_dict,run_names_dict,compare_models_path,data_base_path, scenario_id,input_base_path 
 import gc
 # I run this script with Aixa_genomap env
 
 ###############################################################################
 # 1. Get input paths and recon paths
-
-# 1.1. Define base paths
-data_base_path = "/archive/bioinformatics/DLLab/AixaAndrade/data/Genomic_data/heart_data/"
-scenario_id = "Healthy_human_heart_data/log_transformed_3000hvggenes"
-input_base_path = os.path.join(data_base_path, scenario_id, 'splits')
 
 # Merge paths
 df_recon = get_recon_paths_df(results_path_dict,get_batch_recon_paths = True)

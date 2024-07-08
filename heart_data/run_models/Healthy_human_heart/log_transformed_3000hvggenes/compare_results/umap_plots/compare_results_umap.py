@@ -2,7 +2,7 @@ import sys
 # Set 
 # expt="expt3_batch_cf"
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results")
-from path2results import run_names_dict,results_path_dict,run_names_dict, glob_like,compare_models_path ,get_pca
+from path2results import run_names_dict,results_path_dict,run_names_dict,compare_models_path
 import pandas as pd
 import glob
 import os
@@ -17,19 +17,13 @@ import scanpy as sc
 import sys
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
 from compare_results_utils import get_input_paths_df,get_latent_paths_df,get_umap_plot
-from utils import read_adata,min_max_scaling
 # import the path
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results")
 # Make sure you update the expt. For example expt=="expt3_batch_cf" has an example of getting counterfactuals of batch effects
-from path2results import run_names_dict,results_path_dict,run_names_dict,compare_models_path 
+from path2results import run_names_dict,results_path_dict,run_names_dict,compare_models_path,input_base_path
 
 
 # 1. Get input paths and recon paths
-
-# 1.1. Define base paths
-data_base_path = "/archive/bioinformatics/DLLab/AixaAndrade/data/Genomic_data/heart_data/"
-scenario_id = "Healthy_human_heart_data/log_transformed_3000hvggenes"
-input_base_path = os.path.join(data_base_path, scenario_id, 'splits')
 
 # Merge paths
 df_latent = get_latent_paths_df(results_path_dict)

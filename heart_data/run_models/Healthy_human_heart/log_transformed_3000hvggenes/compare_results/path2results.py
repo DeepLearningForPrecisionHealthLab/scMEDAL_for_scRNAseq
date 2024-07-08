@@ -3,10 +3,14 @@ import os
 
 # Define general paths. Shared by experiment and model.
 
-# Genral path to experiment results
+# 1. Define base paths (input data to the model)
+data_base_path = "/archive/bioinformatics/DLLab/AixaAndrade/data/Genomic_data/heart_data"
+scenario_id = "Healthy_human_heart_data/log_transformed_3000hvggenes"
+input_base_path = os.path.join(data_base_path, scenario_id, 'splits')
+
+# 2. General path to experiment results
 outputs_path ="/archive/bioinformatics/DLLab/AixaAndrade/results/mixedeffectsdl/results/ARMED_genomics/heart_data/outputs"
-# dataset_type = "subsets"
-folder_name = "Healthy_human_heart_data/log_transformed_3000hvggenes"
+folder_name = scenario_id
 # Folder structure setup
 # saved_models_base = 'path_to_saved_models'
 latent_space_path = os.path.join(outputs_path, "saved_models", folder_name)

@@ -32,19 +32,12 @@ from genomaps_utils import process_and_plot_genomaps_singlepath
 # import the path
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results")
 # Make sure you update the expt. For example expt=="expt3_batch_cf" has an example of getting counterfactuals of batch effects
-from path2results import run_names_dict,results_path_dict,run_names_dict,compare_models_path 
+from path2results import run_names_dict,results_path_dict,run_names_dict,compare_models_path,data_base_path, scenario_id,input_base_path 
 
 # I run this script with Aixa_genomap env
 
 
 # 1. Get input paths df and load data
-# Define base paths
-
-# get input paths df
-data_base_path = "/archive/bioinformatics/DLLab/AixaAndrade/data/Genomic_data/heart_data/"
-# Paths
-scenario_id = "Healthy_human_heart_data/log_transformed_3000hvggenes"
-input_base_path = os.path.join(data_base_path, scenario_id, 'splits')
 
 # Merge paths
 df_recon = get_recon_paths_df(results_path_dict,get_batch_recon_paths = True)
@@ -77,16 +70,15 @@ colNum=54 # Column number of genomap
 rowNum=54 # Row number of genomap
 
 # Change input data and folder name
-
 inputs_path = "/pathto/CMmultibatch directory"
 genomap_name = "genomap_name"
 n_cells = 300*149 # 147 batches +input +fe
 out_genomaps_path = os.path.join(out_name,genomap_name)
 
 
-# Get gene_names: The splits did not store the real gene_ids
-gene_ids_path = "/archive/bioinformatics/DLLab/AixaAndrade/data/Genomic_data/heart_data/Healthy_human_heart_data/log_transformed_3000hvggenes/geneids.csv"
-
+# Get genes metadata (var)
+# The splits did not store the real gene_ids. This changes on every experiment
+gene_ids_path = os.path.join(data_base_path, scenario_id,"geneids.csv")
 var = pd.read_csv(gene_ids_path,index_col="_index")
 gene_names = var.index[0:2916]
 

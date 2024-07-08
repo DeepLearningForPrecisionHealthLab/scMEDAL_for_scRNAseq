@@ -1,6 +1,6 @@
 # ARMED_genomics
 
-
+Updated code on 7/8/2024
 
 ## Welcome to ARMED Genomics repository
 

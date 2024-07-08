@@ -19,6 +19,7 @@ from model_config import *
 # path to models
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/models")
 import glob
+import shutil
 # import models
 from AE_v4 import DomainEnhancingAutoencoderClassifier
 
@@ -75,7 +76,7 @@ celltype_ids = np.unique(metadata_all[bio_col]).tolist()
 
 
 ######################################################################################################################
-
+#########################################################################################################################
 # Notes: If you have compile_dict defined separately from model_params_dict, use it to compile model. Othewise extract compile_dict from model_params_dict using compile_keys.
 # compile_keys = ["loss_gen_weight","loss_recon_weight","loss_class_weight"]
 # compile_dict = filter_keys(model_params_dict, compile_keys)
@@ -116,5 +117,20 @@ mean_scores = run_all_folds(Model=DomainEnhancingAutoencoderClassifier,
 # print("val donor Silhouette:",mean_scores["val"].loc[('donor', 'silhouette'), 'mean'])
 # print("val celltype Silhouette:",mean_scores["val"].loc[('celltype', 'silhouette'), 'mean'])
 # print("metric to optimize",-1*metric2optimize)
+
+##############################################################################################
+############## save config.py file
+source_path = '/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE/model_config.py'
+destination_path = os.path.join(saved_models_base, run_name, 'model_config.py')
+
+# Ensure the destination directory exists
+# os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+
+print("\nCopying config.py file to:", destination_path)
+
+# Copy the file
+shutil.copy(source_path, destination_path)
+
+
 
 

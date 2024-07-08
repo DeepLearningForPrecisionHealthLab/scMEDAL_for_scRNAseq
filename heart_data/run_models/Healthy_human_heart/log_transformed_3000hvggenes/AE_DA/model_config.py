@@ -12,7 +12,9 @@ compile_dict = {"loss_recon":tf.keras.losses.MeanSquaredError(), #recon loss
     "opt_autoencoder":tf.keras.optimizers.Adam(lr=0.0001), #optimizer AEC
     "opt_adversary":tf.keras.optimizers.Adam(lr=0.0001),#optimizer Adversary
     "loss_gen_weight": 1,  # compile settings
-    "loss_recon_weight": 1800,
+#    "loss_recon_weight": 1800,
+    "loss_recon_weight": 5400,#1800*3
+#    "loss_recon_weight": 0,#to test if we get 4.99 (max)
     "loss_class_weight": 1
 }
 
@@ -24,7 +26,8 @@ build_model_dict = {
 #    "layer_units_latent_classifier": [2], #not needed for ae_da
 #    "n_pred": 13,# n celltypes # not needed for ae_da
     "get_pred": False, #In this case we want AE_DA model Set to true if you want to train the model with a celltype classification loss function
-    "last_activation": "sigmoid",
+#    "last_activation": "sigmoid",
+    "last_activation": "linear", #last activation of the decoder (will determine how the reconstructed outputs look)
     "use_batch_norm":True, #This is batch norm for encoder. Default is False
     "name": "ae_da" # Call the model that you want to use
 }
@@ -50,6 +53,7 @@ train_model_dict = {
 get_scores_dict = {
     "encoder_latent_name":"FE_AE_latent_2", #Modify depending on the model
     "get_pca": False,
+    "n_components":50,
     "get_baseline": False
 }
 
@@ -107,7 +111,7 @@ latent_space_base = os.path.join(outputs_path, "latent_space", folder_name, mode
 # Define the run name (ensure model_params_dict is defined before this point)
 # "layer_units"
 
-constant_keys = ['batch_col','bio_col','donor_col',"loss_recon","loss_multiclass","metric_multiclass","opt_autoencoder","opt_adversary","layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
+constant_keys = ['n_components','batch_col','bio_col','donor_col',"loss_recon","loss_multiclass","metric_multiclass","opt_autoencoder","opt_adversary","layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
 # run_name = generate_run_name(model_params_dict, constant_keys, name='run_HPO')
 run_name = generate_run_name(model_params_dict, constant_keys, name='run_crossval')
 print("run_name",run_name)

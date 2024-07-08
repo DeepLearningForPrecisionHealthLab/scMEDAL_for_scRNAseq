@@ -24,7 +24,8 @@ build_model_dict = {
     "layer_units": [512,132],
 #    "layer_units_latent_classifier": [2], # comment this line for AE
 #    "n_pred": 13, #n celltypes
-    "last_activation": "sigmoid",
+#    "last_activation": "sigmoid",
+    "last_activation": "linear", #last activation of the decoder (will determine how the reconstructed outputs look)
     "use_batch_norm":True, #This is batch norm for encoder. Default is False
     "name": "AE" # Call the model that you want to use
 }
@@ -52,8 +53,9 @@ train_model_dict = {
 
 
 get_scores_dict = {
-    "encoder_latent_name":"AE_latent_2", #Modify depending on the model
+    "encoder_latent_name":"AE_latent_50", #Modify depending on the model
     "get_pca": True,
+    "n_components":50,
     "get_baseline": True #take forever
 }
 

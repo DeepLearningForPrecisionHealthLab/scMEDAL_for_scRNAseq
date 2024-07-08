@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 
@@ -52,9 +51,13 @@ intGPU = 1
 # model_params_dict["epochs"] = 20
 
 # Define the batch and bio column
-batch_col = 'batch'
-bio_col = "celltype"
-donor_col = "DonorID"
+# batch_col = 'batch'
+# bio_col = "celltype"
+# donor_col = "DonorID"
+
+batch_col = model_params_dict['batch_col']
+bio_col = model_params_dict['bio_col']
+donor_col = model_params_dict['donor_col'] #this column is optional
 
 # We will use this dictionary to plot latent spaces. The basic combination is  {"shape_col": bio_col, "color_col": batch_col}, but when we have lots of cells, we cannot distinguish shapes.
 # We only plot bio_col
@@ -114,7 +117,7 @@ mean_scores = run_all_folds(Model=AE,
                 issparse=True,
                 load_dense=True,                
                 shape_color_dict=shape_color_dict,
-                sample_size=10000)
+                sample_size=model_params_dict["sample_size"])
 
 # maximizing biological clustering and minimizing batch cluster
 # metric2optimize = bio_mean - batch_mean
@@ -129,3 +132,15 @@ mean_scores = run_all_folds(Model=AE,
 #     print("metric to optimize",metric2optimize)
 
 
+# Save config file
+# Define the paths
+source_path = '/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE/model_config.py'
+destination_path = os.path.join(saved_models_base,run_name)
+
+# Read the contents of the model_config.py file
+with open(source_path, 'r') as source_file:
+    config_content = source_file.read()
+
+# Write the contents to the new file
+with open(destination_path, 'w') as destination_file:
+    destination_file.write(config_content)

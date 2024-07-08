@@ -47,7 +47,7 @@ load_data_dict = {
 train_model_dict = {
     "batch_size": 512,  # training settings
 #    "epochs": 20,
-    "epochs": 1,
+    "epochs": 500,
     "monitor_metric": 'val_total_loss',
     "patience": 30,
     "stop_criteria": "early_stopping",
@@ -62,8 +62,7 @@ get_scores_dict = {
     "encoder_latent_name":"RE_AE_latent_50", #Modify depending on the model
     "get_pca": False,
     "n_components":50,
-    "get_baseline": False,
-    "get_cf_batch":False
+    "get_baseline": False
 }
 
 
@@ -116,7 +115,7 @@ save_model = True
 print("save model set to ",save_model)
 
 #Wethether to Run Ray
-RAY_RUN = False
+RAY_RUN = True
 if RAY_RUN==False:
     # Folder structure setup
     # saved_models_base = 'path_to_saved_models'

@@ -10,7 +10,8 @@ import tensorflow as tf
 import sys
 # sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/utilities")
 # from tensorflow_utilities import use_specific_gpu
-
+#tf.config.run_functions_eagerly(True)
+#tf.data.experimental.enable_debug_mode()
 
 print(tf.__version__)
 import copy
@@ -21,6 +22,7 @@ from utils import *
 from model_train_utils import run_all_folds,get_metric2optimizemodel#,run_model_pipeline,ModelManager,get_train_val_data,load_data,train_and_save_model,PlotLoss,get_pca_scoresandplots,get_encoder_latentandscores
 # path to model_config
 sys.path.append("../")
+sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_DA")
 from model_config import *
 # change path to models
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/models")

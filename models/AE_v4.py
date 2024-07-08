@@ -1110,6 +1110,8 @@ class RandomEffectEncoder(Encoder):
         """
 
         x, z = inputs
+        # print("x.shape:",x.shape)
+        # print("z.shape:",z.shape)
 
         for key, (dense, re, activation) in self.layer_blocks.items():
             x = dense(x)

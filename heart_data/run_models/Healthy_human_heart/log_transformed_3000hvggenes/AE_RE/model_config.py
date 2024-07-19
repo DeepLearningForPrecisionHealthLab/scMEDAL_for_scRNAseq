@@ -41,7 +41,8 @@ build_model_dict = {
 
 load_data_dict = {
     "eval_test": False,# Set to true if you want to load test data
-    "use_z": True # Depending on the model you may need z design matrix
+    "use_z": True, # Depending on the model you may need z design matrix
+    "scaling": "min_max" # Scaling of input data: "min_max" or "z_scores"
 }
 
 train_model_dict = {
@@ -107,6 +108,8 @@ outputs_path ="/archive/bioinformatics/DLLab/AixaAndrade/results/mixedeffectsdl/
 folder_name = "Healthy_human_heart_data/log_transformed_3000hvggenes"
 model_name = "AE_RE"
 
+# path 2 config file
+source_path = '/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE/model_config.py'
 
 
 
@@ -139,6 +142,9 @@ if RAY_RUN==False:
 # model_manager = ModelManager(model_params_dict =model_params_dict, base_paths_dict=base_paths_dict, run_name=run_name, save_model=save_model)
 # Update parameters if needed:
 # model_manager.update_params({'new_param': 'new_value'})
+
+# Get the source path of the config_file.py
+source_file = os.path.abspath(__file__)
 
 
 

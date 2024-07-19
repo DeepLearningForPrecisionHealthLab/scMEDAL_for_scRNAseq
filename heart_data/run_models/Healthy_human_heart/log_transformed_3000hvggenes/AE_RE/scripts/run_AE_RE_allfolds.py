@@ -120,7 +120,6 @@ mean_scores = run_all_folds(Model=DomainEnhancingAutoencoderClassifier,
 
 ##############################################################################################
 ############## save config.py file
-source_path = '/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE/model_config.py'
 destination_path = os.path.join(saved_models_base, run_name, 'model_config.py')
 
 # Ensure the destination directory exists
@@ -129,7 +128,7 @@ destination_path = os.path.join(saved_models_base, run_name, 'model_config.py')
 print("\nCopying config.py file to:", destination_path)
 
 # Copy the file
-shutil.copy(source_path, destination_path)
+shutil.copy(source_file, destination_path)
 
 
 

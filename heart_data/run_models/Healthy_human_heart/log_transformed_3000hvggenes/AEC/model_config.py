@@ -40,7 +40,8 @@ build_model_dict = {
 load_data_dict = {
     "eval_test": False,# Set to true if you want to load test data
     "use_z": False, # Depending on the model you may need z design matrix: For AE_conv you do not need it
-    "get_pred": True #I put it here because it is not needed in build_model_dict but we still use it to load data
+    "get_pred": True, #I put it here because it is not needed in build_model_dict but we still use it to load data,
+    "scaling": "min_max" # Scaling of input data: "min_max" or "z_scores"
 }
 
 train_model_dict = {
@@ -131,4 +132,5 @@ print("save model set to ",save_model)
 # model_manager.update_params({'new_param': 'new_value'})
 
 
-
+# Get the source path of the config_file.py
+source_file = os.path.abspath(__file__)

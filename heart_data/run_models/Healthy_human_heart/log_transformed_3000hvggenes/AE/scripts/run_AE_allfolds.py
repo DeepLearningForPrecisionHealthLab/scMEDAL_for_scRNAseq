@@ -7,6 +7,7 @@ import sys
 # from tensorflow_utilities import use_specific_gpu
 
 import glob
+import shutil
 
 print(tf.__version__)
 # import copy
@@ -132,15 +133,15 @@ mean_scores = run_all_folds(Model=AE,
 #     print("metric to optimize",metric2optimize)
 
 
-# Save config file
-# Define the paths
-source_path = '/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE/model_config.py'
-destination_path = os.path.join(saved_models_base,run_name)
 
-# Read the contents of the model_config.py file
-with open(source_path, 'r') as source_file:
-    config_content = source_file.read()
+##############################################################################################
+############## save config.py file
+destination_path = os.path.join(saved_models_base, run_name, 'model_config.py')
 
-# Write the contents to the new file
-with open(destination_path, 'w') as destination_file:
-    destination_file.write(config_content)
+# Ensure the destination directory exists
+# os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+
+print("\nCopying config.py file to:", destination_path)
+
+# Copy the file
+shutil.copy(source_file, destination_path)

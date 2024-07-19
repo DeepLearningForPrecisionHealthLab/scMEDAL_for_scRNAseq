@@ -1,61 +1,61 @@
 import sys
-sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics/utils")
+sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
 from model_train_utils import generate_run_name
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import MeanSquaredError as mse_loss
+# from tensorflow.keras.losses import BinaryCrossentropy as bce_loss
+from tensorflow.keras.metrics import MeanSquaredError as mse_metric
+# from tensorflow.keras.metrics import AUC as auc_metric
 import os
-import tensorflow as tf
 
 
-# Define individual dictionaries
-compile_dict = {"loss_recon":tf.keras.losses.MeanSquaredError(), #recon loss
-    "loss_multiclass":tf.keras.losses.CategoricalCrossentropy(), #class loss
-    "metric_multiclass":tf.keras.metrics.CategoricalAccuracy(name='acc'),
-    "opt_autoencoder":tf.keras.optimizers.Adam(lr=0.0001), #optimizer AEC
-    "opt_adversary":tf.keras.optimizers.Adam(lr=0.0001),#optimizer Adversary
-    "loss_gen_weight": 1,  # compile settings
-#    "loss_recon_weight": 1800,
-    "loss_recon_weight": 5400,#1800*3
-#    "loss_recon_weight": 0,#to test if we get 4.99 (max)
-    "loss_class_weight": 1
-}
+
+compile_dict = {# compile settings
+    "optimizer":Adam(lr=0.0001),
+    "loss":[mse_loss(name='mean_squared_error')],
+    "loss_weights":1,
+    "metrics":[[mse_metric()]]}
+
+
 
 build_model_dict = {
     "n_latent_dims": 2,  # init settings
 #    "layer_units": [10],
     "layer_units": [512,132],
-    "n_clusters":147,#n batches
-#    "layer_units_latent_classifier": [2], #not needed for ae_da
-#    "n_pred": 13,# n celltypes # not needed for ae_da
-    "get_pred": False, #In this case we want AE_DA model Set to true if you want to train the model with a celltype classification loss function
+#    "layer_units_latent_classifier": [2], # comment this line for AE
+#    "n_pred": 13, #n celltypes
 #    "last_activation": "sigmoid",
     "last_activation": "linear", #last activation of the decoder (will determine how the reconstructed outputs look)
     "use_batch_norm":True, #This is batch norm for encoder. Default is False
-    "name": "ae_da" # Call the model that you want to use
+    "name": "AE" # Call the model that you want to use
 }
+
 
 load_data_dict = {
     "eval_test": False,# Set to true if you want to load test data
-    "use_z": True, # Depending on the model you may need z design matrix
-    "scaling": "min_max" # Scaling of input data: "min_max" or "z_scores"
+    "use_z": False, # Depending on the model you may need z design matrix: For AE_conv you do not need it
+    "get_pred": False #I put it here because it is not needed in build_model_dict but we still use it to load data
 }
 
 train_model_dict = {
-    "batch_size": 512,  # training settings
+#    "batch_size": 60,  # training settings
+    "batch_size": 512,
 #    "epochs": 20,
-#    "epochs": 500,
-    "epochs":50,
-    "monitor_metric": 'val_total_loss',
+    "epochs":500,
+    "monitor_metric": 'val_loss',
     "patience": 30,
     "stop_criteria": "early_stopping",
     "compute_latents_callback": True,
-    "sample_size":10000, #This sample size is used in the clustering scores callback
-    "model_type":"ae_da"
+    "sample_size":10000,
+    "model_type":"ae" #This sample size is used in the clustering scores callback
 }
 
+
+
 get_scores_dict = {
-    "encoder_latent_name":"FE_AE_latent_50", #Modify depending on the model
-    "get_pca": False,
-    "n_components":50,
-    "get_baseline": False
+    "encoder_latent_name":"AE_latent_2", #Modify depending on the model
+    "get_pca": True,
+    "get_baseline": True #take forever
 }
 
 expt_design_dict = {'batch_col':'batch', #name of the batch column
@@ -76,8 +76,7 @@ plot_params = {"shape_col": "celltype",
         "save_fig": True,
         "outpath": None}
 
-
-
+# Base data path
 
 data_base_path = "/archive/bioinformatics/DLLab/AixaAndrade/data/Genomic_data/heart_data/"
 
@@ -98,7 +97,7 @@ print(f"Parent folder: {data_seen}")
 outputs_path ="/archive/bioinformatics/DLLab/AixaAndrade/results/mixedeffectsdl/results/ARMED_genomics/heart_data/outputs"
 # dataset_type = "subsets"
 folder_name = "Healthy_human_heart_data/log_transformed_3000hvggenes"
-model_name = "AE_DA"
+model_name = "AE"
 
 # Folder structure setup
 # saved_models_base = 'path_to_saved_models'
@@ -110,9 +109,10 @@ latent_space_base = os.path.join(outputs_path, "latent_space", folder_name, mode
 
 
 # Define the run name (ensure model_params_dict is defined before this point)
-# "layer_units"
+#"layer_units"
 
-constant_keys = ["compute_latents_callback",'n_components','batch_col','bio_col','donor_col',"loss_recon","loss_multiclass","metric_multiclass","opt_autoencoder","opt_adversary","layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
+
+constant_keys = ['batch_col','bio_col','donor_col',"layer_units_latent_classifier", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test","optimizer","loss","loss_weights","metrics"]
 # run_name = generate_run_name(model_params_dict, constant_keys, name='run_HPO')
 run_name = generate_run_name(model_params_dict, constant_keys, name='run_crossval')
 print("run_name",run_name)
@@ -126,9 +126,6 @@ print("save model set to ",save_model)
 # model_manager = ModelManager(model_params_dict =model_params_dict, base_paths_dict=base_paths_dict, run_name=run_name, save_model=save_model)
 # Update parameters if needed:
 # model_manager.update_params({'new_param': 'new_value'})
-
-# Get the source path of the config_file.py
-source_file = os.path.abspath(__file__)
 
 
 

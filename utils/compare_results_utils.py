@@ -1,9 +1,17 @@
 
 import os
 import re
-from utils import get_split_paths,read_adata,min_max_scaling,plot_rep
+from utils import get_split_paths,read_adata,min_max_scaling,plot_rep,calculate_zscores
 import pandas as pd
 from utils_load_model import get_latest_checkpoint
+from anndata import AnnData
+import scanpy as sc
+import gc
+
+import os
+import re
+import pandas as pd
+import numpy as np
 # Glob does not work well with strange characters
 
 
@@ -59,35 +67,33 @@ def get_recon_paths_df(results_path_dict,get_batch_recon_paths = False,k_folds =
     df = pd.DataFrame(data)
     return df
 
-def get_latent_paths_df(results_path_dict,get_batch_recon_paths = False,k_folds = 5):
-# Initialize an empty list to store data
-    data = []
+# def get_latent_paths_df(results_path_dict,k_folds = 5):
+# # Initialize an empty list to store data
+#     data = []
 
-    # Patterns to search for with corresponding type
-    patterns = [('latent*train*', 'train'), ('latent*val*', 'val')]
+#     # Patterns to search for with corresponding type
+#     patterns = [('latent*train*', 'train'), ('latent*val*', 'val')]
 
 
-    # Iterate over all the keys and splits
-    for key, path in results_path_dict.items():
-        for split in range(1, k_folds+1):
-            # Directory to search in
-            directory = f"{path}/splits_{split}"
-            if os.path.exists(directory):
-                for pattern, data_type in patterns:
-                    # Use glob_like to find files matching the pattern
-                    files = glob_like(directory, pattern)
+#     # Iterate over all the keys and splits
+#     for key, path in results_path_dict.items():
+#         for split in range(1, k_folds+1):
+#             # Directory to search in
+#             directory = f"{path}/splits_{split}"
+#             if os.path.exists(directory):
+#                 for pattern, data_type in patterns:
+#                     # Use glob_like to find files matching the pattern
+#                     files = glob_like(directory, pattern)
                     
-                    # Append the results to the data list
-                    for file in files:
-                        data.append({'Key': key, 'Split': split, 'LatentPath': file, 'Type': data_type})
+#                     # Append the results to the data list
+#                     for file in files:
+#                         data.append({'Key': key, 'Split': split, 'LatentPath': file, 'Type': data_type})
 
-    # Create a DataFrame from the data list
-    df = pd.DataFrame(data)
-    return df
+#     # Create a DataFrame from the data list
+#     df = pd.DataFrame(data)
+#     return df
 
-import os
-import re
-import pandas as pd
+
 
 def get_latent_paths_df(results_path_dict, k_folds=5):
     data = []
@@ -179,9 +185,7 @@ def get_model_paths_df(results_path_dict):
     return df
 
 
-import numpy as np
-import anndata
-import pandas as pd
+
 
 def get_hvg(adata, num_genes_to_retain=None):
     """
@@ -342,57 +346,434 @@ def calculate_and_append_ci(df, dof):
     return final_df
 
 
-def get_umap_plot(df, umap_path, plot_params,sample_size=10000,n_neighbors=15):
-    """
-    Read adata and plot umap
-    """
-    import numpy as np
-    import pandas as pd
-    from anndata import AnnData
-    import os
-    import scanpy as sc
-    import gc
 
-    # Get input paths
-    print("\n Computing umap for the following files")
-    input_prefixes = np.unique(df["input_prefix"])
-    for input_prefix in input_prefixes:
-        # Its the same input for the same split, same model
-        input_path = df.loc[df["input_prefix"]==input_prefix,"InputsPath"].values[0]
-        print(input_prefix,input_path)
+# def get_umap_plot(df, umap_path, plot_params,sample_size=10000,n_neighbors=15,scaling="min_max",n_batches_sample=20,batch_col = "batch"):
+#     """
+#     Reads df with input paths. Loads input and latent spaces, applies scaling, computes UMAP, and plots the results.
+
+#     Parameters:
+#     df : pandas.DataFrame
+#         DataFrame containing the input and latent paths along with prefixes.
+#     umap_path : str
+#         Path where UMAP plots and data will be saved.
+#     plot_params : dict
+#         Dictionary of parameters to customize the plot appearance.
+#     sample_size : int, optional
+#         Number of samples to subset for UMAP computation, default is 10,000.
+#     n_neighbors : int, optional
+#         Number of neighbors to use in UMAP computation, default is 15.
+#     scaling : str, optional
+#         Type of scaling to apply to the data, either "min_max" or "z_scores", default is "min_max".
+#     n_batches_sample(int)
+
+#     Returns:
+#     None
+
+#     The function performs the following steps:
+#     1. Iterates through unique input prefixes in the DataFrame.
+#     2. Reads input data and applies scaling based on the provided scaling parameter.
+#     3. Subsets the data to a specified sample size.
+#     4. Computes UMAP for the input data and saves the results.
+#     5. Iterates through latent data paths corresponding to each input prefix.
+#     6. Computes UMAP for each latent data and saves the results.
+#     7. Plots and saves the UMAP representations.
+
+#     Notes:
+#     - The `read_adata`, `min_max_scaling`, `calculate_zscores`, and `plot_rep` functions are defined on utils.
+#     - UMAP results are saved in the specified `umap_path` directory."""
+    
+#     import numpy as np
+#     import pandas as pd
+#     from anndata import AnnData
+#     import os
+#     import scanpy as sc
+#     import gc
+
+#     # Get input paths
+#     print("\n Computing umap for the following files")
+#     input_prefixes = np.unique(df["input_prefix"])
+#     for i,input_prefix in enumerate(input_prefixes):
+#         # Its the same input for the same split, same model
+#         input_path = df.loc[df["input_prefix"]==input_prefix,"InputsPath"].values[0]
+#         print(input_prefix,input_path)
    
-        # Get umaps for input paths
-        # Read input
+#         # Get umaps for input paths
+#         # Read input
+#         X, var, obs = read_adata(input_path, issparse=True)
+#         X = X.toarray()
+#         # Input needs to be scaled because reconstructions are in the scaled space
+#         # Apply scaling to X based on the scaling parameter.
+#         if scaling == "min_max":
+#             # Placeholder for the actual min_max_scaling function; this needs to be defined or imported.
+#             X = min_max_scaling(X)
+#         elif scaling =="z_scores":
+#             X = calculate_zscores(X)
+        
+#         # Subset obs to a random sample size (e.g., 1000)
+#         if sample_size is not None:
+#             sampled_indices = np.random.choice(X.shape[0], sample_size, replace=False)
+#             X = X[sampled_indices,:]
+#             obs = obs.iloc[sampled_indices]
+        
+#         # Compute umap
+#         adata_input = AnnData(X, obs=obs, var=var)
+#         sc.pp.neighbors(adata_input, n_neighbors=n_neighbors)
+#         sc.tl.umap(adata_input)
+#         plot_rep(adata_input, outpath=umap_path, file_name=f"input_{input_prefix}_{sample_size}cells", **plot_params)
+#         np.save(os.path.join(umap_path, f"umap_input_{input_prefix}_{sample_size}cells.npy"),adata_input.obsm["X_umap"])
+
+#         latent_prefixes = df.loc[df["input_prefix"]==input_prefix,"latent_prefix"].values
+#         latent_paths = df.loc[df["input_prefix"]==input_prefix,"LatentPath"].values
+
+#         # if i==0:
+#         if i==0:
+#             batches = np.unique(obs["batch"])
+#             batches_sample = batches[0:n_batches_sample]
+
+#         for latent_pref, latent_path in zip(latent_prefixes, latent_paths):
+#             print(latent_pref,latent_paths)
+
+#             X = np.load(latent_path)
+#             if sample_size is not None:
+#                 X = X[sampled_indices,:]  # Subset to the same indices as above
+#             adata = AnnData(X, obs=obs)
+
+#             # Calculate UMAP 
+#             sc.pp.neighbors(adata, use_rep="X", n_neighbors=n_neighbors)
+#             sc.tl.umap(adata)
+#             plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells", **plot_params)
+#             np.save(os.path.join(umap_path, f"umap_{latent_pref}_{sample_size}cells.npy"),adata.obsm["X_umap"])
+            
+
+#             # Plot umap for n_batches
+#             # if "AE_RE" in latent_pref:
+#             adata = filter_adata_by_batch(adata, batches_sample, batch_col = batch_col)
+#             # Calculate UMAP 
+#             sc.pp.neighbors(adata, use_rep="X", n_neighbors=n_neighbors)
+#             sc.tl.umap(adata)
+#             plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells_{n_batches_sample}{batch_col}", **plot_params)
+#             np.save(os.path.join(umap_path, f"umap_{latent_pref}_{sample_size}cells_{n_batches_sample}{batch_col}.npy"),adata.obsm["X_umap"])
+
+#             # Modify plot params to plot by batch
+#             plot_params.update({
+#                             "shape_col": batch_col,
+#                             "color_col": batch_col
+#                         })
+#             plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells__{n_batches_sample}{batch_col}", **plot_params)
+
+#             gc.collect()
+
+
+
+
+
+def filter_adata_by_batch(adata_input, n_batches_sample, batch_col="batch"):
+    """
+    Filter an AnnData object by a list of batch values.
+
+    Parameters:
+    adata_input (anndata.AnnData): The input AnnData object.
+    n_batches_sample (list): A list of batch values to filter by.
+    batch_col (str): The column name in obs to filter by.
+
+    Returns:
+    anndata.AnnData: A new AnnData object with filtered obs and X.
+    """
+    # Filter the obs DataFrame based on the specified batch values
+    filtered_obs = adata_input.obs[adata_input.obs[batch_col].isin(n_batches_sample)]
+    
+    # Get the indices of the filtered rows
+    filtered_indices = filtered_obs.index.astype(int)
+    
+    # Filter the X matrix using the filtered indices
+    filtered_X = adata_input.X[filtered_indices, :]
+
+    # Create a new AnnData object with the filtered data
+    filtered_adata = AnnData(X=filtered_X, obs=filtered_obs, var=adata_input.var)
+    return filtered_adata
+
+# def get_umap_plot(df, umap_path, plot_params, sample_size=10000, n_neighbors=15, scaling="min_max", n_batches_sample=20, batch_col="batch"):
+#     """
+#     Reads a DataFrame with input paths, loads input and latent spaces, applies scaling, computes UMAP, and plots the results.
+
+#     Parameters:
+#     df : pandas.DataFrame
+#         DataFrame containing the input and latent paths along with prefixes.
+#     umap_path : str
+#         Path where UMAP plots and data will be saved.
+#     plot_params : dict
+#         Dictionary of parameters to customize the plot appearance.
+#     sample_size : int, optional
+#         Number of samples to subset for UMAP computation, default is 10,000.
+#     n_neighbors : int, optional
+#         Number of neighbors to use in UMAP computation, default is 15.
+#     scaling : str, optional
+#         Type of scaling to apply to the data, either "min_max" or "z_scores", default is "min_max".
+#     n_batches_sample : int, optional
+#         Number of batches to sample for plotting, default is 20.
+#     batch_col : str, optional
+#         Column name in obs to filter by, default is "batch".
+
+#     Returns:
+#     None
+
+#     The function performs the following steps:
+#     1. Iterates through unique input prefixes in the DataFrame.
+#     2. Reads input data and applies scaling based on the provided scaling parameter.
+#     3. Subsets the data to a specified sample size.
+#     4. Computes UMAP for the input data and saves the results.
+#     5. Iterates through latent data paths corresponding to each input prefix.
+#     6. Computes UMAP for each latent data and saves the results.
+#     7. Plots and saves the UMAP representations.
+
+#     Notes:
+#     - The `read_adata`, `min_max_scaling`, `calculate_zscores`, and `plot_rep` functions are defined in utils.
+#     - UMAP results are saved in the specified `umap_path` directory.
+#     """
+    
+#     print("\nComputing UMAP for the following files:")
+    
+#     # Get unique input prefixes
+#     input_prefixes = np.unique(df["input_prefix"])
+    
+#     for i, input_prefix in enumerate(input_prefixes):
+#         # Get the path for the current input prefix
+#         input_path = df.loc[df["input_prefix"] == input_prefix, "InputsPath"].values[0]
+#         print(input_prefix, input_path)
+
+#         # Read input data
+#         X, var, obs = read_adata(input_path, issparse=True)
+#         X = X.toarray()
+
+#         # Apply scaling to X based on the scaling parameter
+#         if scaling == "min_max":
+#             X = min_max_scaling(X)
+#         elif scaling == "z_scores":
+#             X = calculate_zscores(X)
+
+#         # Subset obs to a random sample size
+#         if sample_size is not None:
+#             sampled_indices = np.random.choice(X.shape[0], sample_size, replace=False)
+#             X = X[sampled_indices, :]
+#             obs = obs.iloc[sampled_indices].reset_index()
+
+#         # Compute UMAP for the input data
+#         adata_input = AnnData(X, obs=obs, var=var)
+#         sc.pp.neighbors(adata_input, n_neighbors=n_neighbors)
+#         sc.tl.umap(adata_input)
+        
+#         # Save and plot UMAP results for input data
+#         plot_rep(adata_input, outpath=umap_path, file_name=f"input_{input_prefix}_{sample_size}cells", **plot_params)
+#         np.save(os.path.join(umap_path, f"umap_input_{input_prefix}_{sample_size}cells.npy"), adata_input.obsm["X_umap"])
+
+#         # Get latent prefixes and paths for the current input prefix
+#         latent_prefixes = df.loc[df["input_prefix"] == input_prefix, "latent_prefix"].values
+#         latent_paths = df.loc[df["input_prefix"] == input_prefix, "LatentPath"].values
+
+#         # If first iteration, determine batches to sample
+#         if i == 0 and n_batches_sample is not None:
+#             batches = np.unique(obs[batch_col])
+#             batches_sample = batches[:n_batches_sample]
+#         # Modify plot parameters to plot by batch
+#             plot_params_batch_col = plot_params.copy()
+#             plot_params_batch_col.update({
+#                 "shape_col": batch_col,
+#                 "color_col": batch_col
+#             })
+
+#         for latent_pref, latent_path in zip(latent_prefixes, latent_paths):
+#             print(latent_pref, latent_path)
+
+#             # Load latent data
+#             X = np.load(latent_path)
+#             if sample_size is not None:
+#                 X = X[sampled_indices, :]
+#             adata = AnnData(X, obs=obs)
+
+#             # Calculate UMAP for latent data
+#             sc.pp.neighbors(adata, use_rep="X", n_neighbors=n_neighbors)
+#             sc.tl.umap(adata)
+            
+#             # Save and plot UMAP results for latent data
+#             np.save(os.path.join(umap_path, f"umap_{latent_pref}_{sample_size}cells.npy"), adata.obsm["X_umap"])
+#             plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells", **plot_params)
+#             try:
+#                 plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells_{batch_col}", **plot_params_batch_col)
+#             except Exception as e:
+#                 print("Check the error but probably there are too many batches")
+#                 print(e)
+
+
+#             if n_batches_sample is not None:
+#                 # Filter data by batches and calculate UMAP
+#                 adata = filter_adata_by_batch(adata, batches_sample, batch_col=batch_col)
+#                 sc.pp.neighbors(adata, use_rep="X", n_neighbors=n_neighbors)
+#                 sc.tl.umap(adata)
+                
+#                 # Save and plot UMAP results for batch-filtered data
+#                 np.save(os.path.join(umap_path, f"umap_{latent_pref}_{sample_size}cells_{n_batches_sample}{batch_col}.npy"), adata.obsm["X_umap"])
+#                 plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells_{n_batches_sample}{batch_col}", **plot_params)
+#                 plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells_{n_batches_sample}{batch_col}", **plot_params_batch_col)
+
+#             gc.collect()
+
+
+def get_umap_plot(df, umap_path, plot_params, sample_size=10000, n_neighbors=15, scaling="min_max", n_batches_sample=20, batch_col="batch"):
+    """
+    Reads a DataFrame with input paths, loads input and latent spaces, applies scaling, computes UMAP, and plots the results.
+
+    Parameters:
+    df : pandas.DataFrame
+        DataFrame containing the input and latent paths along with prefixes.
+    umap_path : str
+        Path where UMAP plots and data will be saved.
+    plot_params : dict
+        Dictionary of parameters to customize the plot appearance.
+    sample_size : int, optional
+        Number of samples to subset for UMAP computation, default is 10,000.
+    n_neighbors : int, optional
+        Number of neighbors to use in UMAP computation, default is 15.
+    scaling : str, optional
+        Type of scaling to apply to the data, either "min_max" or "z_scores", default is "min_max".
+    n_batches_sample : int, optional
+        Number of batches to sample for plotting, default is 20.
+    batch_col : str, optional
+        Column name in obs to filter by, default is "batch".
+
+    Returns:
+    None
+
+    The function performs the following steps:
+    1. Iterates through unique input prefixes in the DataFrame.
+    2. Reads input data and applies scaling based on the provided scaling parameter.
+    3. Subsets the data to a specified sample size.
+    4. Computes UMAP for the input data and saves the results.
+    5. Iterates through latent data paths corresponding to each input prefix.
+    6. Computes UMAP for each latent data and saves the results.
+    7. Plots and saves the UMAP representations.
+
+    Notes:
+    - The `read_adata`, `min_max_scaling`, `calculate_zscores`, and `plot_rep` functions are defined in utils.
+    - UMAP results are saved in the specified `umap_path` directory.
+    """
+    
+    print("\nComputing UMAP for the following files:")
+    
+    # Get unique input prefixes
+    input_prefixes = np.unique(df["input_prefix"])
+    batches_sample = []
+    # Set the random seed for reproducibility
+    np.random.seed(42)
+    for i, input_prefix in enumerate(input_prefixes):
+        # Get the path for the current input prefix
+        input_path = df.loc[df["input_prefix"] == input_prefix, "InputsPath"].values[0]
+        print(input_prefix, input_path)
+
+        # Read input data
         X, var, obs = read_adata(input_path, issparse=True)
         X = X.toarray()
-        # Input needs to be scaled because reconstructions are already scaled
-        X = min_max_scaling(X)
-        
-        # Subset obs to a random sample size (e.g., 1000)
-        sampled_indices = np.random.choice(X.shape[0], sample_size, replace=False)
-        X = X[sampled_indices,:]
-        obs = obs.iloc[sampled_indices]
-        
-        # Compute umap
+
+        # Apply scaling to X based on the scaling parameter
+        if scaling == "min_max":
+            X = min_max_scaling(X)
+        elif scaling == "z_scores":
+            X = calculate_zscores(X)
+
+        # Subset obs to a random sample size
+        if sample_size is not None:
+            sampled_indices = np.random.choice(X.shape[0], sample_size, replace=False)
+            X = X[sampled_indices, :]
+            obs = obs.iloc[sampled_indices].reset_index(drop=True)
+
+        # Compute UMAP for the input data
         adata_input = AnnData(X, obs=obs, var=var)
         sc.pp.neighbors(adata_input, n_neighbors=n_neighbors)
         sc.tl.umap(adata_input)
+        
+        # Save UMAP results to CSV
+        umap_df = pd.DataFrame(adata_input.obsm["X_umap"], columns=["UMAP1", "UMAP2"])
+        umap_df = pd.concat([umap_df, obs], axis=1)
+        umap_df.to_csv(os.path.join(umap_path, f"umap_input_{input_prefix}_{sample_size}cells.csv"), index=False)
+        
+        # Plot UMAP results for input data
         plot_rep(adata_input, outpath=umap_path, file_name=f"input_{input_prefix}_{sample_size}cells", **plot_params)
-        np.save(os.path.join(umap_path, f"umap_input_{input_prefix}_{sample_size}cells.npy"),adata_input.obsm["X_umap"])
 
-        latent_prefixes = df.loc[df["input_prefix"]==input_prefix,"latent_prefix"].values
-        latent_paths = df.loc[df["input_prefix"]==input_prefix,"LatentPath"].values
+        # Plot batch subsample
+        # If first iteration, determine batches to sample
+        if i == 0 and n_batches_sample is not None:
+            batches = np.unique(obs[batch_col])
+            batches = batches.tolist()
+            batches_sample = np.random.choice(batches, size=n_batches_sample, replace=False)
+            print("batches sample for plotting",batches_sample)
+        # Modify plot parameters to plot by batch
+            plot_params_batch_col = plot_params.copy()
+            plot_params_batch_col.update({
+                "shape_col": batch_col,
+                "color_col": batch_col
+            })
+
+        if n_batches_sample is not None:
+            # Filter data by batches and calculate UMAP
+            adata_input = filter_adata_by_batch(adata_input, batches_sample, batch_col=batch_col)
+            sc.pp.neighbors(adata_input, use_rep="X", n_neighbors=n_neighbors)
+            sc.tl.umap(adata_input)
+                
+            # Save UMAP results for batch-filtered data to CSV
+            umap_df = pd.DataFrame(adata_input.obsm["X_umap"], columns=["UMAP1", "UMAP2"])
+            umap_df = pd.concat([umap_df, adata_input.obs.reset_index(drop=True)], axis=1)
+            umap_df.to_csv(os.path.join(umap_path, f"umap_input_{sample_size}cells_{n_batches_sample}{batch_col}.csv"), index=False)
+                
+            # Plot UMAP results for batch-filtered data
+            plot_rep(adata_input, outpath=umap_path, file_name=f"input_{input_prefix}_{sample_size}cells_{n_batches_sample}{batch_col}_biocolors", **plot_params)
+            plot_rep(adata_input, outpath=umap_path, file_name=f"input_{input_prefix}_{sample_size}cells_{n_batches_sample}{batch_col}_batchcolors", **plot_params_batch_col)
+
+
+        # Get latent prefixes and paths for the current input prefix
+        latent_prefixes = df.loc[df["input_prefix"] == input_prefix, "latent_prefix"].values
+        latent_paths = df.loc[df["input_prefix"] == input_prefix, "LatentPath"].values
+
 
         for latent_pref, latent_path in zip(latent_prefixes, latent_paths):
-            print(latent_pref,latent_paths)
+            print(latent_pref, latent_path)
 
+            # Load latent data
             X = np.load(latent_path)
-            X = X[sampled_indices,:]  # Subset to the same indices as above
+            if sample_size is not None:
+                X = X[sampled_indices, :]
             adata = AnnData(X, obs=obs)
 
-            # Calculate UMAP 
+            # Calculate UMAP for latent data
             sc.pp.neighbors(adata, use_rep="X", n_neighbors=n_neighbors)
             sc.tl.umap(adata)
+            
+            # Save UMAP results to CSV
+            umap_df = pd.DataFrame(adata.obsm["X_umap"], columns=["UMAP1", "UMAP2"])
+            umap_df = pd.concat([umap_df, obs], axis=1)
+            umap_df.to_csv(os.path.join(umap_path, f"umap_{latent_pref}_{sample_size}cells.csv"), index=False)
+            
+            # Plot UMAP results for latent data
             plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells", **plot_params)
-            np.save(os.path.join(umap_path, f"umap_{latent_pref}_{sample_size}cells.npy"),adata.obsm["X_umap"])
+            try:
+                plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells_{batch_col}", **plot_params_batch_col)
+            except Exception as e:
+                print("Check the error but probably there are too many batches")
+                print(e)
+
+            if n_batches_sample is not None:
+                # Filter data by batches and calculate UMAP
+                adata = filter_adata_by_batch(adata, batches_sample, batch_col=batch_col)
+                sc.pp.neighbors(adata, use_rep="X", n_neighbors=n_neighbors)
+                sc.tl.umap(adata)
+                
+                # Save UMAP results for batch-filtered data to CSV
+                umap_df = pd.DataFrame(adata.obsm["X_umap"], columns=["UMAP1", "UMAP2"])
+                umap_df = pd.concat([umap_df, adata.obs.reset_index(drop=True)], axis=1)
+                umap_df.to_csv(os.path.join(umap_path, f"umap_{latent_pref}_{sample_size}cells_{n_batches_sample}{batch_col}.csv"), index=False)
+                
+                # Plot UMAP results for batch-filtered data
+                plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells_{n_batches_sample}{batch_col}_celltypecolors", **plot_params)
+                plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells_{n_batches_sample}{batch_col}_batchcolors", **plot_params_batch_col)
+
             gc.collect()
+
+

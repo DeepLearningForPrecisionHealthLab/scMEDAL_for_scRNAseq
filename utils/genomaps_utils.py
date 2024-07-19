@@ -27,7 +27,7 @@ from scipy.spatial.distance import pdist, squareform
 
 
 import sys
-from utils import read_adata, min_max_scaling,save_adata#,get_split_paths 
+from utils import read_adata, min_max_scaling,save_adata,calculate_zscores#,get_split_paths 
 
 
 
@@ -174,37 +174,6 @@ def construct_genomap(data,rowNum,colNum,epsilon=0,num_iter=1000):
     return geno_dict 
     #return genomaps
 
-
-
-def calculate_zscores(data):
-    """
-    Calculate z-scores for the given data, ignoring columns with zero variance. (Equivalent to scanpy.pp.scale)
-
-    Args:
-        data (np.ndarray): Input data array.
-
-    Returns:
-        np.ndarray: Array of z-scores.
-    """
-    # Replace NaNs with zeros
-    data_no_nan = np.nan_to_num(data, nan=0.0)
-
-    # Identify columns with zero variance
-    std_dev = np.std(data_no_nan, axis=0, ddof=1)
-    zero_variance_columns = std_dev == 0
-
-    # Calculate z-scores, ignoring zero variance columns
-    z_scores = np.zeros_like(data_no_nan)
-    non_zero_var_columns = ~zero_variance_columns
-    z_scores[:, non_zero_var_columns] = stats.zscore(data_no_nan[:, non_zero_var_columns], axis=0, ddof=1)
-
-    # Check for NaNs in the z-scores
-    if np.isnan(z_scores).any():
-        print("Input contains NaNs")
-    else:
-        print("Input does not contain NaNs")
-
-    return z_scores
 
 def process_data_genomap(inputs_path, recon_path=None, ncells=50000, ngenes=2916, return_input_zscores=False):
     """
@@ -597,7 +566,7 @@ def plot_genomap_with_genes(cell_geno, top10hvg_genes, gene_to_coordinates):
     plt.show()
 
 
-def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes, n_cells, n_batches, out_path, add_inputs_fe=True,n_inputs_fe=2, celltype=None, save_data=False):
+def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes, n_cells, n_batches, out_path, add_inputs_fe=True,n_inputs_fe=2, celltype=None, save_data=False,scaling="min_max"):
     """
     Create a concatenated count matrix from cell reconstructions from multiple batches, optionally filtered by cell type.
     This concatenated matrix will be used to generate a genomap.
@@ -644,8 +613,13 @@ def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes,
         if "input" in recon_pref:
             X, _, _ = read_adata(recon_path, issparse=True)
             X = X.toarray()
-            # input needs to be scaled because reconstructions are already scaled
-            X = min_max_scaling(X)
+            # Input needs to be scaled because reconstructions are in the scaled space
+            # Apply scaling to X based on the scaling parameter.
+            if scaling == "min_max":
+                # Placeholder for the actual min_max_scaling function; this needs to be defined or imported.
+                X = min_max_scaling(X)
+            elif scaling =="z_scores":
+                X = calculate_zscores(X)
         else:
             X = np.load(recon_path)
 

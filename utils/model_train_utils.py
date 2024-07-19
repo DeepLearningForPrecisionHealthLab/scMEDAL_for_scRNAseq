@@ -3,7 +3,7 @@ import anndata as ad
 import sys
 # you can change this path to your own utils folder
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
-from utils import create_folder,read_adata,get_OHE,min_max_scaling,plot_rep,calculate_merge_scores,plot_table,get_split_paths
+from utils import create_folder,read_adata,get_OHE,min_max_scaling,plot_rep,calculate_merge_scores,plot_table,get_split_paths,calculate_zscores
 from callbacks import ComputeLatentsCallback
 import os
 import tensorflow as tf
@@ -314,7 +314,7 @@ def load_data(paths_dict, eval_test, scaling="min_max",issparse=False, load_dens
     Parameters:
     - paths_dict (dict): A dictionary containing paths with keys 'train', 'val', and optionally 'test'.
     - eval_test (bool): Flag indicating whether to load the test dataset. If True, expects 'test' key in `paths_dict`.
-    - scaling (str, optional): The type of scaling to apply to the data. Default is "min_max".
+    - scaling (str, optional): The type of scaling to apply to the data. Default is "min_max". You can also select "z_scores".
                               Other options should be handled within the function.
     - issparse(bool): True if X is in sparse array, False if its dense
     - load_dense (bool): If True, forces conversion of sparse arrays to dense format.
@@ -330,11 +330,15 @@ def load_data(paths_dict, eval_test, scaling="min_max",issparse=False, load_dens
         # Convert X to dense if it's sparse and load_dense is True.
         if load_dense and issparse and scipy.sparse.issparse(X):
             X = X.toarray()
+        print("X.shape before scaling",X.shape)
 
         # Apply scaling to X based on the scaling parameter.
         if scaling == "min_max":
             # Placeholder for the actual min_max_scaling function; this needs to be defined or imported.
             X = min_max_scaling(X)
+        elif scaling =="z_scores":
+            X = calculate_zscores(X)
+            print("X.shape after scaling",X.shape)
 
         # Create an AnnData object with the scaled data.
         adata = ad.AnnData(X, obs=obs, var=var)
@@ -853,15 +857,107 @@ class PlotLoss:
             plt.show()
 
 
-    def plot_ae_da(self):
+    # def plot_ae_da(self):
 
+    #     """
+    #     Plots the losses for a Domain Adversarial Autoencoder model.
+    #     """
+    #     # Define the epochs based on the history length
+    #     epochs = range(len(self.history["total_loss"]))
+
+    #     # Creating the figure and axes
+    #     fig, ax1 = plt.subplots()
+    #     ax2 = ax1.twinx()  # Create a twin axis for different scale plotting
+
+    #     # Iterate through the history items and plot them
+    #     for key, val in self.history.items():
+    #         # Scaling the values based on loss weights
+    #         scaled_val = np.array(val)
+
+    #         if "adv" in key:
+    #             # Plotting adversarial loss on ax1
+    #             ax1.plot(epochs, self.model_params.loss_gen_weight * scaled_val, linestyle='--' if "val" in key else '-', color='blueviolet', label=key)
+
+    #         elif "recon_loss" in key:
+    #             # Plotting reconstruction loss on ax1
+    #             ax1.plot(epochs, self.model_params.loss_recon_weight * scaled_val, linestyle='--' if "val" in key else '-', color='b', label=key)  # 'b' is a valid color shorthand for blue
+
+    #         elif "total_loss" in key:
+    #             # Plotting total loss on ax1
+    #             ax1.plot(epochs, scaled_val, linestyle='--' if "val" in key else '-', color='g', label=key)
+
+    #         elif "class_loss" in key:
+
+    #             ax2.plot(epochs, self.model_params.loss_class_weight * scaled_val,linestyle='--' if "val" in key else '-', color='skyblue', label=key)
+
+
+    #         # Replace the color string with a valid color name or hex code
+
+    #     # Setting axis labels and colors
+    #     ax1.set_ylabel("Total/Recon/Adv Loss", color="g")
+    #     ax2.set_ylabel("Class Loss", color="skyblue")
+
+    #     # Positioning the legends
+    #     legend1 = ax1.legend(loc='upper right', bbox_to_anchor=(1.5, 1))
+    #     legend2 = ax2.legend(loc='upper right', bbox_to_anchor=(1.5, 0.6))
+
+    #     # Title for the plot
+    #     plt.title("Losses Adjusted by Weights")
+
+    #     # Saving the plot if the model is being saved
+    #     # if self.save_model:
+    #     #     plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
+    #     if self.save_model:
+    #         if not self.average_curve:
+    #             plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
+    #             print(f"Saved regular loss plot at: {self.model_params.plots_path}")
+        
+    #         else:
+    #             plt.savefig(self.model_params.plots_path_main + "/avg_loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
+    #             print(f"Saved raverage loss plot at: {self.model_params.plots_path}")
+
+    #     # Displaying the plot
+    #     if self.showplot:
+    #         plt.show()
+    def plot_ae_da(self):
         """
         Plots the losses for a Domain Adversarial Autoencoder model.
         """
         # Define the epochs based on the history length
         epochs = range(len(self.history["total_loss"]))
 
-        # Creating the figure and axes
+        # Creating a figure for the reconstruction loss plot
+        fig_recon, ax_recon = plt.subplots()
+
+        # Plotting only the reconstruction loss
+        for key, val in self.history.items():
+            if "recon_loss" in key:
+                ax_recon.plot(epochs, self.model_params.loss_recon_weight * np.array(val), linestyle='--' if "val" in key else '-', color='b', label=key)
+
+        # Setting axis labels and colors for the reconstruction loss plot
+        ax_recon.set_ylabel("Reconstruction Loss", color='b')
+        ax_recon.set_xlabel("Epochs")
+        
+        # Adding legend
+        legend_recon = ax_recon.legend(loc='upper right')
+
+        # Title for the reconstruction loss plot
+        plt.title("Reconstruction Loss")
+
+        # Saving the reconstruction loss plot if the model is being saved
+        if self.save_model:
+            if not self.average_curve:
+                plt.savefig(self.model_params.plots_path + "/recon_loss.png", bbox_extra_artists=(legend_recon,), bbox_inches='tight')
+                print(f"Saved reconstruction loss plot at: {self.model_params.plots_path}")
+            else:
+                plt.savefig(self.model_params.plots_path_main + "/avg_recon_loss.png", bbox_extra_artists=(legend_recon,), bbox_inches='tight')
+                print(f"Saved average reconstruction loss plot at: {self.model_params.plots_path_main}")
+
+        # Displaying the reconstruction loss plot
+        if self.showplot:
+            plt.show()
+
+        # Creating the figure and axes for the main plot
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()  # Create a twin axis for different scale plotting
 
@@ -883,38 +979,33 @@ class PlotLoss:
                 ax1.plot(epochs, scaled_val, linestyle='--' if "val" in key else '-', color='g', label=key)
 
             elif "class_loss" in key:
+                ax2.plot(epochs, self.model_params.loss_class_weight * scaled_val, linestyle='--' if "val" in key else '-', color='skyblue', label=key)
 
-                ax2.plot(epochs, self.model_params.loss_class_weight * scaled_val,linestyle='--' if "val" in key else '-', color='skyblue', label=key)
-
-
-            # Replace the color string with a valid color name or hex code
-
-        # Setting axis labels and colors
+        # Setting axis labels and colors for the main plot
         ax1.set_ylabel("Total/Recon/Adv Loss", color="g")
         ax2.set_ylabel("Class Loss", color="skyblue")
 
-        # Positioning the legends
+        # Positioning the legends for the main plot
         legend1 = ax1.legend(loc='upper right', bbox_to_anchor=(1.5, 1))
         legend2 = ax2.legend(loc='upper right', bbox_to_anchor=(1.5, 0.6))
 
-        # Title for the plot
+        # Title for the main plot
         plt.title("Losses Adjusted by Weights")
 
-        # Saving the plot if the model is being saved
-        # if self.save_model:
-        #     plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
+        # Saving the main plot if the model is being saved
         if self.save_model:
             if not self.average_curve:
-                plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
+                plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
                 print(f"Saved regular loss plot at: {self.model_params.plots_path}")
-        
             else:
-                plt.savefig(self.model_params.plots_path_main + "/avg_loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
-                print(f"Saved raverage loss plot at: {self.model_params.plots_path}")
+                plt.savefig(self.model_params.plots_path_main + "/avg_loss.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
+                print(f"Saved average loss plot at: {self.model_params.plots_path}")
 
-        # Displaying the plot
+        # Displaying the main plot
         if self.showplot:
             plt.show()
+
+
 
 
     def plot_aec(self):
@@ -1476,7 +1567,7 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
     import gc
     print("input path dict",input_path_dict)
     # 1. Load data in dense format
-    adata_dict = load_data(input_path_dict, eval_test=model_params.eval_test, scaling="min_max",issparse=issparse, load_dense=load_dense)
+    adata_dict = load_data(input_path_dict, eval_test=model_params.eval_test, scaling=model_params.scaling,issparse=issparse, load_dense=load_dense)
     print("loaded adata, adata_dict keys check:",adata_dict.keys())
 
     print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
@@ -2113,13 +2204,15 @@ def load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_par
     - batch_col_categories (list): Categories for the batch column to be used in one-hot encoding.
     - bio_col_categories (list): Categories for the biological column to be used in one-hot encoding.
 
+
+
     Returns:
     - adata_dict (dict): Dictionary of AnnData objects updated with latent spaces and 'y', 'z' components.
     """
     
     # Load initial dataset paths and data
     input_path_dict = get_split_paths(base_path=base_path, fold=fold)
-    adata_dict = load_data(input_path_dict, eval_test=model_params.eval_test, scaling="min_max")
+    adata_dict = load_data(input_path_dict, eval_test = model_params.eval_test, scaling = model_params.scaling)
 
     # Initialize dataset list and add 'test' dataset if evaluation on 'test' is enabled
     dataset_list = ["train", "val"]

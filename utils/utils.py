@@ -800,9 +800,12 @@ def plot_rep(adata, shape_col="celltype", color_col="donor", use_rep="X_pca", ma
 
     unique_shapecol = np.unique(adata.obs[shape_col])
     unique_colorcol = np.unique(adata.obs[color_col])
+    print("unique_colorcol",unique_colorcol)
 
     # Choose the color palette based on the palette_choice argument
-    if palette_choice == "hsv":
+    if isinstance(palette_choice, list):
+        color_palette = palette_choice
+    elif palette_choice == "hsv":
         color_palette = sns.color_palette("hsv", len(unique_colorcol))
     elif palette_choice == "tab20":
         # Ensure tab20 has enough colors, otherwise cycle through them
@@ -810,7 +813,8 @@ def plot_rep(adata, shape_col="celltype", color_col="donor", use_rep="X_pca", ma
     elif palette_choice == "Set2":
         color_palette = sns.color_palette("Set2", len(unique_colorcol))
     else:
-        raise ValueError("Invalid palette choice. Please choose 'hsv' or 'tab20'.")
+        raise ValueError("Invalid palette choice. Please choose 'hsv', 'tab20', 'Set2', or provide a list of colors.")
+    
 
     color_map = {color: color_palette[i] for i, color in enumerate(unique_colorcol)}
     shape_map = {shape: markers[i % len(markers)] for i, shape in enumerate(unique_shapecol)}
@@ -821,7 +825,7 @@ def plot_rep(adata, shape_col="celltype", color_col="donor", use_rep="X_pca", ma
     for shape in unique_shapecol:
         for color in unique_colorcol:
             mask = (adata.obs[color_col] == color) & (adata.obs[shape_col] == shape)
-            ax.scatter(c1[mask], c2[mask], color=color_map[color], marker=shape_map[shape], alpha=0.25, s=1)
+            ax.scatter(c1[mask], c2[mask], color=color_map[color], marker=shape_map[shape], alpha=0.7, s=1)
 
     # Create legends
     color_legend_elements = [Line2D([0], [0], marker='o', color='w', markerfacecolor=color_map[c], markersize=10) for c in unique_colorcol]
@@ -1904,3 +1908,33 @@ def scRNAseq_pipeline_Yu2023(adata, min_genes_per_cell=10, min_cells_per_gene=3,
     return adata_copy
 
                 
+def calculate_zscores(data):
+    import scipy.stats as stats
+    """
+    Calculate z-scores for the given data, ignoring columns with zero variance. (Equivalent to scanpy.pp.scale)
+
+    Args:
+        data (np.ndarray): Input data array.
+
+    Returns:
+        np.ndarray: Array of z-scores.
+    """
+    # Replace NaNs with zeros
+    data_no_nan = np.nan_to_num(data, nan=0.0)
+
+    # Identify columns with zero variance
+    std_dev = np.std(data_no_nan, axis=0, ddof=1)
+    zero_variance_columns = std_dev == 0
+
+    # Calculate z-scores, ignoring zero variance columns
+    z_scores = np.zeros_like(data_no_nan)
+    non_zero_var_columns = ~zero_variance_columns
+    z_scores[:, non_zero_var_columns] = stats.zscore(data_no_nan[:, non_zero_var_columns], axis=0, ddof=1)
+
+    # Check for NaNs in the z-scores
+    if np.isnan(z_scores).any():
+        print("Input contains NaNs")
+    else:
+        print("Input does not contain NaNs")
+
+    return z_scores

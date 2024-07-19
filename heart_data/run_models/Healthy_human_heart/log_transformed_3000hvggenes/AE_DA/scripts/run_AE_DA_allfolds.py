@@ -13,6 +13,8 @@ import sys
 #tf.config.run_functions_eagerly(True)
 #tf.data.experimental.enable_debug_mode()
 
+import shutil
+
 print(tf.__version__)
 import copy
 import os
@@ -119,4 +121,16 @@ mean_scores = run_all_folds(Model=DomainAdversarialAE,
 # print("val celltype Silhouette:",mean_scores["val"].loc[('celltype', 'silhouette'), 'mean'])
 # print("metric to optimize",metric2optimize)
 
+
+##############################################################################################
+############## save config.py file
+destination_path = os.path.join(saved_models_base, run_name, 'model_config.py')
+
+# Ensure the destination directory exists
+# os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+
+print("\nCopying config.py file to:", destination_path)
+
+# Copy the file
+shutil.copy(source_file, destination_path)
 

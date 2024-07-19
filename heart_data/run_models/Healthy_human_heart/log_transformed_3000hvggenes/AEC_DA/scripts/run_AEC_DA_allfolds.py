@@ -119,3 +119,15 @@ mean_scores = run_all_folds(Model=DomainAdversarialAE,
 # print("metric to optimize",metric2optimize)
 
 
+##############################################################################################
+############## save config.py file
+destination_path = os.path.join(saved_models_base, run_name, 'model_config.py')
+
+# Ensure the destination directory exists
+# os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+
+print("\nCopying config.py file to:", destination_path)
+
+# Copy the file
+shutil.copy(source_file, destination_path)
+

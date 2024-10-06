@@ -530,6 +530,50 @@ class AdversarialClassifier(tkl.Layer):
         return {'n_clusters': self.n_clusters,
                 'layer_units': self.layer_units}
 
+# class AdversarialClassifier_classguided(tkl.Layer):
+#     def __init__(self,
+#                  n_clusters: int, 
+#                  n_latent_dims: int=2,
+#                  layer_units: list=[5, 4],
+#                  name: str='adversary',
+#                  **kwargs):
+#         """Adversarial classifier. 
+
+#         Args:
+#             n_clusters (int): number of clusters (classes)
+#             layer_units (list, optional): Neurons in each layer. Can be a list of any
+#                 length. Defaults to [8, 8, 8].
+#             name (str, optional): Model name. Defaults to 'adversary'.
+#         """        
+        
+#         super(AdversarialClassifier, self).__init__(name=name, **kwargs)
+        
+#         self.n_clusters = n_clusters
+#         self.layer_units = layer_units
+        
+#         self.all_layers = []
+#         for iLayer, neurons in enumerate(layer_units):
+#             self.all_layers += [tkl.Dense(neurons, 
+#                                       activation='relu', 
+#                                       name=name + '_dense' + str(iLayer))]
+            
+#         self.all_layers += [tkl.Dense(self.n_clusters , activation='softmax', name=name + '_dense_out')]
+        
+#     def call(self, inputs):
+#         x = inputs["activations"]
+#         y = inputs["classlabels"]
+#         if type(inputs) is list:
+#             inputs = tf.concat(inputs, axis=-1)
+#         x = inputs
+#         for layer in self.all_layers:
+#             x = layer(x)
+            
+#         return x
+    
+    def get_config(self):
+        return {'n_clusters': self.n_clusters,
+                'layer_units': self.layer_units}
+
 
 class Adversarial(tf.keras.layers.Layer):
     """
@@ -1022,6 +1066,496 @@ class DomainAdversarialAE(AE):
             self.loss_class_tracker.update_state(loss_class)
         
         return {m.name: m.result() for m in self.metrics}
+
+
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+class Discriminator(keras.Model):
+    """Inspired in abc MODEL: https://github.com/reutd/ABC/blob/master/ABC/ABC.py """
+    def __init__(self, n_clusters, hidden_size=64, **kwargs):
+        super(Discriminator, self).__init__(**kwargs)
+        self.n_clusters = n_clusters
+        self.hidden_size = hidden_size
+
+        self.hidden_layers = [
+            layers.Dense(hidden_size, activation=tf.nn.relu, kernel_regularizer=tf.keras.regularizers.l2()),
+            layers.Dense(hidden_size, activation=tf.nn.relu, kernel_regularizer=tf.keras.regularizers.l2())
+        ]
+        self.output_layer = layers.Dense(self.n_clusters, activation=tf.nn.softmax, kernel_regularizer=tf.keras.regularizers.l2())
+
+    def call(self, inputs, training=None):
+        x, class_labels = inputs
+        # Ensure class_labels have the same dtype as x
+        class_labels = tf.cast(class_labels, x.dtype)
+        x = tf.concat([x, class_labels], axis=-1)
+        print("disc input shape:",x.shape)
+        print(x)
+        for layer in self.hidden_layers:
+            x = layer(x, training=training)
+        return self.output_layer(x, training=training)
+
+
+class DomainAdversarialAE_trainedlikeGAN(AE):
+    def __init__(self, in_shape: tuple, n_clusters: int, 
+                 n_latent_dims: int=2, 
+                 layer_units: list=[9,7,5],
+                 last_activation: str="sigmoid",
+                 n_pred: int=10,
+                 layer_units_latent_classifier: list=[2],
+                 get_pred=False,
+                 use_batch_norm: bool=False,
+                 name='da_ae', 
+                 **kwargs):
+        """
+        Initialize the Domain Adversarial Autoencoder.
+
+        Args:
+            in_shape (tuple): Input shape of the data.
+            n_clusters (int): Number of clusters for adversarial classification.
+            n_latent_dims (int, optional): Dimensions of the latent space. Defaults to 64.
+            layer_units (list, optional): List containing units for each dense layer. Defaults to [784, 392].
+            last_activation (str, optional): Activation function for the last layer. Defaults to "sigmoid".
+            name (str, optional): Name of the model. Defaults to 'da_ae'.
+            **kwargs: Additional keyword arguments.
+        """
+
+        super(DomainAdversarialAE_trainedlikeGAN, self).__init__(name=name, **kwargs)
+
+        self.in_shape = in_shape 
+        self.n_clusters = n_clusters 
+        self.n_latent_dims = n_latent_dims 
+        self.layer_units = layer_units
+        self.last_activation = last_activation
+        self.get_pred = get_pred
+        self.use_batch_norm = use_batch_norm
+                
+        if self.get_pred:
+            self.n_pred = n_pred
+            self.layer_units_latent_classifier = layer_units_latent_classifier
+            #The latent classifier returns class predictions 
+            self.latent_classifier = Classifier(n_clusters=self.n_pred,layer_units = self.layer_units_latent_classifier)
+            self.latent_loss_tracker = tf.keras.metrics.Mean(name="latent_loss")
+        
+        #autoencoder: encoder +decoder
+        self.encoder = Encoder(n_latent_dims = n_latent_dims,
+                                 layer_units=self.layer_units,
+                                 return_layer_activations=True,
+                                 use_batch_norm=self.use_batch_norm)
+        encoder_layers_list = list(self.encoder.all_layers.values())
+        self.decoder = Decoder(in_shape=self.in_shape,encoder_layers = encoder_layers_list,layer_units = self.layer_units, last_activation = self.last_activation)
+        #adversarial classifier
+        self.adversary = AdversarialClassifier(n_clusters = self.n_clusters,
+                                                 n_latent_dims = self.n_latent_dims,
+                                                 layer_units=self.layer_units)
+        # Loss trackers
+        self.recon_loss_tracker = tf.keras.metrics.Mean(name="recon_loss")
+        self.adv_loss_tracker = tf.keras.metrics.Mean(name="adv_loss")
+        self.disc_loss_tracker = tf.keras.metrics.Mean(name="disc_loss")
+        
+        self.total_loss_tracker = tf.keras.metrics.Mean(name="total_loss")
+    
+    def call(self, inputs, training=None):
+        """
+        Forward pass through the Domain Adversarial Autoencoder.
+
+        Args:
+            inputs (tuple): Tuple containing the input data and cluster information.
+
+        Returns:
+            tuple: Reconstruction from the decoder and prediction from the adversarial classifier.
+        """
+        x, batches = inputs
+        
+        # Encoder
+        encoder_activations = self.encoder(x, training=training)
+        
+        # Apply adversary to encoder activations (decoder shares weights with encoder)
+        pred_batch = self.adversary(encoder_activations)
+        
+        # Latent space is the last activation layer
+        latent = encoder_activations[-1]
+        
+        # Decoder is applied to latent
+        recon = self.decoder(latent, training=training)
+
+        if self.get_pred:
+            # Classification
+            pred_class = self.latent_classifier(latent)
+            return (recon, pred_class, pred_batch)
+        else:
+            return (recon, pred_batch)
+
+    def compile(self, ae_optimizer, adv_optimizer, recon_loss, adv_loss, disc_loss, latent_loss, loss_weights):
+        super(DomainAdversarialAE_trainedlikeGAN, self).compile()
+        self.ae_optimizer = ae_optimizer
+        self.adv_optimizer = adv_optimizer
+        self.recon_loss = recon_loss
+        self.adv_loss = adv_loss
+        self.disc_loss = disc_loss
+        self.latent_loss = latent_loss
+        self.loss_weights = loss_weights
+
+    def train_step(self, data):
+                #load data
+        x, batch_labels = data[0]
+
+        if self.get_pred:
+            _, class_labels = data[1]
+        # else:
+        #     labels = None
+
+        sample_weights = None if len(data) != 3 else data[2]
+
+        #CHECK IF THE SHAPES ARE CORRECT
+        assert x.shape[0] == batch_labels.shape[0], "Mismatch between x and clusters"
+        if self.get_pred:
+            assert x.shape[0] == class_labels.shape[0], "Mismatch between x and labels"
+
+        # Train the Discriminator
+        with tf.GradientTape(watch_accessed_variables=False) as tape_adv:
+            tape_adv.watch(self.adversary.trainable_variables)
+            outputs = self(inputs=(x, batch_labels), training=True)
+            if self.get_pred:
+                recon, pred_class, pred_batch = outputs #(+ pred class)
+            else:
+                recon, pred_batch = outputs
+            disc_loss = self.disc_loss(batch_labels, pred_batch)
+        
+        adv_grads = tape_adv.gradient(disc_loss, self.adversary.trainable_variables)
+        self.adv_optimizer.apply_gradients(zip(adv_grads, self.adversary.trainable_variables))
+
+        # Train the Autoencoder Adversarially
+        with tf.GradientTape(watch_accessed_variables=False) as tape_adv_ae:
+            tape_adv_ae.watch(self.encoder.trainable_variables + self.decoder.trainable_variables)
+
+            outputs = self(inputs=(x, batch_labels), training=True)
+            if self.get_pred:
+                recon, pred_class, pred_batch = outputs #(+ pred class)
+            else:
+                recon, pred_batch = outputs
+            
+            fool_labels = tf.zeros_like(pred_batch)  # Target distribution for confusion
+            adv_loss_ae = self.adv_loss(fool_labels, pred_batch)
+        
+        adv_ae_grads = tape_adv_ae.gradient(adv_loss_ae, self.encoder.trainable_variables + self.decoder.trainable_variables)
+        self.ae_optimizer.apply_gradients(zip(adv_ae_grads, self.encoder.trainable_variables + self.decoder.trainable_variables))
+
+        # Train the Main Model (Encoder + Decoder + Latent Classifier)
+        with tf.GradientTape() as tape_main:
+            outputs = self(inputs=(x, batch_labels), training=True)
+            if self.get_pred:
+                recon, pred_class, pred_batch = outputs #(+ pred class)
+            else:
+                recon, pred_batch = outputs
+            recon_loss = self.recon_loss(x, recon)
+
+            adv_loss_main = self.adv_loss(tf.zeros_like(pred_batch), pred_batch)
+
+            if self.get_pred:
+                latent_loss = self.latent_loss(class_labels, pred_class)
+                total_loss = (self.loss_weights['recon'] * recon_loss +
+                              self.loss_weights['adv'] * adv_loss_main +
+                              self.loss_weights['latent'] * latent_loss)
+            else:
+                total_loss = (self.loss_weights['recon'] * recon_loss +
+                              self.loss_weights['adv'] * adv_loss_main)
+
+        main_grads = tape_main.gradient(total_loss, self.encoder.trainable_variables + self.decoder.trainable_variables + (self.latent_classifier.trainable_variables if self.get_pred else []))
+        self.ae_optimizer.apply_gradients(zip(main_grads, self.encoder.trainable_variables + self.decoder.trainable_variables + (self.latent_classifier.trainable_variables if self.get_pred else [])))
+
+        # Update loss trackers
+        self.recon_loss_tracker.update_state(recon_loss)
+        self.adv_loss_tracker.update_state(adv_loss_main)
+        self.disc_loss_tracker.update_state(disc_loss)
+        if self.get_pred:
+            self.latent_loss_tracker.update_state(latent_loss)
+        self.total_loss_tracker.update_state(total_loss)
+
+        # Update metrics
+        self.compiled_metrics.update_state(x, recon)
+
+        return {m.name: m.result() for m in self.metrics}
+
+    @property
+    def metrics(self):
+        return [self.recon_loss_tracker, self.adv_loss_tracker, self.disc_loss_tracker, self.latent_loss_tracker, self.total_loss_tracker]
+
+    def test_step(self, data):
+
+        x, batch_labels = data[0]
+
+        if self.get_pred:
+            _, class_labels = data[1]
+        # else:
+        #     labels = None
+
+        #CHECK IF THE SHAPES ARE CORRECT
+        assert x.shape[0] == batch_labels.shape[0], "Mismatch between x and clusters"
+        if self.get_pred:
+            assert x.shape[0] == class_labels.shape[0], "Mismatch between x and labels"
+
+        # x, y = data
+        # batch_labels = tf.one_hot(y['batch'], depth=self.n_clusters)
+        # celltype_labels = tf.one_hot(y['celltype'], depth=self.n_pred)
+        
+        outputs = self(inputs=(x, batch_labels), training=False)
+        if self.get_pred:
+            recon, pred_class, pred_batch = outputs #(+ pred class)
+        else:
+            recon, pred_batch = outputs
+        recon_loss = self.recon_loss(x, recon)
+        disc_loss = self.disc_loss(batch_labels, pred_batch)       
+        
+        adv_loss = self.adv_loss(tf.zeros_like(pred_batch), pred_batch)
+        
+        if self.get_pred:
+            latent_loss = self.latent_loss(class_labels, pred_class)
+            total_loss = (self.loss_weights['recon'] * recon_loss +
+                          self.loss_weights['adv'] * adv_loss +
+                          self.loss_weights['latent'] * latent_loss)
+        else:
+            total_loss = (self.loss_weights['recon'] * recon_loss +
+                          self.loss_weights['adv'] * adv_loss)
+
+        # Update loss trackers
+        self.recon_loss_tracker.update_state(recon_loss)
+        self.adv_loss_tracker.update_state(adv_loss)
+        self.disc_loss_tracker.update_state(disc_loss)
+        if self.get_pred:
+            self.latent_loss_tracker.update_state(latent_loss)
+        self.total_loss_tracker.update_state(total_loss)
+
+
+class DomainAdversarialAE_trainedlikeGAN_disc(AE):
+    """Disc like ABC"""
+    def __init__(self, in_shape: tuple, n_clusters: int, 
+                 n_latent_dims: int=2, 
+                 layer_units: list=[9,7,5],
+                 last_activation: str="sigmoid",
+                 n_pred: int=10,
+                 layer_units_latent_classifier: list=[2],
+                 use_batch_norm: bool=False,
+                 name='da_ae_likegan_disc', 
+                 **kwargs):
+        """
+        Initialize the Domain Adversarial Autoencoder.
+
+        Args:
+            in_shape (tuple): Input shape of the data.
+            n_clusters (int): Number of clusters for adversarial classification.
+            n_latent_dims (int, optional): Dimensions of the latent space. Defaults to 64.
+            layer_units (list, optional): List containing units for each dense layer. Defaults to [784, 392].
+            last_activation (str, optional): Activation function for the last layer. Defaults to "sigmoid".
+            name (str, optional): Name of the model. Defaults to 'da_ae'.
+            **kwargs: Additional keyword arguments.
+        """
+
+        # super(DomainAdversarialAE_trainedlikeGAN_disc, self).__init__(in_shape=in_shape, 
+        #                                                               n_latent_dims=n_latent_dims, layer_units=layer_units, 
+        #                                                               last_activation=last_activation, 
+        #                                                               use_batch_norm=use_batch_norm, name=name, **kwargs)
+
+        super(AE, self).__init__(name=name, **kwargs)
+        self.in_shape = in_shape 
+        self.n_clusters = n_clusters 
+        self.n_latent_dims = n_latent_dims 
+        self.layer_units = layer_units
+        self.last_activation = last_activation
+        self.get_pred = True
+        self.use_batch_norm = use_batch_norm
+                
+
+        self.n_pred = n_pred
+        self.layer_units_latent_classifier = layer_units_latent_classifier
+        #The latent classifier returns class predictions 
+        self.latent_classifier = Classifier(n_clusters=self.n_pred,layer_units = self.layer_units_latent_classifier)
+        self.latent_loss_tracker = tf.keras.metrics.Mean(name="latent_loss")
+        
+        #autoencoder: encoder +decoder
+        self.encoder = Encoder(n_latent_dims = n_latent_dims,
+                                 layer_units=self.layer_units,
+                                 return_layer_activations=True,
+                                 use_batch_norm=self.use_batch_norm)
+        encoder_layers_list = list(self.encoder.all_layers.values())
+        self.decoder = Decoder(in_shape=self.in_shape,encoder_layers = encoder_layers_list,layer_units = self.layer_units, last_activation = self.last_activation)
+        #adversarial classifier
+        self.discriminator = Discriminator(n_clusters, hidden_size=64)   
+        # Loss trackers
+        self.recon_loss_tracker = tf.keras.metrics.Mean(name="recon_loss")
+        self.adv_loss_tracker = tf.keras.metrics.Mean(name="adv_loss")
+        self.disc_loss_tracker = tf.keras.metrics.Mean(name="disc_loss")
+        
+        self.total_loss_tracker = tf.keras.metrics.Mean(name="total_loss")
+    
+    def call(self, inputs, training=None):
+        """
+        Forward pass through the Domain Adversarial Autoencoder.
+
+        Args:
+            inputs (tuple): Tuple containing the input data and cluster information.
+
+        Returns:
+            tuple: Reconstruction from the decoder and prediction from the adversarial classifier.
+        """
+        x, batch_labels = inputs
+        
+        # Encoder
+        encoder_activations = self.encoder(x, training=training)
+        
+
+        
+        # Latent space is the last activation layer
+        latent = encoder_activations[-1]
+        
+        # Decoder is applied to latent
+        recon = self.decoder(latent, training=training)
+
+        pred_class = self.latent_classifier(latent)
+        return recon, pred_class
+
+    def compile(self, ae_optimizer, adv_optimizer, recon_loss, adv_loss, disc_loss, latent_loss, loss_weights):
+        super(DomainAdversarialAE_trainedlikeGAN_disc, self).compile()
+        self.ae_optimizer = ae_optimizer
+        self.adv_optimizer = adv_optimizer
+        self.recon_loss = recon_loss
+        self.adv_loss = adv_loss
+        self.disc_loss = disc_loss
+        self.latent_loss = latent_loss
+        self.loss_weights = loss_weights
+
+    def train_step(self, data):
+                #load data
+        x, batch_labels = data[0]
+
+        _, class_labels = data[1]
+        # else:
+        #     labels = None
+
+        sample_weights = None if len(data) != 3 else data[2]
+
+        #CHECK IF THE SHAPES ARE CORRECT
+        assert x.shape[0] == batch_labels.shape[0], "Mismatch between x and clusters"
+        if self.get_pred:
+            assert x.shape[0] == class_labels.shape[0], "Mismatch between x and labels"
+
+        # Train the Discriminator
+        with tf.GradientTape(persistent=True) as tape_adv:
+            tape_adv.watch(self.discriminator.trainable_variables)
+            outputs = self(inputs=(x, batch_labels), training=True)
+
+            recon, pred_class = outputs #(+ pred class)
+            pred_batch = self.discriminator((recon,class_labels),training=True)
+            disc_loss = self.disc_loss(batch_labels, pred_batch)
+        
+        adv_grads = tape_adv.gradient(disc_loss, self.discriminator.trainable_variables)
+        adv_grads = tape_adv.gradient(disc_loss, self.discriminator.trainable_variables)
+        if None in adv_grads:
+            for grad, var in zip(adv_grads, self.discriminator.trainable_variables):
+                if grad is None:
+                    print(f"Gradient is None for variable {var.name}")
+        self.adv_optimizer.apply_gradients(zip(adv_grads, self.discriminator.trainable_variables))
+
+        # Train the Autoencoder Adversarially
+        with tf.GradientTape(watch_accessed_variables=False) as tape_adv_ae:
+            tape_adv_ae.watch(self.encoder.trainable_variables + self.decoder.trainable_variables)
+
+            outputs = self(inputs=(x, batch_labels), training=True)
+
+            recon, pred_class= outputs #(+ pred class)
+
+            pred_batch = self.discriminator((recon, class_labels),training=True)
+           
+            fool_labels = tf.zeros_like(pred_batch)  # Target distribution for confusion
+            adv_loss_ae = self.adv_loss(fool_labels, pred_batch)
+
+        
+        adv_ae_grads = tape_adv_ae.gradient(adv_loss_ae, self.encoder.trainable_variables + self.decoder.trainable_variables)
+        self.ae_optimizer.apply_gradients(zip(adv_ae_grads, self.encoder.trainable_variables + self.decoder.trainable_variables))
+        self.adv_loss_tracker.update_state(adv_loss_ae)
+
+        # Train the Main Model (Encoder + Decoder + Latent Classifier)
+        with tf.GradientTape() as tape_main:
+            outputs = self(inputs=(x, batch_labels), training=True)
+
+            recon, pred_class = outputs #(+ pred class)
+
+            recon_loss = self.recon_loss(x, recon)
+
+
+            latent_loss = self.latent_loss(class_labels, pred_class)
+            total_loss = (self.loss_weights['recon'] * recon_loss +
+                              self.loss_weights['class'] * latent_loss)
+
+
+        main_grads = tape_main.gradient(total_loss, self.encoder.trainable_variables + self.decoder.trainable_variables + (self.latent_classifier.trainable_variables))
+        self.ae_optimizer.apply_gradients(zip(main_grads, self.encoder.trainable_variables + self.decoder.trainable_variables + (self.latent_classifier.trainable_variables )))
+
+        # Update loss trackers
+        self.recon_loss_tracker.update_state(recon_loss)
+        self.disc_loss_tracker.update_state(disc_loss)
+
+        self.latent_loss_tracker.update_state(latent_loss)
+
+        # Update metrics
+        self.compiled_metrics.update_state(x, recon)
+
+        return {m.name: m.result() for m in self.metrics}
+
+    @property
+    def metrics(self):
+        return [self.recon_loss_tracker, self.adv_loss_tracker, self.disc_loss_tracker, self.latent_loss_tracker, self.total_loss_tracker]
+
+
+    def test_step(self, data):
+        x, batch_labels = data[0]
+        _, class_labels = data[1]
+
+        assert x.shape[0] == class_labels.shape[0], "Mismatch between x and labels"
+
+        outputs = self(inputs=(x, batch_labels), training=False)
+        recon, pred_class = outputs
+        
+        if recon is None:
+            raise ValueError("Reconstructed output is None")
+        if pred_class is None:
+            raise ValueError("Predicted class output is None")
+        
+        pred_batch = self.discriminator((recon, class_labels), training=False)
+
+        if pred_batch is None:
+            raise ValueError("Discriminator output is None")
+
+        recon_loss = self.recon_loss(x, recon)
+        disc_loss = self.disc_loss(batch_labels, pred_batch)
+        adv_loss = self.adv_loss(tf.zeros_like(pred_batch), pred_batch)
+        latent_loss = self.latent_loss(class_labels, pred_class)
+        total_loss = (self.loss_weights['recon'] * recon_loss +
+                    self.loss_weights['class'] * latent_loss)
+
+        # Check for NoneType in losses
+        if recon_loss is None:
+            raise ValueError("Reconstruction loss is None")
+        if disc_loss is None:
+            raise ValueError("Discriminator loss is None")
+        if adv_loss is None:
+            raise ValueError("Adversarial loss is None")
+        if latent_loss is None:
+            raise ValueError("Latent loss is None")
+        if total_loss is None:
+            raise ValueError("Total loss is None")
+
+        # Update loss trackers
+        self.recon_loss_tracker.update_state(recon_loss)
+        self.adv_loss_tracker.update_state(adv_loss)
+        self.disc_loss_tracker.update_state(disc_loss)
+        self.latent_loss_tracker.update_state(latent_loss)
+        self.total_loss_tracker.update_state(total_loss)
+
+        return {m.name: m.result() for m in self.metrics}
+
 
 class RandomEffectEncoder(Encoder):
     """
@@ -1689,13 +2223,23 @@ class MixedEffectsEncoder(tf.keras.layers.Layer):
 
     def call(self, inputs, training=None):
         # fe_latent, re_latent,z = inputs
-        fe_latent = inputs["fe_latent"]
-        re_latent = inputs["re_latent"]
+        # fe_latent = inputs["fe_latent"]
+        # re_latent = inputs["re_latent"]
+
+        fe_latent = inputs.get("fe_latent")
+        re_latent = inputs.get("re_latent", None)
+        
+        # Only concatenate re_latent if it is not None
+        if re_latent is not None:
+            x = self.concat2subnets([fe_latent, re_latent])
+        else:
+            x = fe_latent
+        
         if self.add_re_2_meclass:
             z = inputs["z"]
 
         
-        x = self.concat2subnets([fe_latent, re_latent])
+        # x = self.concat2subnets([fe_latent, re_latent])
         # apply hidden layers
         for key, layer in self.dense_hidden_layers.items():
             x = layer(x)

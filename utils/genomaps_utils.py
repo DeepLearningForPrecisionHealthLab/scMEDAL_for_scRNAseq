@@ -175,7 +175,7 @@ def construct_genomap(data,rowNum,colNum,epsilon=0,num_iter=1000):
     #return genomaps
 
 
-def process_data_genomap(inputs_path, recon_path=None, ncells=50000, ngenes=2916, return_input_zscores=False):
+def process_data_genomap(inputs_path, recon_path=None, ncells=50000, ngenes=2916, return_input_zscores=False,issparse=True):
     """
     Process input and recon data, calculate z-scores, and return a subset of the dataset.
 
@@ -185,12 +185,13 @@ def process_data_genomap(inputs_path, recon_path=None, ncells=50000, ngenes=2916
         ncells (int): Number of cells to subset. Default is 50000.
         ngenes (int): Number of genes to subset. Default is 2916.
         return_input_zscores (bool): Flag to return z-scores from input data. Default is False.
+        issparse (bool): Flag to read adata as sparse matrix. Default is True.
 
     Returns:
         dict: Nested dictionary containing subsets of z-scores and AnnData objects for input and recon data.
     """
     # Load input data
-    X_input, var, obs = read_adata(inputs_path, issparse=True)
+    X_input, var, obs = read_adata(inputs_path, issparse=issparse)
     adata_input_train = AnnData(X_input, obs=obs, var=var)
 
     # Process input data: Get z-scores
@@ -566,7 +567,293 @@ def plot_genomap_with_genes(cell_geno, top10hvg_genes, gene_to_coordinates):
     plt.show()
 
 
-def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes, n_cells, n_batches, out_path, add_inputs_fe=True,n_inputs_fe=2, celltype=None, save_data=False,scaling="min_max"):
+# def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes, n_cells, n_batches, out_path, add_inputs_fe=True,n_inputs_fe=2, celltype=None, save_data=False,scaling="min_max",issparse=True):
+#     """
+#     Create a concatenated count matrix from cell reconstructions from multiple batches, optionally filtered by cell type.
+#     This concatenated matrix will be used to generate a genomap.
+
+#     Parameters:
+#     recon_prefix (list of str): List of prefixes indicating the type of data in recon_paths.
+#     recon_paths (list of str): List of paths to the reconstructed data files.
+#     obs (DataFrame): DataFrame containing observation (cell) metadata.
+#     var (DataFrame): DataFrame containing variable (gene) metadata.
+#     n_genes (int): Number of genes to include in the count matrix.
+#     n_cells (int): Number of cells to include from each batch.
+#     n_batches (int): Number of batches to process.
+#     out_path (str): Output directory path to save the concatenated AnnData object.
+#     add_inputs_fe (bool, optional): Whether to add cells from the orginal input data and from the fixed effects recon. Default is True.
+#     n_inputs_fe (int,optional): If add_inputs_fe = True. Specify how many reconstructions you want to add to the count matrix. Default is 2. 
+#         One for inputs and another one for fixed effects (fe). You could also add a fe classifier recon and a base autoencoder recon.
+#     celltype (str, optional): Specific cell type to filter for. If None, include multiple cell types. Default is None.
+#     save_data (bool, optional): Whether to save the resulting AnnData object to disk. Default is False.
+#     issparse (bool,optional): Flag to read sparse count matrix. Default = True.
+
+#     Returns:
+#     None
+#     """
+#     import numpy as np
+#     import pandas as pd
+#     from anndata import AnnData
+#     import os
+
+#     # Initialize empty arrays and DataFrame
+#     x = np.empty((0, n_genes))
+#     obs_combined = pd.DataFrame()
+
+#     if celltype is not None:
+#         # Select the first n_cells of the specified cell type
+#         celltype_obs = obs[obs["celltype"] == celltype].head(n_cells)
+#         selected_indices = celltype_obs.index
+#         obs = celltype_obs
+#     if add_inputs_fe:
+#         n_recon_prefix = n_batches+n_inputs_fe
+#     else:
+#         n_recon_prefix = n_batches
+
+#     for recon_pref, recon_path in zip(recon_prefix[0:n_recon_prefix], recon_paths[0:n_recon_prefix]):
+#         print(recon_pref)
+#         if "input" in recon_pref:
+#             X, _, _ = read_adata(recon_path, issparse=issparse)
+#             if issparse:
+#                 X = X.toarray()
+#             # Input needs to be scaled because reconstructions are in the scaled space
+#             # Apply scaling to X based on the scaling parameter.
+#             if scaling == "min_max":
+#                 # Placeholder for the actual min_max_scaling function; this needs to be defined or imported.
+#                 X = min_max_scaling(X)
+#             elif scaling =="z_scores":
+#                 X = calculate_zscores(X)
+#         else:
+#             X = np.load(recon_path)
+
+#         if celltype is None:
+#             x_i = X[0:n_cells, :n_genes]
+#             obs_i = obs.loc[0:n_cells-1, :].copy()
+#         else:
+#             x_i = X[selected_indices, :n_genes]
+#             obs_i = obs.copy()
+#         # Add a new column that indicates
+#         obs_i["recon_prefix"] = recon_pref
+
+#         x = np.concatenate((x, x_i), axis=0)
+#         obs_combined = pd.concat([obs_combined, obs_i], axis=0)
+
+#     obs_combined.reset_index(drop=True, inplace=True)
+#     print("Shape of concatenated x:", x.shape)
+#     print("Shape of concatenated obs:", obs_combined.shape)
+
+#     celltype_name = celltype.replace("/", "")
+
+#     adata_multibatch = AnnData(x, obs=obs_combined, var=var.iloc[:n_genes, :])
+
+
+#     folder_name = f"CMmultibatch_{n_cells}_cells_per_batch_{n_batches}batches" if celltype_name is None else f"CMmultibatch_{n_cells}cells_per_batch_{n_batches}batches_{celltype_name}"
+#     if add_inputs_fe:
+#         folder_name += f"_with_{n_inputs_fe}fe_input"
+
+#     folder_path = os.path.join(out_path, folder_name)
+
+#     if not os.path.exists(folder_path):
+#         os.makedirs(folder_path)
+
+#     if save_data:
+#         save_adata(adata_multibatch, folder_path)
+
+#     return adata_multibatch
+
+
+# def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes, n_cells, n_batches, out_path, add_inputs_fe=True, n_inputs_fe=2, celltype=None, save_data=False, scaling="min_max", issparse=True):
+#     """
+#     Create a concatenated count matrix from cell reconstructions from multiple batches, optionally filtered by cell type.
+#     This concatenated matrix will be used to generate a genomap.
+
+#     Parameters:
+#     recon_prefix (list of str): List of prefixes indicating the type of data in recon_paths.
+#     recon_paths (list of str): List of paths to the reconstructed data files.
+#     obs (DataFrame): DataFrame containing observation (cell) metadata.
+#     var (DataFrame): DataFrame containing variable (gene) metadata.
+#     n_genes (int): Number of genes to include in the count matrix.
+#     n_cells (int): Number of cells to include from each batch.
+#     n_batches (int): Number of batches to process.
+#     out_path (str): Output directory path to save the concatenated AnnData object.
+#     add_inputs_fe (bool, optional): Whether to add cells from the original input data and from the fixed effects recon. Default is True.
+#     n_inputs_fe (int, optional): If add_inputs_fe = True. Specify how many reconstructions you want to add to the count matrix. Default is 2. 
+#         One for inputs and another one for fixed effects (fe). You could also add a fe classifier recon and a base autoencoder recon.
+#     celltype (str or list, optional): Specific cell type(s) to filter for. If None, include all cell types. Default is None.
+#     save_data (bool, optional): Whether to save the resulting AnnData object to disk. Default is False.
+#     issparse (bool, optional): Flag to read sparse count matrix. Default = True.
+
+#     Returns:
+#     None
+#     """
+#     import numpy as np
+#     import pandas as pd
+#     from anndata import AnnData
+#     import os
+
+#     # Initialize empty arrays and DataFrame
+#     x = np.empty((0, n_genes))
+#     obs_combined = pd.DataFrame()
+
+#     if celltype is not None:
+#         if isinstance(celltype, str):
+#             # Select the first n_cells of the specified cell type
+#             celltype_obs = obs[obs["celltype"] == celltype].head(n_cells)
+#         elif isinstance(celltype, list):
+#             # Select the first n_cells of the specified cell types
+#             celltype_obs = obs[obs["celltype"].isin(celltype)].groupby("celltype").head(n_cells // len(celltype))
+#         selected_indices = celltype_obs.index
+#         obs = celltype_obs
+#     if add_inputs_fe:
+#         n_recon_prefix = n_batches + n_inputs_fe
+#     else:
+#         n_recon_prefix = n_batches
+
+#     for recon_pref, recon_path in zip(recon_prefix[0:n_recon_prefix], recon_paths[0:n_recon_prefix]):
+#         print(recon_pref)
+#         if "input" in recon_pref:
+#             X, _, _ = read_adata(recon_path, issparse=issparse)
+#             if issparse:
+#                 X = X.toarray()
+#             # Input needs to be scaled because reconstructions are in the scaled space
+#             # Apply scaling to X based on the scaling parameter.
+#             if scaling == "min_max":
+#                 X = min_max_scaling(X)
+#             elif scaling == "z_scores":
+#                 X = calculate_zscores(X)
+#         else:
+#             X = np.load(recon_path)
+
+#         if celltype is None:
+#             x_i = X[0:n_cells, :n_genes]
+#             obs_i = obs.loc[0:n_cells-1, :].copy()
+#         else:
+#             x_i = X[selected_indices, :n_genes]
+#             obs_i = obs.copy()
+#         # Add a new column that indicates the recon prefix
+#         obs_i["recon_prefix"] = recon_pref
+
+#         x = np.concatenate((x, x_i), axis=0)
+#         obs_combined = pd.concat([obs_combined, obs_i], axis=0)
+
+#     obs_combined.reset_index(drop=True, inplace=True)
+#     print("Shape of concatenated x:", x.shape)
+#     print("Shape of concatenated obs:", obs_combined.shape)
+
+#     if isinstance(celltype, str):
+#         celltype_name = celltype.replace("/", "")
+#     elif isinstance(celltype, list):
+#         celltype_name = "_".join([ct.replace("/", "") for ct in celltype])
+#     else:
+#         celltype_name = None
+
+#     folder_name = f"CMmultibatch_{n_cells}_cells_per_batch_{n_batches}batches" if not celltype_name else f"CMmultibatch_{n_cells}cells_per_batch_{n_batches}batches_{celltype_name}"
+#     if add_inputs_fe:
+#         folder_name += f"_with_{n_inputs_fe}fe_input"
+
+#     folder_path = os.path.join(out_path, folder_name)
+
+#     if not os.path.exists(folder_path):
+#         os.makedirs(folder_path)
+
+#     adata_multibatch = AnnData(x, obs=obs_combined, var=var.iloc[:n_genes, :])
+
+#     if save_data:
+#         save_adata(adata_multibatch, folder_path)
+
+#     return adata_multibatch
+
+
+def sample_cells(obs, n_cells, celltype=None, batch_col="batch", force_batches=None, seed=None):
+    """
+    Sample cells from a dataframe while ensuring representation from specified batches and cell types.
+
+    Parameters:
+    obs (pd.DataFrame): The dataframe containing cell data with columns including 'celltype' and 'batch'.
+    n_cells (int): The total number of cells to sample.
+    celltype (str or list, optional): The cell type(s) to be included in the sampling. Can be a single cell type (str) or a list of cell types (list).
+    batch_col (str): The name of the column representing batches in the dataframe.
+    force_batches (list, optional): A list of batch names to ensure at least one cell from each batch is included in the sample.
+    seed (int, optional): Random seed for reproducibility.
+
+    Returns:
+    pd.DataFrame: A dataframe containing the sampled cells.
+
+    Raises:
+    ValueError: If a specified batch or cell type does not exist in the dataframe.
+    """
+    # Initialize selected_indices list to keep track of selected cells
+    selected_indices = []
+
+    # Ensure at least one cell from each forced batch and specified celltype (if provided) is included
+    if force_batches:
+        for batch in force_batches:
+            # Filter cells belonging to the current batch
+            batch_cells = obs[obs[batch_col] == batch]
+            if celltype is not None:
+                if isinstance(celltype, str):
+                    # Further filter cells of the specified celltype within the batch
+                    batch_cells = batch_cells[batch_cells["celltype"] == celltype]
+                    if batch_cells.empty:
+                        print(f"No cells available for celltype {celltype} in batch {batch}. Skipping batch.")
+                        continue
+                        
+                    # Randomly select one cell from the batch (and celltype if specified)
+                    selected_index = batch_cells.sample(n=1, random_state=seed).index[0]
+                    selected_indices.append(selected_index)
+                    print(f"Selected 1 cell from batch {batch} with celltype {celltype}.")
+                elif isinstance(celltype, list):
+                    for ct in celltype:
+                        ct_batch_cells = batch_cells[batch_cells["celltype"] == ct]
+                        if ct_batch_cells.empty:
+
+                            print(f"No cells available for celltype {celltype} in batch {batch}. Skipping batch.")
+                            continue
+                        # Randomly select one cell from the batch for each celltype
+                        selected_index = ct_batch_cells.sample(n=1, random_state=seed).index[0]
+                        selected_indices.append(selected_index)
+                        print(f"Selected 1 cell from batch {batch} with celltype {ct}.")
+            else:
+                if batch_cells.empty:
+                    print(f"No cells available in batch {batch}. Skipping batch.")
+                    continue
+                # Randomly select one cell from the batch without celltype constraint
+                selected_index = batch_cells.sample(n=1, random_state=seed).index[0]
+                selected_indices.append(selected_index)
+                print(f"Selected 1 cell from batch {batch} without specific celltype constraint.")
+
+    # Remove selected cells to avoid re-sampling them
+    obs_remaining = obs.drop(selected_indices)
+
+    # Sample remaining cells based on celltype
+    if celltype is not None:
+        if isinstance(celltype, str):
+            # Filter cells of the specified celltype
+            celltype_obs = obs_remaining[obs_remaining["celltype"] == celltype]
+            # Randomly select the remaining required cells from the filtered cells
+            additional_cells = celltype_obs.sample(n=n_cells - len(selected_indices), random_state=seed)
+            print(f"Selected {n_cells - len(selected_indices)} additional cells of celltype {celltype}.")
+        elif isinstance(celltype, list):
+            additional_cells_list = []
+            cells_needed_per_type = (n_cells - len(selected_indices)) // len(celltype)
+            for ct in celltype:
+                ct_cells = obs_remaining[obs_remaining["celltype"] == ct]
+                additional_cells_list.append(ct_cells.sample(n=cells_needed_per_type, random_state=seed))
+            additional_cells = pd.concat(additional_cells_list)
+            print(f"Selected {n_cells - len(selected_indices)} additional cells from specified celltypes.")
+    else:
+        # Randomly select the remaining required cells from the entire dataset
+        additional_cells = obs_remaining.sample(n=n_cells - len(selected_indices), random_state=seed)
+        print(f"Selected {n_cells - len(selected_indices)} additional cells without specific celltype constraint.")
+
+    # Combine the selected indices from forced batches and the additional sampled cells
+    final_selected_indices = pd.Index(selected_indices).append(additional_cells.index)
+    obs_final = obs.loc[final_selected_indices]
+
+    return obs_final
+
+
+def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes, n_cells, n_batches, out_path, add_inputs_fe=True, n_inputs_fe=2, celltype=None, save_data=False, scaling="min_max", issparse=True,seed=42,force_batches=None):
     """
     Create a concatenated count matrix from cell reconstructions from multiple batches, optionally filtered by cell type.
     This concatenated matrix will be used to generate a genomap.
@@ -580,11 +867,14 @@ def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes,
     n_cells (int): Number of cells to include from each batch.
     n_batches (int): Number of batches to process.
     out_path (str): Output directory path to save the concatenated AnnData object.
-    add_inputs_fe (bool, optional): Whether to add cells from the orginal input data and from the fixed effects recon. Default is True.
-    n_inputs_fe (int,optional): If add_inputs_fe = True. Specify how many reconstructions you want to add to the count matrix. Default is 2. 
+    add_inputs_fe (bool, optional): Whether to add cells from the original input data and from the fixed effects recon. Default is True.
+    n_inputs_fe (int, optional): If add_inputs_fe = True. Specify how many reconstructions you want to add to the count matrix. Default is 2. 
         One for inputs and another one for fixed effects (fe). You could also add a fe classifier recon and a base autoencoder recon.
-    celltype (str, optional): Specific cell type to filter for. If None, include multiple cell types. Default is None.
+    celltype (str or list, optional): Specific cell type(s) to filter for. If None, include all cell types. Default is None.
     save_data (bool, optional): Whether to save the resulting AnnData object to disk. Default is False.
+    issparse (bool, optional): Flag to read sparse count matrix. Default is True.
+    seed (int,optional): seed for reproducibility. Default = 42.
+    force_batches (list, optional): A list of batch names to ensure at least one cell from each batch is included in the sample.
 
     Returns:
     None
@@ -598,38 +888,49 @@ def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes,
     x = np.empty((0, n_genes))
     obs_combined = pd.DataFrame()
 
+    # if celltype is not None:
+    #     if isinstance(celltype, str):
+    #         # Randomly sample n_cells of the specified cell type
+    #         celltype_obs = obs[obs["celltype"] == celltype].sample(n=n_cells, random_state=seed)
+    #     elif isinstance(celltype, list):
+    #         # Randomly sample n_cells for each cell type specified
+    #         celltype_obs = pd.concat([obs[obs["celltype"] == ct].sample(n=n_cells // len(celltype), random_state=seed) for ct in celltype])
+    #     selected_indices = celltype_obs.index
+    #     obs = celltype_obs
+
+    # Use sample_cells function to select the appropriate cells
     if celltype is not None:
-        # Select the first n_cells of the specified cell type
-        celltype_obs = obs[obs["celltype"] == celltype].head(n_cells)
-        selected_indices = celltype_obs.index
-        obs = celltype_obs
+        obs = sample_cells(obs, n_cells, celltype=celltype, batch_col="batch", force_batches=force_batches, seed=seed)
+        selected_indices = obs.index
+
     if add_inputs_fe:
-        n_recon_prefix = n_batches+n_inputs_fe
+        n_recon_prefix = n_batches + n_inputs_fe
     else:
         n_recon_prefix = n_batches
 
     for recon_pref, recon_path in zip(recon_prefix[0:n_recon_prefix], recon_paths[0:n_recon_prefix]):
         print(recon_pref)
         if "input" in recon_pref:
-            X, _, _ = read_adata(recon_path, issparse=True)
-            X = X.toarray()
+            X, _, _ = read_adata(recon_path, issparse=issparse)
+            if issparse:
+                X = X.toarray()
             # Input needs to be scaled because reconstructions are in the scaled space
             # Apply scaling to X based on the scaling parameter.
             if scaling == "min_max":
-                # Placeholder for the actual min_max_scaling function; this needs to be defined or imported.
                 X = min_max_scaling(X)
-            elif scaling =="z_scores":
+            elif scaling == "z_scores":
                 X = calculate_zscores(X)
         else:
             X = np.load(recon_path)
 
         if celltype is None:
-            x_i = X[0:n_cells, :n_genes]
-            obs_i = obs.loc[0:n_cells-1, :].copy()
+            x_i = X[:n_cells, :n_genes]
+            obs_i = obs.iloc[:n_cells].copy()
         else:
             x_i = X[selected_indices, :n_genes]
             obs_i = obs.copy()
-        # Add a new column that indicates
+
+        # Add a new column that indicates the recon prefix
         obs_i["recon_prefix"] = recon_pref
 
         x = np.concatenate((x, x_i), axis=0)
@@ -639,9 +940,14 @@ def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes,
     print("Shape of concatenated x:", x.shape)
     print("Shape of concatenated obs:", obs_combined.shape)
 
-    adata_multibatch = AnnData(x, obs=obs_combined, var=var.iloc[:n_genes, :])
+    if isinstance(celltype, str):
+        celltype_name = celltype.replace("/", "")
+    elif isinstance(celltype, list):
+        celltype_name = "_".join([ct.replace("/", "") for ct in celltype])
+    else:
+        celltype_name = None
 
-    folder_name = f"CMmultibatch_{n_cells}_cells_per_batch_{n_batches}batches" if celltype is None else f"CMmultibatch_{n_cells}cells_per_batch_{n_batches}batches_{celltype}"
+    folder_name = f"CMmultibatch_{n_cells}_cells_per_batch_{n_batches}batches" if not celltype_name else f"CMmultibatch_{n_cells}cells_per_batch_{n_batches}batches_{celltype_name}"
     if add_inputs_fe:
         folder_name += f"_with_{n_inputs_fe}fe_input"
 
@@ -650,10 +956,64 @@ def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes,
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
+    adata_multibatch = AnnData(x, obs=obs_combined, var=var.iloc[:n_genes, :])
+
     if save_data:
         save_adata(adata_multibatch, folder_path)
 
     return adata_multibatch
+
+
+def find_intersection_batches(obs_combined, celltypes):
+    """
+    Find the intersection of batches that are present in at least one cell from each of the selected celltypes.
+
+    Parameters:
+    obs_combined (DataFrame): DataFrame containing observation (cell) metadata with a 'batch' column.
+    celltypes (list): List of cell types to check for overlapping batch values.
+
+    Returns:
+    intersection_batches (set): Set of batches that are common across all specified cell types.
+    """
+    # Initialize the set with batches from the first cell type
+    intersection_batches = set(obs_combined[obs_combined["celltype"] == celltypes[0]]["batch"].unique())
+
+    # Iterate through the remaining cell types and find the intersection
+    for celltype in celltypes[1:]:
+        batches = set(obs_combined[obs_combined["celltype"] == celltype]["batch"].unique())
+        intersection_batches.intersection_update(batches)
+
+    return intersection_batches
+
+
+def select_cells_from_batches(obs_combined, celltypes, batches_to_select_from,seed = 42,cell_id_col="_index"):
+    """
+    Select one cell from each cell type within the specified batches.
+
+    Parameters:
+    obs_combined (DataFrame): DataFrame containing observation (cell) metadata.
+    celltypes (str or list): A single cell type (str) or list of cell types to select cells from.
+    batches_to_select_from (list): List of batches to select cells from.
+    cell_id_col(str): column with the cell ids
+
+    Returns:
+    cell_ids_2plot (list): List of selected cell IDs.
+    """
+    import random
+    random.seed(seed)
+    cell_ids_2plot = []
+    if isinstance(celltypes, str):
+        celltypes = [celltypes]  # Convert to list for uniform processing
+
+    for batch in batches_to_select_from:
+        for celltype in celltypes:
+            cells_in_batch = obs_combined[(obs_combined['batch'] == batch) & (obs_combined['celltype'] == celltype)][cell_id_col].values
+            if len(cells_in_batch) > 0:
+                selected_cell = random.choice(cells_in_batch)
+                cell_ids_2plot.append(selected_cell)
+
+    return cell_ids_2plot
+
 
 import numpy as np
 import pandas as pd
@@ -752,14 +1112,14 @@ def adjust_text_positions(x, y, threshold=0.5, offset=0.2):
 
 
 
-def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, original_batch=None, n_top_genes=10, min_val=-5, max_val=10, n_cols = 3,order='C',path_2_genomap='',file_name="cell_id"):
+def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, original_batch=None, n_top_genes=10, min_val=-5, max_val=10, n_cols = 3,order='C',path_2_genomap='',file_name="cell_id",remove_ticks=False):
     """
-    Plot the genomap with the top variable genes highlighted./archive/bioinformatics/DLLab/AixaAndrade/results/mixedeffectsdl/results/ARMED_genomics/heart_data/outputs/latent_space/Healthy_human_heart_data/log_transformed_3000hvggenes/AE_RE/run_crossval_loss_recon_weight-110.0_loss_latent_cluster_weight-0.1_n_latent_dims-2_layer_units-512-132_kl_weight-0.0_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_get_cf_batch-True_2024-06-12_11-56/splits_1/run_crossval_loss_recon_weight-110.0_loss_latent_cluster_weight-0.1_n_latent_dims-2_layer_units-512-132_kl_weight-0.0_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_get_cf_batch-True_2024-06-12_11-56/splits_1
+    Plot the genomap with the top variable genes highlighted./
     
-    Args:/archive/bioinformatics/DLLab/AixaAndrade/results/mixedeffectsdl/results/ARMED_genomics/heart_data/outputs/latent_space/Healthy_human_heart_data/log_transformed_3000hvggenes/AE_RE/run_crossval_loss_recon_weight-110.0_loss_latent_cluster_weight-0.1_n_latent_dims-2_layer_units-512-132_kl_weight-0.0_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_get_cf_batch-True_2024-06-12_11-56/splits_1/run_crossval_loss_recon_weight-110.0_loss_latent_cluster_weight-0.1_n_latent_dims-2_layer_units-512-132_kl_weight-0.0_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_get_cf_batch-True_2024-06-12_11-56/splits_1
+    Args:
         genomap: 4D numpy array with genomap data.
         cell_indexes: List or array of cell indexes.
-        genomap_coordinates: DataFrame containing gene names and pixel coordinates./archive/bioinformatics/DLLab/AixaAndrade/results/mixedeffectsdl/results/ARMED_genomics/heart_data/outputs/latent_space/Healthy_human_heart_data/log_transformed_3000hvggenes/AE_RE/run_crossval_loss_recon_weight-110.0_loss_latent_cluster_weight-0.1_n_latent_dims-2_layer_units-512-132_kl_weight-0.0_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_get_cf_batch-True_2024-06-12_11-56/splits_1/run_crossval_loss_recon_weight-110.0_loss_latent_cluster_weight-0.1_n_latent_dims-2_layer_units-512-132_kl_weight-0.0_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_get_cf_batch-True_2024-06-12_11-56/splits_1
+        genomap_coordinates: DataFrame containing gene names and pixel coordinates.
         obs: DataFrame containing cell metadata including the column 'recon_prefix' that indicates the name of the reconstruction for a cell id.
         original_batch: Identifier for the original batch, if any. Default is None.
         n_top_genes: Number of top genes to highlight.
@@ -769,6 +1129,7 @@ def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, ori
         order: 'C' for default coordinate order, 'F' for transposed coordinates (i.e., pixel_i and pixel_j are swapped).
         path_2_genomap (str): path to genomap directory. To save plot.
         file_name (str): Name to save the file. Default:"cell_id"
+        remove_ticks (bool,optional): Flag to remove ticks from the plot. Default=False.
     """
     geno_slices_cell_id = genomap[cell_indexes, :, :, 0]
 
@@ -783,27 +1144,49 @@ def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, ori
         axes = np.expand_dims(axes, 0)
     if n_cols == 1:
         axes = np.expand_dims(axes, 1)
-
-    top_n_coordinates = genomap_coordinates[genomap_coordinates['Top_N']]
+    if genomap_coordinates is not None:
+        top_n_coordinates = genomap_coordinates[genomap_coordinates['Top_N']]
 
     for i, (cell_index, cell_geno) in enumerate(zip(cell_indexes, geno_slices_cell_id)):
         ax = axes[i // n_cols, i % n_cols]
         im = ax.imshow(cell_geno, cmap='viridis', vmin=min_val, vmax=max_val)
 
+        # Remove ticks
+        if remove_ticks:
+            ax.set_xticks([])
+            ax.set_yticks([])
+
         # Get coordinates
-        if order == 'C':
-            x, y = top_n_coordinates['pixel_i'], top_n_coordinates['pixel_j']
-        elif order == 'F':
-            x, y = top_n_coordinates['pixel_j'], top_n_coordinates['pixel_i']
+        # if order == 'C':
+        #     x, y = top_n_coordinates['pixel_i'], top_n_coordinates['pixel_j']
+        # elif order == 'F':
+        #     x, y = top_n_coordinates['pixel_j'], top_n_coordinates['pixel_i']
 
-        # Adjust text positions
-        adjusted_positions = adjust_text_positions(x, y, threshold=3, offset=5)
+        # # Adjust text positions
+        # adjusted_positions = adjust_text_positions(x, y, threshold=3, offset=5)
 
-        for (adj_x, adj_y), (pixel_i, pixel_j), gene in zip(adjusted_positions, zip(x, y), top_n_coordinates['gene_names']):
-            ax.plot(pixel_i, pixel_j, 'o', markerfacecolor='none', markeredgecolor='red', markersize=6, markeredgewidth=2)
-            ax.text(adj_x, adj_y, gene, color='black', ha='left', va='center', fontweight='bold', fontsize=12, clip_on=False)
-        print("cell_index",cell_index)
-        print("obs_index",obs.index)
+        # for (adj_x, adj_y), (pixel_i, pixel_j), gene in zip(adjusted_positions, zip(x, y), top_n_coordinates['gene_names']):
+        #     ax.plot(pixel_i, pixel_j, 'o', markerfacecolor='none', markeredgecolor='red', markersize=6, markeredgewidth=2)
+        #     ax.text(adj_x, adj_y, gene, color='black', ha='left', va='center', fontweight='bold', fontsize=12, clip_on=False)
+        
+        # # Add gene labels if genomap_coordinates is provided
+        if genomap_coordinates is not None:
+            # Get coordinates
+            if order == 'C':
+                x, y = top_n_coordinates['pixel_i'], top_n_coordinates['pixel_j']
+            elif order == 'F':
+                x, y = top_n_coordinates['pixel_j'], top_n_coordinates['pixel_i']
+
+            # Adjust text positions
+            adjusted_positions = adjust_text_positions(x, y, threshold=3, offset=6)
+
+            for (adj_x, adj_y), (pixel_i, pixel_j), gene in zip(adjusted_positions, zip(x, y), top_n_coordinates['gene_names']):
+                ax.plot(pixel_i, pixel_j, 'o', markerfacecolor='none', markeredgecolor='red', markersize=6, markeredgewidth=2)
+                ax.text(adj_x, adj_y, gene, color='black', ha='left', va='center', fontweight='bold', fontsize=12, clip_on=False)
+
+        
+        # print("cell_index",cell_index)
+        # print("obs_index",obs.index)
         recon_prefix = obs.loc[cell_index, "recon_prefix"]
         ax.set_title(recon_prefix)
         if 'input' in recon_prefix:
@@ -812,6 +1195,9 @@ def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, ori
             ax.set_title(f'{recon_prefix}\n(original batch)', color='red')
         else:
             ax.set_title(f'{recon_prefix}')
+
+
+
 
     # Hide any unused subplots
     for j in range(i + 1, n_rows * n_cols):

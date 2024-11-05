@@ -818,9 +818,13 @@ def plot_rep(adata, shape_col="celltype", color_col="donor", use_rep="X_pca", ma
 
     color_map = {color: color_palette[i] for i, color in enumerate(unique_colorcol)}
     shape_map = {shape: markers[i % len(markers)] for i, shape in enumerate(unique_shapecol)}
+    if use_rep =='X':
+        c1 = adata.X[:, 0]
+        c2 = adata.X[:, 1]
+    else:
+        c1 = adata.obsm[use_rep][:, 0]
+        c2 = adata.obsm[use_rep][:, 1]
 
-    c1 = adata.obsm[use_rep][:, 0]
-    c2 = adata.obsm[use_rep][:, 1]
 
     for shape in unique_shapecol:
         for color in unique_colorcol:

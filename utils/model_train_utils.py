@@ -3,7 +3,7 @@ import anndata as ad
 import sys
 # you can change this path to your own utils folder
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
-from utils import create_folder,read_adata,get_OHE,min_max_scaling,plot_rep,calculate_merge_scores,plot_table,get_split_paths,calculate_zscores
+from utils import create_folder,read_adata,get_OHE,min_max_scaling,plot_rep,calculate_merge_scores,plot_table,get_split_paths,calculate_zscores,get_clustering_scores_optimized
 from callbacks import ComputeLatentsCallback
 import os
 import tensorflow as tf
@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import glob
 from anndata import AnnData
 import scipy
+from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
 
 
@@ -68,6 +69,10 @@ def generate_run_name(model_params_dict, constant_keys, name='run'):
         if isinstance(value, list):
             return '-'.join(map(str, value))
         return str(safe_round(value))
+    
+    # If constant_keys is None, set it to an empty list
+    if constant_keys is None:
+        constant_keys = []
 
     run_name_parts = [f"{key}-{format_value(value)}" for key, value in model_params_dict.items() if key not in constant_keys]
     # Format the timestamp to include only date, hours, and minutes
@@ -195,7 +200,7 @@ def get_z_ohe_dict(adata_dict, batch_col, batch_col_categories):
 
 
 def get_train_val_data(adata_dict, batch_col, bio_col, get_pred, use_z, 
-                       batch_col_categories=None, bio_col_categories=None,use_rep="X"):
+                       batch_col_categories=None, bio_col_categories=None,use_rep="X",eval_test=False):
     """
     Prepare input and output data for training and validation, including optional one-hot encoding.
 
@@ -212,6 +217,7 @@ def get_train_val_data(adata_dict, batch_col, bio_col, get_pred, use_z,
     - bio_col_categories (list, optional): Categories for one-hot encoding of biological labels.
     - use_rep (str, optional): The base representation key to be used. 'X' for default representation or key for .obsm.
         For obsm, the function will append '_train' or '_val' based on the dataset.
+    - eval_test (bool): whether or not the test data is also processed and added to the data_dict
 
     Returns:
     - data_dict: Contains the following keys. train_in, train_out,val_in, val_out
@@ -223,6 +229,7 @@ def get_train_val_data(adata_dict, batch_col, bio_col, get_pred, use_z,
     # and the names are adjusted to include '_train' or '_val' to match the naming convention for training and validation datasets.
     train_rep = f"{use_rep}_train" if use_rep != "X" else "X"
     val_rep = f"{use_rep}_val" if use_rep != "X" else "X"
+    test_rep = f"{use_rep}_test" if use_rep != "X" else "X"
 
 
     # Prepare data for training
@@ -235,6 +242,12 @@ def get_train_val_data(adata_dict, batch_col, bio_col, get_pred, use_z,
     # Process the 'val' dataset from adata_dict and get the input and output data
     val_in, val_out = process_data(adata_dict['val'], batch_col, bio_col, get_pred, use_z, 
                                    batch_col_categories, bio_col_categories,use_rep=val_rep)
+
+    # Prepare data for testing
+    # Process the 'val' dataset from adata_dict and get the input and output data
+    if eval_test:
+        test_in, test_out = process_data(adata_dict['test'], batch_col, bio_col, get_pred, use_z, 
+                                   batch_col_categories, bio_col_categories,use_rep=test_rep)
     print("check that the shapes make sense")
     if isinstance(train_out, tuple):
         print("train out shapes x,y:", train_out[0].shape, train_out[1].shape)
@@ -252,6 +265,7 @@ def get_train_val_data(adata_dict, batch_col, bio_col, get_pred, use_z,
     else:
         print("train in shape x:", train_in.shape)
         print("val in shape x:", val_in.shape)
+
     
     #return (train_in, train_out), (val_in, val_out)
 
@@ -262,6 +276,9 @@ def get_train_val_data(adata_dict, batch_col, bio_col, get_pred, use_z,
         'val_in': val_in,
         'val_out': val_out
     }
+    if eval_test:
+        data_dict['test_in'] = test_in
+        data_dict['test_out'] = test_out
 
     return data_dict
     
@@ -369,7 +386,7 @@ class ModelManager:
     A class that manages model parameters and the creation of directories for checkpoints, plots, and latent spaces.
     """
 
-    def __init__(self, params_dict, base_paths_dict, run_name, save_model=False,use_kfolds=True,kfold=None):
+    def __init__(self, params_dict, base_paths_dict, run_name, save_model=False,use_kfolds=True,kfold=None,run_model=True, get_baseline_scores=False):
         """
         Initializes the ModelManager with given parameters, base paths, and run name.
         
@@ -378,11 +395,17 @@ class ModelManager:
         - base_paths_dict (dict): dict containing the base paths for saved models, figures, and latent space directories.
         - run_name (str): The name of the current run.
         - save_model (bool): Flag indicating whether to save model checkpoints.
+        - run_model (bool): Flag indicating whether to run the model.
+        - get_baseline_scores (bool): Flag indicating whether to get baseline scores.
         """
         self.params = self.Namespace(params_dict)
         self.use_kfolds=use_kfolds
         self.kfold=kfold
-        self.create_directories(base_paths_dict, run_name, save_model)
+        if run_model:
+            self.create_directories(base_paths_dict, run_name, save_model)
+        elif get_baseline_scores:
+            self.create_baseline_scores_directory(base_paths_dict, run_name)
+
 
     class Namespace:
         """
@@ -391,6 +414,17 @@ class ModelManager:
         """
         def __init__(self, adict):
             self.__dict__.update(adict)
+
+    def create_baseline_scores_directory(self, base_paths_dict, run_name):
+        """Creates a directory for baseline scores"""
+
+        # Extracting individual paths from the dictionary
+        Baseline_scores_path= base_paths_dict["Baseline_scores"]
+        # Create and return directory paths
+        Baseline_scores_path = os.path.join(Baseline_scores_path, run_name)
+        self.params.Baseline_scores_path = Baseline_scores_path
+
+        create_folder(self.params.Baseline_scores_path)
 
     def create_directories(self, base_paths_dict, run_name, save_model):
         """
@@ -646,13 +680,13 @@ def train_and_save_model(model, train_in, train_out, val_in, val_out, model_para
         plot_clustering_scores_curve(train_output_dir, val_output_dir, model_params.batch_col, save_path=model_params.latent_path)
         plot_clustering_scores_curve(train_output_dir, val_output_dir, model_params.bio_col, save_path=model_params.latent_path)
 
-
+    model_params_dict = model_params.__dict__
     if model_params.stop_criteria == "early_stopping":
         print("\nAdding early stopping params..")
         # Update model_params with early stopping info
         stopped_epoch = early_stopping_callback.stopped_epoch
         best_epoch = stopped_epoch - early_stopping_callback.patience
-        model_params_dict = model_params.__dict__
+        
         model_params_dict["best_epoch"] = best_epoch
         model_params_dict["checkpoint_name"] = best_epoch + 1
         model_params_dict["stopped_epoch"] = stopped_epoch
@@ -857,68 +891,6 @@ class PlotLoss:
             plt.show()
 
 
-    # def plot_ae_da(self):
-
-    #     """
-    #     Plots the losses for a Domain Adversarial Autoencoder model.
-    #     """
-    #     # Define the epochs based on the history length
-    #     epochs = range(len(self.history["total_loss"]))
-
-    #     # Creating the figure and axes
-    #     fig, ax1 = plt.subplots()
-    #     ax2 = ax1.twinx()  # Create a twin axis for different scale plotting
-
-    #     # Iterate through the history items and plot them
-    #     for key, val in self.history.items():
-    #         # Scaling the values based on loss weights
-    #         scaled_val = np.array(val)
-
-    #         if "adv" in key:
-    #             # Plotting adversarial loss on ax1
-    #             ax1.plot(epochs, self.model_params.loss_gen_weight * scaled_val, linestyle='--' if "val" in key else '-', color='blueviolet', label=key)
-
-    #         elif "recon_loss" in key:
-    #             # Plotting reconstruction loss on ax1
-    #             ax1.plot(epochs, self.model_params.loss_recon_weight * scaled_val, linestyle='--' if "val" in key else '-', color='b', label=key)  # 'b' is a valid color shorthand for blue
-
-    #         elif "total_loss" in key:
-    #             # Plotting total loss on ax1
-    #             ax1.plot(epochs, scaled_val, linestyle='--' if "val" in key else '-', color='g', label=key)
-
-    #         elif "class_loss" in key:
-
-    #             ax2.plot(epochs, self.model_params.loss_class_weight * scaled_val,linestyle='--' if "val" in key else '-', color='skyblue', label=key)
-
-
-    #         # Replace the color string with a valid color name or hex code
-
-    #     # Setting axis labels and colors
-    #     ax1.set_ylabel("Total/Recon/Adv Loss", color="g")
-    #     ax2.set_ylabel("Class Loss", color="skyblue")
-
-    #     # Positioning the legends
-    #     legend1 = ax1.legend(loc='upper right', bbox_to_anchor=(1.5, 1))
-    #     legend2 = ax2.legend(loc='upper right', bbox_to_anchor=(1.5, 0.6))
-
-    #     # Title for the plot
-    #     plt.title("Losses Adjusted by Weights")
-
-    #     # Saving the plot if the model is being saved
-    #     # if self.save_model:
-    #     #     plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
-    #     if self.save_model:
-    #         if not self.average_curve:
-    #             plt.savefig(self.model_params.plots_path + "/loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
-    #             print(f"Saved regular loss plot at: {self.model_params.plots_path}")
-        
-    #         else:
-    #             plt.savefig(self.model_params.plots_path_main + "/avg_loss.png", bbox_extra_artists=(legend1,legend2), bbox_inches='tight')
-    #             print(f"Saved raverage loss plot at: {self.model_params.plots_path}")
-
-    #     # Displaying the plot
-    #     if self.showplot:
-    #         plt.show()
     def plot_ae_da(self):
         """
         Plots the losses for a Domain Adversarial Autoencoder model.
@@ -1556,6 +1528,7 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
     - return_trained_model (bool): Flag to return the trained model.
     - model_type (str): For plotting loss. Options: ["ae_da","ae"]
     - issparse (bool): data is saved as sparse npy array
+    - load_dense (bool): If True, forces conversion of sparse arrays to dense format.
     - shape_color_dict (dict, optional): Dictionary with shape_col and color_col combinations for plotting.
     - sample_size (int): sample size used to calculate clustering scores on a random subset of the latent space
     - return history (bool): Flag to return the history dataframe
@@ -1573,9 +1546,11 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
     print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
 
     # 2. Prepare input and output data for training
-    data_dict = get_train_val_data(adata_dict, batch_col=batch_col, bio_col=bio_col, get_pred=model_params.get_pred, use_z=model_params.use_z, batch_col_categories=batch_col_categories, bio_col_categories=bio_col_categories)
+    data_dict = get_train_val_data(adata_dict, batch_col=batch_col, bio_col=bio_col, get_pred=model_params.get_pred, use_z=model_params.use_z, batch_col_categories=batch_col_categories, bio_col_categories=bio_col_categories,eval_test=model_params.eval_test)
     train_in, train_out = data_dict['train_in'], data_dict['train_out']
     val_in, val_out = data_dict['val_in'], data_dict['val_out']
+    if model_params.eval_test:
+        test_in = data_dict['test_in']
 
     # Check the shape of 'train_in'
     # If 'train_in' is a tuple and has more than one element, print the shape of each element
@@ -1689,7 +1664,10 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
     outputs = {
         "train": trained_model.predict(train_in, batch_size=model_params.batch_size),
         "val": trained_model.predict(val_in, batch_size=model_params.batch_size)
-    }       
+    }
+    if model_params.eval_test:
+        outputs["test"] = trained_model.predict(test_in, batch_size=model_params.batch_size)
+    # ToDo: Here I need to add trained_model.predict(test_in) to outputs      
 
     # Check the model type and compute reconstructions accordingly
     for dataset_type in outputs:
@@ -1743,6 +1721,9 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
     if model_type == "ae_re" and getattr(model_params, 'get_cf_batch', False):
         print("\nComputing counterfactual for all batches")
         inputs_dict = {"train": train_in, "val": val_in}
+        if model_params.eval_test:
+            inputs_dict["test"] = test_in
+        # Here: add test_in to inputs_dict
         for dataset, inputs in inputs_dict.items():
             x, z = inputs
             cols = z.shape[1]
@@ -1767,8 +1748,8 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
     return results
 
 
-
 def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_name, model_params_dict, build_model_dict, compile_dict, save_model, batch_col, bio_col, batch_col_categories, bio_col_categories,model_type="ae_da",issparse=False, load_dense=True,shape_color_dict={"celltype_vs_donor": {"shape_col": "celltype", "color_col": "donor"}},sample_size=None):
+    
     """
     Executes a model training pipeline across multiple folds, typically for cross-validation.
 
@@ -1885,86 +1866,7 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
     # clean trash
     gc.collect()
     print("\n\nComputing scores for different sampel sizes")
-    # for sample_size in [10000,25000,90000,None]:
-    #     print("sample size",sample_size)
-    #     # if return_scores_temp==False the scores are calculated after training all models
-    #     if return_scores_temp ==False:
-    #         print("\nStarted iteration through the folds to calculate scores..")
-    #         start_time_scores = time.time()
-    #         # Loop through each fold and dataset type to calculate scores for each latent space representation
-    #         for intFold in folds_list:
-    #             for dataset_type, adata_subset in all_folds_adata[intFold].items():
-    #                 latent_list = list(adata_subset.obsm.keys())
-    #                 # for latent_name in adata_subset.obsm.keys():
-    #                 print(f"\n\nProcessing clustering scores {latent_list} for dataset {dataset_type} in fold {intFold}..")
-    #                 scores_df = calculate_merge_scores(latent_list=latent_list, 
-    #                                                     adata=adata_subset, 
-    #                                                     labels=[batch_col, bio_col], 
-    #                                                     sample_size=sample_size)
-    #                 scores_df.to_csv(os.path.join(all_folds_model_params[intFold].latent_path, f"scores_{dataset_type}_samplesize-{sample_size}.csv"))
-    #                 print(f"Scores calculated for {latent_list} on {dataset_type} dataset in fold {intFold}")
-    #                 scores_df['fold'] = intFold
-    #                 scores_df['dataset_type'] = scores_df.index
-    #                 all_scores[dataset_type].append(scores_df)
-    #         #count time
-    #         total_time_scores = time.time() - start_time_scores
-    #         print("\nScores obtained for all folds")
-    #         print(f"\n\nTotal computation time for clustering scores: {total_time_scores} seconds")
-            
-
-
-    #     # Process all scores for each dataset type and save the results
-    #     mean_scores_dict = {}
-    #     for dataset_type, scores_list in all_scores.items():
-    #         if scores_list:  # Check if there are scores to process
-    #             print("Averaging scores for ",dataset_type)
-    #             # Concatenate all results for the dataset type into a single DataFrame
-    #             df_all_results = pd.concat(scores_list, ignore_index=True)
-    #             # Calculate the mean across all rows (folds)
-    # #            mean_scores = df_all_results.mean()
-    #             if not (model_params.get_pca or model_params.get_baseline):
-    #                 # calculate mean
-    #                 mean_scores = df_all_results.mean().to_frame('mean')
-    #                 # fill the dict
-    #                 mean_scores_dict[dataset_type] = mean_scores
-
-    #                 # Calculate sample standard deviation scores
-    #                 std_scores = df_all_results.std(ddof=1).to_frame('std')  # Using sample standard deviation
-
-    #                 # Calculate standard error of the mean (SEM)
-    #                 se_scores = std_scores / (len(folds_list) ** 0.5)  # SEM calculation
-
-    #                 # Combine mean, std, and se into a single DataFrame
-    #                 summary_df = pd.concat([mean_scores, std_scores, se_scores], axis=1)
-    #                 summary_df.columns = ['mean', 'std', 'sem']
-
-
-    #             else:
-
-    #                 grouped = df_all_results.groupby('dataset_type')
-    #                 print(grouped)
-    #                 mean_scores = grouped.mean()
-    #                 print(mean_scores)
-    #                 std_scores = grouped.std(ddof=1)
-    #                 print(std_scores)
-    #                 # Calculate SEM correctly aligning DataFrame and Series indices
-    #                 sem_scores = std_scores.div(np.sqrt(grouped.size()), axis='index').rename(columns=lambda x: 'sem_' + x)
-
-    #                 # Combine mean, std, and sem into a single DataFrame, preserving multi-level column structure
-    #                 summary_df = pd.concat({'mean': mean_scores, 'std': std_scores, 'sem': sem_scores}, axis=1)
-
-    #             # Display the final DataFrame
-    #             print("\nSummary scores for all 5 folds:\n",summary_df)
-
-
-    #             # Save results if required
-    #             if save_model:
-    #                 all_scores_path = os.path.join(model_params.latent_path_main, f'all_scores_{dataset_type}_samplesize-{sample_size}.csv')
-                    
-    #                 df_all_results.to_csv(all_scores_path)
-    # #                if not (model_params.get_pca or model_params.get_baseline):
-    #                 mean_scores_path = os.path.join(model_params.latent_path_main, f'mean_scores_{dataset_type}_samplesize-{sample_size}.csv')
-    #                 summary_df.to_csv(mean_scores_path)
+ 
     print("sample size",sample_size)
     # if return_scores_temp==False the scores are calculated after training all models
     if return_scores_temp ==False:
@@ -2046,6 +1948,108 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
                     summary_df.to_csv(mean_scores_path)
     if not (model_params.get_pca or model_params.get_baseline):
         return mean_scores_dict
+
+def get_scores_all_folds(input_base_path, out_base_paths_dict, folds_list, run_name, model_params_dict, save_model, batch_col, bio_col, issparse=False, load_dense=True, sample_size=None):
+    # Initialize dictionaries to hold results for each dataset type
+
+    """
+    Calculate clustering scores for all folds and datasets, and summarize the results.
+
+    Parameters:
+    - input_base_path (str): Base path for input data.
+    - out_base_paths_dict (dict): Dictionary containing paths for output data.
+    - folds_list (list): List of fold numbers to process.
+    - run_name (str): Name of the run for identification purposes.
+    - model_params_dict (dict): Dictionary of model parameters.
+    - save_model (bool): Flag to determine whether to save the model.
+    - batch_col (str): Column name for batch labels.
+    - bio_col (str): Column name for biological labels.
+    - issparse (bool): Flag indicating whether the input data is sparse. Default is False.
+    - load_dense (bool): Flag indicating whether to load dense data. Default is True.
+    - sample_size (int, optional): Sample size for score calculations. Default is None.
+
+    Returns:
+    - all_scores (dict): Dictionary containing scores for each dataset type ('train', 'val', 'test') and fold.
+    - combined_summary_stats (pd.DataFrame): DataFrame summarizing the scores with mean, standard deviation, SEM, and 95% confidence interval.
+    """
+    all_scores = {
+        'train': [],
+        'val': [],
+        'test': []
+    }
+
+    
+    for intFold in folds_list:
+        print(f"\n\nRunning Fold {intFold}\n\n")
+
+        # Update model parameters for the current fold
+        model_manager = ModelManager(params_dict=model_params_dict,
+                                        base_paths_dict=out_base_paths_dict,
+                                        run_name=run_name,
+                                        save_model=save_model,
+                                        use_kfolds=True,
+                                        kfold=None,
+                                        run_model=False,
+                                        get_baseline_scores=True)
+        model_params = model_manager.params
+        model_manager.print_params()
+
+        # Get paths_dict with train, test and val paths
+        input_path_dict = get_split_paths(base_path=input_base_path, fold=intFold)
+        print("\ninput_path_dict:\n", input_path_dict)
+
+        # 1. Load data in dense format
+        adata_dict = load_data(input_path_dict, eval_test=model_params.eval_test, scaling=model_params.scaling, issparse=issparse, load_dense=load_dense)
+        for dataset_type, adata in adata_dict.items():
+            df_scores = get_clustering_scores_optimized(adata, use_rep="X", labels=[model_params.batch_col, model_params.bio_col], sample_size=sample_size)
+            df_scores['fold'] = intFold
+            df_scores['dataset_type'] = dataset_type
+            all_scores[dataset_type].append(df_scores)
+
+
+    # Combine all scores into a single DataFrame for each dataset type
+    combined_scores = {k: pd.concat(v) for k, v in all_scores.items()}
+
+    # Debugging: Print combined scores to check structure
+    for dataset_type, df in combined_scores.items():
+        print(f"\nCombined scores for {dataset_type}:\n", df.head())
+        df.to_csv(f"{model_params.Baseline_scores_path}/all_scores_{dataset_type}.csv")
+
+    summary_stats = []
+    for dataset_type, df in combined_scores.items():
+        print(f"Processing dataset_type: {dataset_type}")
+        print(f"Available columns in df: {df.columns}")
+        label_df = df[df['dataset_type'] == dataset_type]
+
+        for score in ['db', '1/db', 'ch', 'silhouette']:
+            if score not in label_df.index:
+                print(f"Score '{score}' not found in DataFrame for dataset_type: {dataset_type}")
+                continue
+
+            score_series = label_df.loc[score]
+            score_mean = score_series.mean()
+            score_std = score_series.std(ddof=1)
+            score_sem = score_series.sem(ddof=1)
+            score_95ci = score_sem * 1.96  # For 95% CI
+
+            summary_stats.append({
+                'dataset_type': dataset_type,
+                'score': score,
+                f'mean_{batch_col}': score_mean[batch_col],
+                f'std_{batch_col}': score_std[batch_col],
+                f'sem_{batch_col}': score_sem[batch_col],
+                f'95ci_lower_{batch_col}': score_mean[batch_col] - score_95ci[batch_col],
+                f'95ci_upper_{batch_col}': score_mean[batch_col] + score_95ci[batch_col],
+                f'mean_{bio_col}': score_mean[bio_col],
+                f'std_{bio_col}': score_std[bio_col],
+                f'sem_{bio_col}': score_sem[bio_col],
+                f'95ci_lower_{bio_col}': score_mean[bio_col] - score_95ci[bio_col],
+                f'95ci_upper_{bio_col}': score_mean[bio_col] + score_95ci[bio_col],
+            })
+    combined_summary_stats = pd.DataFrame(summary_stats)
+    combined_summary_stats.to_csv(f"{model_params.Baseline_scores_path}/summary_stats_all.csv", index=False)
+
+    return all_scores, combined_summary_stats
 
 
 def get_metric2optimizemodel(mean_scores, subset='val', metric='silhouette', batch_col='donor', bio_col='celltype'):
@@ -2190,7 +2194,7 @@ def get_latent_spaces_paths(models_list, common_params_dict, outputs_path, funct
         print()
     return latent_path_dict
 
-def load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories):
+def load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse=False, load_dense=False):
     """
     Loads and stores latent spaces for specified models and datasets, and retrieves 'y' and 'z' components. This is useful for retriving the save latent space after applying: AE_DA,AEC_DA,AE_RE,AE_conv
     Parameters:
@@ -2203,6 +2207,8 @@ def load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_par
     - bio_col (str): The biological column name used for retrieving 'y' component.
     - batch_col_categories (list): Categories for the batch column to be used in one-hot encoding.
     - bio_col_categories (list): Categories for the biological column to be used in one-hot encoding.
+    - issparse(bool): True if X is in sparse array, False if its dense
+    - load_dense (bool): If True, forces conversion of sparse arrays to dense format.
 
 
 
@@ -2212,7 +2218,7 @@ def load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_par
     
     # Load initial dataset paths and data
     input_path_dict = get_split_paths(base_path=base_path, fold=fold)
-    adata_dict = load_data(input_path_dict, eval_test = model_params.eval_test, scaling = model_params.scaling)
+    adata_dict = load_data(input_path_dict, eval_test = model_params.eval_test, scaling = model_params.scaling,issparse=issparse, load_dense=load_dense)
 
     # Initialize dataset list and add 'test' dataset if evaluation on 'test' is enabled
     dataset_list = ["train", "val"]
@@ -2223,7 +2229,9 @@ def load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_par
     for model in models_list:
         for dataset in dataset_list:
             # Load the latent space for the current model and dataset
-            latent_space_path = latent_path_dict[model]["splits_" + str(fold)][dataset][0]
+            latent_space_path = latent_path_dict[model]["splits_" + str(fold)][dataset]
+            if isinstance(latent_space_path, (np.ndarray,list)):
+                latent_space_path = latent_space_path[0]
             latent_space = np.load(latent_space_path)
 
             latent_key = f"{model}_latent_{dataset}"
@@ -2326,7 +2334,8 @@ def evaluate_model(trained_model, inputs, adata_dict, model_params,metric_name =
 def run_model_pipeline_LatentClassifier(Model, latent_path_dict, build_model_dict, compile_dict, model_params, save_model, 
                                         batch_col, bio_col, base_path, fold, models_list, latent_keys_config,
                                         batch_col_categories=None, bio_col_categories=None, return_scores=False, 
-                                        return_adata_dict=False, return_trained_model=False, model_type="mec"):
+                                        return_adata_dict=False, return_trained_model=False, model_type="mec",
+                                        issparse=False, load_dense=False):
     """
     Runs the complete model pipeline, including loading data, training, evaluation, and obtaining scores.
 
@@ -2349,12 +2358,14 @@ def run_model_pipeline_LatentClassifier(Model, latent_path_dict, build_model_dic
     - return_adata_dict: Flag indicating whether to return the AnnData dictionary.
     - return_trained_model: Flag indicating whether to return the trained model.
     - model_type: Type of the model (default "mec").
+    - issparse(bool): True if X is in sparse array, False if its dense
+    - load_dense (bool): If True, forces conversion of sparse arrays to dense format.
 
     Returns:
     - results: Dictionary containing the trained model, metrics, scores, and/or adata_dict based on the provided flags.
     """
     # 1. Load data latent paths and adata_dict
-    adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories)
+    adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse, load_dense)
 
     print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
 
@@ -2401,6 +2412,901 @@ def run_model_pipeline_LatentClassifier(Model, latent_path_dict, build_model_dic
 
     return results
 
+import os
+# def evaluate_model_v2(trained_model, inputs, adata_dict, model_params, metric_name="CategoricalAccuracy"):
+#     """
+#     Evaluates the trained model on training, validation, and optionally test datasets, and returns evaluation metrics 
+#     along with updated AnnData objects containing true and predicted labels.
+
+#     Parameters:
+#     - trained_model: The trained model instance to be evaluated.
+#     - inputs (dict): Dictionary containing input data for each dataset type ('train', 'val', 'test').
+#     - adata_dict (dict): Dictionary containing AnnData objects or ground truth y values for 'train', 'val', and optionally 'test' datasets.
+#     - model_params: Object containing model parameters, including batch size and whether to evaluate on the test set (`eval_test` flag).
+#     - metric_name (str): The name of the evaluation metric used (default: "CategoricalAccuracy").
+
+#     Returns:
+#     - dict: A dictionary containing:
+#         - "metrics": DataFrame with loss and the specified metric for each evaluated dataset.
+#         - "adata_dict": Updated AnnData dictionary with true and predicted labels for each dataset.
+#     """
+#     # Function implementation here
+
+    
+#     # Define the datasets to evaluate
+#     datasets_to_evaluate = ['train', 'val']
+#     if getattr(model_params, 'eval_test', False):  # Use getattr to avoid AttributeError if eval_test is not set
+#         datasets_to_evaluate.append('test')
+
+#     # Create an empty DataFrame to store the results
+#     metrics_df = pd.DataFrame(columns=['Dataset', 'Loss'])
+
+#     # Evaluate the model on each dataset
+#     for dataset_type in datasets_to_evaluate:
+#         # Extract the inputs and outputs based on dataset_type
+#         inputs_data = inputs[dataset_type]
+#         outputs_data = adata_dict[f'{dataset_type}_y']  # Assuming your outputs are stored like this
+
+#         # Evaluate the model on the current dataset
+#         loss, metric = trained_model.evaluate(inputs_data, outputs_data, batch_size=model_params.batch_size)  # Default batch_size to 32 if not set
+
+
+#         # Predict labels 
+#         y_pred = trained_model.predict(inputs_data, batch_size=model_params.batch_size) 
+#         predicted_classes = y_pred.argmax(axis=1)
+#         num_classes = y_pred.shape[1]
+#         y_pred_ohe = np.eye(num_classes)[predicted_classes]
+#         # use the original celltypes to label predicted classes
+#         y_pred_df = pd.DataFrame(y_pred_ohe,columns=outputs_data.columns)
+#         # Save predictions to adata_dict
+#         adata_dict[f'{dataset_type}'].obs["true_labels"] = [outputs_data.columns[ind] for ind in outputs_data.values.argmax(axis=1)]
+#         adata_dict[f'{dataset_type}'].obs["pred_labels"] = [y_pred_df.columns[ind] for ind in y_pred_df.values.argmax(axis=1)]
+#         adata_dict[f'{dataset_type}'].obs.to_csv(os.path.join(model_params.latent_path, f"y_pred_{dataset_type}.csv"))
+
+
+#         # Append the results to the DataFrame
+#         metrics_df = metrics_df.append({
+#             'Dataset': dataset_type,
+#             'Loss': loss,
+#             f'{metric_name}_dffn': metric
+#         }, ignore_index=True)
+
+    
+#     #return metrics_df
+
+#     return {"metrics":metrics_df,"adata_dict":adata_dict}
 
 
 
+def evaluate_model_v2(trained_model, inputs, adata_dict, model_params, metric_name="CategoricalAccuracy"):
+    from sklearn.metrics import balanced_accuracy_score
+    # Define the datasets to evaluate
+    datasets_to_evaluate = ['train', 'val']
+    if getattr(model_params, 'eval_test', False):
+        datasets_to_evaluate.append('test')
+
+    # Create an empty DataFrame to store the results
+    metrics_df = pd.DataFrame(columns=['Dataset', 'Loss'])
+
+    # Evaluate the model on each dataset
+    for dataset_type in datasets_to_evaluate:
+        inputs_data = inputs[dataset_type]
+        outputs_data = adata_dict[f'{dataset_type}_y']
+
+        # Evaluate the model on the current dataset
+        loss, metric = trained_model.evaluate(inputs_data, outputs_data, batch_size=model_params.batch_size)
+
+        # Predict labels
+        y_pred = trained_model.predict(inputs_data, batch_size=model_params.batch_size)
+        predicted_classes = y_pred.argmax(axis=1)
+        true_classes = outputs_data.values.argmax(axis=1)
+
+        # Calculate balanced accuracy
+        balanced_acc = balanced_accuracy_score(true_classes, predicted_classes)
+
+        # Save predictions to adata_dict
+        num_classes = y_pred.shape[1]
+        y_pred_ohe = np.eye(num_classes)[predicted_classes]
+        y_pred_df = pd.DataFrame(y_pred_ohe, columns=outputs_data.columns)
+        adata_dict[f'{dataset_type}'].obs["true_labels"] = [outputs_data.columns[ind] for ind in true_classes]
+        adata_dict[f'{dataset_type}'].obs["pred_labels"] = [y_pred_df.columns[ind] for ind in predicted_classes]
+        adata_dict[f'{dataset_type}'].obs.to_csv(os.path.join(model_params.latent_path, f"y_pred_{dataset_type}.csv"))
+
+        # Append the results to the DataFrame
+        metrics_df = metrics_df.append({
+            'Dataset': dataset_type,
+            'Loss': loss,
+            f'{metric_name}_dffn': metric,
+            'Balanced_Accuracy_dffn': balanced_acc  # Add balanced accuracy here
+        }, ignore_index=True)
+
+    return {
+        "metrics": metrics_df,
+        "adata_dict": adata_dict
+    }
+
+
+
+def build_train_evaluate_model(Model,build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type):
+    """
+    Builds, trains, and evaluates a machine learning model, with options to save the model and plot training history.
+
+    Parameters:
+    - Model: The model class to instantiate for training.
+    - build_model_dict: Dictionary containing the parameters for building the model instance.
+    - compile_dict: Dictionary containing the parameters for compiling the model (e.g., optimizer, loss function).
+    - inputs: Dictionary containing the input data for training and validation, with keys 'train' and 'val'.
+    - adata_dict: Dictionary containing the AnnData objects, including training and validation labels ('train_y' and 'val_y').
+    - model_params: Object containing additional parameters for training, such as epochs, batch size, and paths.
+    - save_model: Boolean flag indicating whether to save the trained model to disk.
+    - model_type: String specifying the type of model (used for saving or plotting).
+
+    Returns:
+    - dict: A dictionary containing:
+        - "model": The trained model instance.
+        - "history": The training history, which includes loss and metric values across epochs.
+        - "metrics": A DataFrame containing evaluation metrics for the model.
+        - "adata_dict": Updated AnnData dictionary with evaluation results.
+    """
+    # 3. Build and train model
+    me_model = Model(**build_model_dict)
+    me_model.compile(**compile_dict)
+    trained_model, history = train_and_save_model(
+        me_model,
+        train_in=inputs['train'],
+        train_out=adata_dict['train_y'],
+        val_in=inputs['val'],
+        val_out=adata_dict['val_y'],
+        model_params=model_params,
+        save_model=save_model
+    )
+
+    # 4. Plot Loss graph
+    plot_params = {"outpath": model_params.plots_path}
+    PlotLoss(history, model_params, save_model=save_model, model_type=model_type)
+
+    # 5. Evaluate the model and get metrics
+    results = evaluate_model_v2(trained_model, inputs, adata_dict, model_params)
+    metrics_df = results["metrics"]
+
+    return {"model":trained_model,"history":history,"metrics":metrics_df,"adata_dict":results["adata_dict"]}
+
+
+
+def svm_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=False):
+    """
+    Trains an SVM classifier using concatenated latent space features, evaluates it on train, validation, 
+    and optionally the test datasets, and returns accuracy metrics along with updated AnnData objects 
+    containing SVM predictions.
+
+    Parameters:
+    - inputs (dict): Dictionary containing input data for each dataset type ('train', 'val', 'test'). 
+                     It includes keys 'fe_latent' and optionally 're_latent' for feature and regularization latent spaces.
+    - adata_dict (dict): Dictionary containing AnnData objects or ground truth y values for 'train', 'val', and 'test' datasets.
+    - model_params: Object containing model parameters, including the path to save predictions.
+    - eval_test (bool): Boolean flag indicating whether to evaluate the model on the test set (default: False).
+
+    Returns:
+    - dict: A dictionary containing:
+        - "metrics": DataFrame with accuracy and balanced accuracy metrics for the SVM classifier across train, validation, and optionally test datasets.
+        - "adata_dict": Updated AnnData dictionary with true and predicted labels for each dataset, labeled with SVM predictions.
+    """
+    from sklearn.preprocessing import StandardScaler, LabelEncoder
+    from sklearn.svm import SVC
+
+
+    def concatenate_features(dataset_type):
+        if "re_latent" in inputs[dataset_type]:
+            return np.concatenate((inputs[dataset_type]["fe_latent"], inputs[dataset_type]["re_latent"]), axis=1)
+        else:
+            return inputs[dataset_type]["fe_latent"]
+
+    def process_dataset(dataset_type, X, y_true):
+        # Make predictions
+        y_pred = clf.predict(X)
+
+        # Convert predictions to one-hot encoding
+        y_pred_ohe = np.eye(num_classes)[y_pred]
+
+        # Save true and predicted labels to adata_dict
+        outputs_data = adata_dict[f'{dataset_type}_y']
+        y_pred_df = pd.DataFrame(y_pred_ohe, columns=outputs_data.columns)
+        adata_dict[dataset_type].obs["true_labels_svm"] = outputs_data.columns[outputs_data.values.argmax(axis=1)]
+        adata_dict[dataset_type].obs["pred_labels_svm"] = y_pred_df.columns[y_pred_df.values.argmax(axis=1)]
+        adata_dict[dataset_type].obs.to_csv(os.path.join(model_params.latent_path, f"y_pred_{dataset_type}_svm.csv"))
+
+        # Calculate accuracy
+        accuracy = accuracy_score(y_true, y_pred)
+
+        # Calculate balanced accuracy
+        balanced_acc = balanced_accuracy_score(y_true, y_pred)
+
+        # Return accuracy and balanced accuracy
+        return {"accuracy": accuracy, "balanced_accuracy": balanced_acc, "adata_dict": adata_dict}
+
+    # Initialize scaler and label encoder
+    scaler = StandardScaler()
+    label_encoder = LabelEncoder()
+
+    # Prepare and standardize the training set
+    X_train = concatenate_features("train")
+    X_train = scaler.fit_transform(X_train)
+    y_train = label_encoder.fit_transform(adata_dict["train_y"].values.argmax(axis=1))
+
+    # Train the SVM classifier
+    clf = SVC(kernel='rbf', gamma='scale', C=1.0)
+    clf.fit(X_train, y_train)
+    num_classes = adata_dict["train_y"].shape[1]
+
+    # Standardize the validation set using the fitted scaler
+    X_val = concatenate_features("val")
+    X_val = scaler.transform(X_val)
+    y_val = label_encoder.transform(adata_dict["val_y"].values.argmax(axis=1))
+
+    # Process the train and validation sets
+    train_results = process_dataset("train", X_train, y_train)
+    val_results = process_dataset("val", X_val, y_val)
+
+    # Initialize the metrics DataFrame
+    metrics_df = pd.DataFrame({
+        "Dataset": ["train", "val"],
+        "SVMAccuracy": [train_results["accuracy"], val_results["accuracy"]],
+        "SVMBalancedAccuracy": [train_results["balanced_accuracy"], val_results["balanced_accuracy"]]
+    })
+
+    # Evaluate on the test set if eval_test is True
+    if eval_test:
+        X_test = concatenate_features("test")
+        X_test = scaler.transform(X_test)
+        y_test = label_encoder.transform(adata_dict["test_y"].values.argmax(axis=1))
+        test_results = process_dataset("test", X_test, y_test)
+
+        metrics_df = metrics_df.append({
+            "Dataset": "test",
+            "SVMAccuracy": test_results["accuracy"],
+            "SVMBalancedAccuracy": test_results["balanced_accuracy"]
+        }, ignore_index=True)
+        adata_dict["test"] = test_results["adata_dict"]["test"]
+
+    adata_dict["train"] = train_results["adata_dict"]["train"]
+    adata_dict["val"] = val_results["adata_dict"]["val"]
+
+    return {"metrics": metrics_df, "adata_dict": adata_dict}
+
+
+# def svm_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=False):
+#     """
+#     Trains an SVM classifier using concatenated latent space features, evaluates it on train, validation, 
+#     and optionally the test datasets, and returns accuracy metrics along with updated AnnData objects 
+#     containing SVM predictions.
+
+#     Parameters:
+#     - inputs (dict): Dictionary containing input data for each dataset type ('train', 'val', 'test'). 
+#                      It includes keys 'fe_latent' and optionally 're_latent' for feature and regularization latent spaces.
+#     - adata_dict (dict): Dictionary containing AnnData objects or ground truth y values for 'train', 'val', and 'test' datasets.
+#     - model_params: Object containing model parameters, including the path to save predictions.
+#     - eval_test (bool): Boolean flag indicating whether to evaluate the model on the test set (default: False).
+
+#     Returns:
+#     - dict: A dictionary containing:
+#         - "metrics": DataFrame with accuracy metrics for the SVM classifier across train, validation, and optionally test datasets.
+#         - "adata_dict": Updated AnnData dictionary with true and predicted labels for each dataset, labeled with SVM predictions.
+#     """
+
+#     from sklearn.preprocessing import StandardScaler, LabelEncoder
+#     from sklearn.svm import SVC
+#     from sklearn.metrics import accuracy_score
+
+#     def concatenate_features(dataset_type):
+#         if "re_latent" in inputs[dataset_type]:
+#             return np.concatenate((inputs[dataset_type]["fe_latent"], inputs[dataset_type]["re_latent"]), axis=1)
+#         else:
+#             return inputs[dataset_type]["fe_latent"]
+
+#     def process_dataset(dataset_type, X, y_true):
+#         # Make predictions
+#         y_pred = clf.predict(X)
+
+#         # Convert predictions to one-hot encoding
+#         y_pred_ohe = np.eye(num_classes)[y_pred]
+
+#         # Save true and predicted labels to adata_dict
+#         outputs_data = adata_dict[f'{dataset_type}_y']
+#         y_pred_df = pd.DataFrame(y_pred_ohe, columns=outputs_data.columns)
+#         adata_dict[dataset_type].obs["true_labels_svm"] = outputs_data.columns[outputs_data.values.argmax(axis=1)]
+#         adata_dict[dataset_type].obs["pred_labels_svm"] = y_pred_df.columns[y_pred_df.values.argmax(axis=1)]
+#         adata_dict[dataset_type].obs.to_csv(os.path.join(model_params.latent_path, f"y_pred_{dataset_type}_svm.csv"))
+
+#         # Calculate accuracy
+#         accuracy = accuracy_score(y_true, y_pred)
+
+#         # Return accuracy
+#         return {"accuracy": accuracy, "adata_dict": adata_dict}
+
+#     # Initialize scaler and label encoder
+#     scaler = StandardScaler()
+#     label_encoder = LabelEncoder()
+
+#     # Prepare and standardize the training set
+#     X_train = concatenate_features("train")
+#     X_train = scaler.fit_transform(X_train)
+#     y_train = label_encoder.fit_transform(adata_dict["train_y"].values.argmax(axis=1))
+
+#     # Train the SVM classifier
+#     clf = SVC(kernel='rbf', gamma='scale', C=1.0)
+#     clf.fit(X_train, y_train)
+#     num_classes = adata_dict["train_y"].shape[1]
+
+#     # Standardize the validation set using the fitted scaler
+#     X_val = concatenate_features("val")
+#     X_val = scaler.transform(X_val)
+#     y_val = label_encoder.transform(adata_dict["val_y"].values.argmax(axis=1))
+
+#     # Process the train and validation sets
+#     train_results = process_dataset("train", X_train, y_train)
+#     val_results = process_dataset("val", X_val, y_val)
+
+#     # Initialize the metrics DataFrame
+#     metrics_df = pd.DataFrame({
+#         "Dataset": ["train", "val"],
+#         "SVMAccuracy": [train_results["accuracy"], val_results["accuracy"]]
+#     })
+
+#     # Evaluate on the test set if eval_test is True
+#     if eval_test:
+#         X_test = concatenate_features("test")
+#         X_test = scaler.transform(X_test)
+#         y_test = label_encoder.transform(adata_dict["test_y"].values.argmax(axis=1))
+#         test_results = process_dataset("test", X_test, y_test)
+
+#         metrics_df = metrics_df.append({
+#             "Dataset": "test",
+#             "SVMAccuracy": test_results["accuracy"]
+#         }, ignore_index=True)
+#         adata_dict["test"] = test_results["adata_dict"]["test"]
+
+#     adata_dict["train"] = train_results["adata_dict"]["train"]
+#     adata_dict["val"] = val_results["adata_dict"]["val"]
+
+#     return {"metrics": metrics_df, "adata_dict": adata_dict}
+
+
+# def random_forest_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=False):
+#     """
+#     Trains a RandomForest classifier using concatenated latent space features, evaluates it on train, validation, 
+#     and optionally the test datasets, and returns accuracy metrics along with updated AnnData objects 
+#     containing RandomForest predictions.
+
+#     Parameters:
+#     - inputs (dict): Dictionary containing input data for each dataset type ('train', 'val', 'test'). 
+#                      It includes keys 'fe_latent' and optionally 're_latent' for feature and regularization latent spaces.
+#     - adata_dict (dict): Dictionary containing AnnData objects or ground truth y values for 'train', 'val', and 'test' datasets.
+#     - model_params: Object containing model parameters, including the path to save predictions.
+#     - eval_test (bool): Boolean flag indicating whether to evaluate the model on the test set (default: False).
+
+#     Returns:
+#     - dict: A dictionary containing:
+#         - "metrics": DataFrame with accuracy metrics for the RandomForest classifier across train, validation, and optionally test datasets.
+#         - "adata_dict": Updated AnnData dictionary with true and predicted labels for each dataset, labeled with RandomForest predictions.
+#     """
+
+#     from sklearn.preprocessing import StandardScaler, LabelEncoder
+#     from sklearn.ensemble import RandomForestClassifier
+#     from sklearn.metrics import accuracy_score
+
+#     def concatenate_features(dataset_type):
+#         if "re_latent" in inputs[dataset_type]:
+#             return np.concatenate((inputs[dataset_type]["fe_latent"], inputs[dataset_type]["re_latent"]), axis=1)
+#         else:
+#             return inputs[dataset_type]["fe_latent"]
+
+#     def process_dataset(dataset_type, X, y_true):
+#         # Make predictions
+#         y_pred = clf.predict(X)
+
+#         # Convert predictions to one-hot encoding
+#         y_pred_ohe = np.eye(num_classes)[y_pred]
+
+#         # Save true and predicted labels to adata_dict
+#         outputs_data = adata_dict[f'{dataset_type}_y']
+#         y_pred_df = pd.DataFrame(y_pred_ohe, columns=outputs_data.columns)
+#         adata_dict[dataset_type].obs["true_labels_rf"] = outputs_data.columns[outputs_data.values.argmax(axis=1)]
+#         adata_dict[dataset_type].obs["pred_labels_rf"] = y_pred_df.columns[y_pred_df.values.argmax(axis=1)]
+#         adata_dict[dataset_type].obs.to_csv(os.path.join(model_params.latent_path, f"y_pred_{dataset_type}_rf.csv"))
+
+#         # Calculate accuracy
+#         accuracy = accuracy_score(y_true, y_pred)
+
+#         # Return accuracy
+#         return {"accuracy": accuracy, "adata_dict": adata_dict}
+
+#     # Initialize scaler and label encoder
+#     scaler = StandardScaler()
+#     label_encoder = LabelEncoder()
+
+#     # Prepare and standardize the training set
+#     X_train = concatenate_features("train")
+#     X_train = scaler.fit_transform(X_train)
+#     y_train = label_encoder.fit_transform(adata_dict["train_y"].values.argmax(axis=1))
+
+#     # Train the RandomForest classifier
+#     clf = RandomForestClassifier(n_estimators=100, random_state=42)
+#     clf.fit(X_train, y_train)
+#     num_classes = adata_dict["train_y"].shape[1]
+
+#     # Standardize the validation set using the fitted scaler
+#     X_val = concatenate_features("val")
+#     X_val = scaler.transform(X_val)
+#     y_val = label_encoder.transform(adata_dict["val_y"].values.argmax(axis=1))
+
+#     # Process the train and validation sets
+#     train_results = process_dataset("train", X_train, y_train)
+#     val_results = process_dataset("val", X_val, y_val)
+
+#     # Initialize the metrics DataFrame
+#     metrics_df = pd.DataFrame({
+#         "Dataset": ["train", "val"],
+#         "RFAccuracy": [train_results["accuracy"], val_results["accuracy"]]
+#     })
+
+#     # Evaluate on the test set if eval_test is True
+#     if eval_test:
+#         X_test = concatenate_features("test")
+#         X_test = scaler.transform(X_test)
+#         y_test = label_encoder.transform(adata_dict["test_y"].values.argmax(axis=1))
+#         test_results = process_dataset("test", X_test, y_test)
+
+#         metrics_df = metrics_df.append({
+#             "Dataset": "test",
+#             "RFAccuracy": test_results["accuracy"]
+#         }, ignore_index=True)
+#         adata_dict["test"] = test_results["adata_dict"]["test"]
+
+#     adata_dict["train"] = train_results["adata_dict"]["train"]
+#     adata_dict["val"] = val_results["adata_dict"]["val"]
+
+#     return {"metrics": metrics_df, "adata_dict": adata_dict}
+
+
+
+
+def random_forest_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=False):
+    """
+    Trains a RandomForest classifier using concatenated latent space features, evaluates it on train, validation, 
+    and optionally the test datasets, and returns accuracy metrics along with updated AnnData objects 
+    containing RandomForest predictions.
+
+    Parameters:
+    - inputs (dict): Dictionary containing input data for each dataset type ('train', 'val', 'test'). 
+                     It includes keys 'fe_latent' and optionally 're_latent' for feature and regularization latent spaces.
+    - adata_dict (dict): Dictionary containing AnnData objects or ground truth y values for 'train', 'val', and 'test' datasets.
+    - model_params: Object containing model parameters, including the path to save predictions.
+    - eval_test (bool): Boolean flag indicating whether to evaluate the model on the test set (default: False).
+
+    Returns:
+    - dict: A dictionary containing:
+        - "metrics": DataFrame with accuracy and balanced accuracy metrics for the RandomForest classifier across train, validation, and optionally test datasets.
+        - "adata_dict": Updated AnnData dictionary with true and predicted labels for each dataset, labeled with RandomForest predictions.
+    """
+    from sklearn.preprocessing import StandardScaler, LabelEncoder
+    from sklearn.ensemble import RandomForestClassifier
+
+    def concatenate_features(dataset_type):
+        if "re_latent" in inputs[dataset_type]:
+            return np.concatenate((inputs[dataset_type]["fe_latent"], inputs[dataset_type]["re_latent"]), axis=1)
+        else:
+            return inputs[dataset_type]["fe_latent"]
+
+    def process_dataset(dataset_type, X, y_true):
+        # Make predictions
+        y_pred = clf.predict(X)
+
+        # Convert predictions to one-hot encoding
+        y_pred_ohe = np.eye(num_classes)[y_pred]
+
+        # Save true and predicted labels to adata_dict
+        outputs_data = adata_dict[f'{dataset_type}_y']
+        y_pred_df = pd.DataFrame(y_pred_ohe, columns=outputs_data.columns)
+        adata_dict[dataset_type].obs["true_labels_rf"] = outputs_data.columns[outputs_data.values.argmax(axis=1)]
+        adata_dict[dataset_type].obs["pred_labels_rf"] = y_pred_df.columns[y_pred_df.values.argmax(axis=1)]
+        adata_dict[dataset_type].obs.to_csv(os.path.join(model_params.latent_path, f"y_pred_{dataset_type}_rf.csv"))
+
+        # Calculate accuracy
+        accuracy = accuracy_score(y_true, y_pred)
+
+        # Calculate balanced accuracy
+        balanced_acc = balanced_accuracy_score(y_true, y_pred)
+
+        # Return accuracy and balanced accuracy
+        return {"accuracy": accuracy, "balanced_accuracy": balanced_acc, "adata_dict": adata_dict}
+
+    # Initialize scaler and label encoder
+    scaler = StandardScaler()
+    label_encoder = LabelEncoder()
+
+    # Prepare and standardize the training set
+    X_train = concatenate_features("train")
+    X_train = scaler.fit_transform(X_train)
+    y_train = label_encoder.fit_transform(adata_dict["train_y"].values.argmax(axis=1))
+
+    # Train the RandomForest classifier
+    clf = RandomForestClassifier(n_estimators=100, random_state=42)
+    clf.fit(X_train, y_train)
+    num_classes = adata_dict["train_y"].shape[1]
+
+    # Standardize the validation set using the fitted scaler
+    X_val = concatenate_features("val")
+    X_val = scaler.transform(X_val)
+    y_val = label_encoder.transform(adata_dict["val_y"].values.argmax(axis=1))
+
+    # Process the train and validation sets
+    train_results = process_dataset("train", X_train, y_train)
+    val_results = process_dataset("val", X_val, y_val)
+
+    # Initialize the metrics DataFrame
+    metrics_df = pd.DataFrame({
+        "Dataset": ["train", "val"],
+        "RFAccuracy": [train_results["accuracy"], val_results["accuracy"]],
+        "RFBalancedAccuracy": [train_results["balanced_accuracy"], val_results["balanced_accuracy"]]
+    })
+
+    # Evaluate on the test set if eval_test is True
+    if eval_test:
+        X_test = concatenate_features("test")
+        X_test = scaler.transform(X_test)
+        y_test = label_encoder.transform(adata_dict["test_y"].values.argmax(axis=1))
+        test_results = process_dataset("test", X_test, y_test)
+
+        metrics_df = metrics_df.append({
+            "Dataset": "test",
+            "RFAccuracy": test_results["accuracy"],
+            "RFBalancedAccuracy": test_results["balanced_accuracy"]
+        }, ignore_index=True)
+        adata_dict["test"] = test_results["adata_dict"]["test"]
+
+    adata_dict["train"] = train_results["adata_dict"]["train"]
+    adata_dict["val"] = val_results["adata_dict"]["val"]
+
+    return {"metrics": metrics_df, "adata_dict": adata_dict}
+
+
+
+
+def dummy_classifier_chance_accuracy(inputs, adata_dict, model_params, eval_test=False,seed = 42):
+    """
+    Trains a DummyClassifier using the 'stratified' strategy to calculate the chance accuracy (baseline accuracy) 
+    using concatenated latent space features. Evaluates it on train, validation, and optionally the test datasets, 
+    and returns chance accuracy metrics.
+
+    Parameters:
+    - inputs (dict): Dictionary containing input data for each dataset type ('train', 'val', 'test'). 
+                     It includes keys 'fe_latent' and optionally 're_latent' for feature and regularization latent spaces.
+    - adata_dict (dict): Dictionary containing AnnData objects or ground truth y values for 'train', 'val', and 'test' datasets.
+    - model_params: Object containing model parameters, including the path to save predictions.
+    - eval_test (bool): Boolean flag indicating whether to evaluate the model on the test set (default: False).
+    - seed (int) : seed set for repreducible results of dummy classifier with strategy: stratified
+
+    Returns:
+    - dict: A dictionary containing:
+        - "metrics": DataFrame with chance accuracy and balanced accuracy metrics for the DummyClassifier across train, validation, and optionally test datasets.
+        - "adata_dict": Updated AnnData dictionary with true and predicted labels for each dataset, labeled with DummyClassifier predictions.
+    """
+    from sklearn.preprocessing import StandardScaler, LabelEncoder
+    from sklearn.dummy import DummyClassifier
+
+    def concatenate_features(dataset_type):
+        if "re_latent" in inputs[dataset_type]:
+            return np.concatenate((inputs[dataset_type]["fe_latent"], inputs[dataset_type]["re_latent"]), axis=1)
+        else:
+            return inputs[dataset_type]["fe_latent"]
+
+    def process_dataset(dataset_type, X, y_true):
+        # Make predictions
+        y_pred = clf.predict(X)
+
+        # Convert predictions to one-hot encoding
+        y_pred_ohe = np.eye(num_classes)[y_pred]
+
+        # Save true and predicted labels to adata_dict
+        outputs_data = adata_dict[f'{dataset_type}_y']
+        y_pred_df = pd.DataFrame(y_pred_ohe, columns=outputs_data.columns)
+        adata_dict[dataset_type].obs["pred_labels_dummyclass"] = y_pred_df.columns[y_pred_df.values.argmax(axis=1)]
+        adata_dict[dataset_type].obs.to_csv(os.path.join(model_params.latent_path, f"y_pred_{dataset_type}_dummy.csv"))
+
+        # Calculate accuracy
+        accuracy = accuracy_score(y_true, y_pred)
+
+        # Return accuracy and balanced accuracy
+        return {"chance_accuracy": accuracy, "adata_dict": adata_dict}
+
+    # Initialize scaler and label encoder
+    scaler = StandardScaler()
+    label_encoder = LabelEncoder()
+
+    # Prepare and standardize the training set
+    X_train = concatenate_features("train")
+    X_train = scaler.fit_transform(X_train)
+    y_train = label_encoder.fit_transform(adata_dict["train_y"].values.argmax(axis=1))
+
+    # Train the DummyClassifier with the 'stratified' strategy
+    clf = DummyClassifier(strategy="stratified",random_state = seed)
+    clf.fit(X_train, y_train)
+    num_classes = adata_dict["train_y"].shape[1]
+
+    # Standardize the validation set using the fitted scaler
+    X_val = concatenate_features("val")
+    X_val = scaler.transform(X_val)
+    y_val = label_encoder.transform(adata_dict["val_y"].values.argmax(axis=1))
+
+    # Process the train and validation sets
+    train_results = process_dataset("train", X_train, y_train)
+    val_results = process_dataset("val", X_val, y_val)
+
+    # Initialize the metrics DataFrame
+    metrics_df = pd.DataFrame({
+        "Dataset": ["train", "val"],
+        "ChanceAccuracy": [train_results["chance_accuracy"], val_results["chance_accuracy"]],
+    })
+
+    # Evaluate on the test set if eval_test is True
+    if eval_test:
+        X_test = concatenate_features("test")
+        X_test = scaler.transform(X_test)
+        y_test = label_encoder.transform(adata_dict["test_y"].values.argmax(axis=1))
+        test_results = process_dataset("test", X_test, y_test)
+
+        metrics_df = metrics_df.append({
+            "Dataset": "test",
+            "ChanceAccuracy": test_results["chance_accuracy"],
+        }, ignore_index=True)
+        adata_dict["test"] = test_results["adata_dict"]["test"]
+
+    adata_dict["train"] = train_results["adata_dict"]["train"]
+    adata_dict["val"] = val_results["adata_dict"]["val"]
+
+    return {"metrics": metrics_df, "adata_dict": adata_dict}
+
+
+
+
+def run_model_pipeline_LatentClassifier_v2(Model, latent_path_dict, build_model_dict, compile_dict, model_params, save_model, 
+                                           batch_col, bio_col, base_path, fold, models_list, latent_keys_config,
+                                           batch_col_categories=None, bio_col_categories=None, return_metrics=True, 
+                                           return_adata_dict=False, return_trained_model=False, model_type="mec",
+                                           issparse=False, load_dense=False,seed=None):
+    """
+    Runs the complete model pipeline, including data loading, model training, evaluation, and metric collection.
+
+    Parameters:
+    - Model: The model class to be instantiated and trained.
+    - latent_path_dict: Dictionary containing paths to latent space data for each model.
+    - build_model_dict: Dictionary of parameters for building the model.
+    - compile_dict: Dictionary of parameters for compiling the model.
+    - model_params: Object containing additional model parameters and configurations.
+    - save_model: Boolean flag indicating whether to save the trained model to disk.
+    - batch_col: Name of the column representing batch information in the data.
+    - bio_col: Name of the column representing biological information in the data.
+    - base_path: Base directory path for datasets and model output.
+    - fold: The specific fold identifier for cross-validation or data splitting.
+    - models_list: List of models to be used in the pipeline.
+    - latent_keys_config: Configuration dictionary for the latent keys used in model input.
+    - batch_col_categories: List or array of categories for the batch column (optional).
+    - bio_col_categories: List or array of categories for the biological column (optional).
+    - return_metrics: Boolean flag indicating whether to return performance metrics (default: True).
+    - return_adata_dict: Boolean flag indicating whether to return the AnnData dictionary (default: False).
+    - return_trained_model: Boolean flag indicating whether to return the trained model (default: False).
+    - model_type: String specifying the type of model being used (default: "mec").
+    - issparse(bool): True if X is in sparse array, False if its dense
+    - load_dense (bool): If True, forces conversion of sparse arrays to dense format.
+    - seed (int) : seed set for repreducible results of dummy classifier with strategy: stratified
+
+    Returns:
+    - results: Dictionary containing the results based on the specified flags. Possible keys include:
+        - "dffn_model": The trained deep feedforward network model (if return_trained_model is True).
+        - "metrics": DataFrame of performance metrics for the trained model and SVM.
+        - "adata": The AnnData dictionary containing processed data (if return_adata_dict is True). Default: None
+    """
+
+    # 1. Load data latent paths and adata_dict
+    adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse, load_dense)
+
+    print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
+
+    # 2. Prepare data for training
+    inputs = prepare_latent_space_inputs(adata_dict, latent_keys_config, eval_test=model_params.eval_test)
+
+    # 3. Build and train model, plott loss and evaluate dffn model
+    dffn_results = build_train_evaluate_model(Model,build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type)
+
+    adata_dict = dffn_results["adata_dict"]
+    dffn_metrics = dffn_results["metrics"]
+
+    svm_results = svm_accuracy_and_predictions(inputs, adata_dict, model_params,eval_test=model_params.eval_test)
+    adata_dict = svm_results["adata_dict"]
+    svm_metrics = svm_results["metrics"]
+    #metrics_df = pd.merge(dffn_metrics,svm_metrics)
+
+
+    # Evaluate using RandomForest
+    rf_results = random_forest_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=model_params.eval_test)
+    adata_dict = rf_results["adata_dict"]
+    rf_metrics = rf_results["metrics"]
+
+    # Calculate chance accuracy
+    chance_results = dummy_classifier_chance_accuracy(inputs, adata_dict, model_params, eval_test=model_params.eval_test,seed = seed)
+    adata_dict = chance_results["adata_dict"]
+    chance_metrics = chance_results["metrics"]
+
+    # Merge the metrics from DFFN, SVM, and RandomForest
+    metrics_df = pd.merge(dffn_metrics, svm_metrics, on="Dataset")
+    metrics_df = pd.merge(metrics_df, rf_metrics, on="Dataset")
+    metrics_df = pd.merge(metrics_df, chance_metrics, on="Dataset")
+
+    metrics_df.to_csv(os.path.join(model_params.latent_path, "metrics.csv"))
+
+    
+
+
+    # 7. Collect results based on flags
+    results = {}
+    if return_trained_model:
+        results["dffn_model"] = dffn_results["model"]
+    if return_metrics:
+        results["metrics"] = metrics_df
+    if return_adata_dict:
+        results["adata"] = adata_dict
+
+    return results
+
+
+
+def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_model_dict, compile_dict, model_params, save_model, 
+                                           batch_col, bio_col, base_path, fold, models_list, latent_keys_config,
+                                           batch_col_categories=None, bio_col_categories=None, return_metrics=True, 
+                                           return_adata_dict=False, return_trained_model=False, model_type="mec",
+                                           issparse=False, load_dense=False,seed=None):
+    """
+    Runs the complete model pipeline, including data loading, model training, evaluation, and metric collection.
+
+    Parameters:
+    - Model: The model class to be instantiated and trained.
+    - latent_path_dict: Dictionary containing paths to latent space data for each model.
+    - build_model_dict: Dictionary of parameters for building the model.
+    - compile_dict: Dictionary of parameters for compiling the model.
+    - model_params: Object containing additional model parameters and configurations.
+    - save_model: Boolean flag indicating whether to save the trained model to disk.
+    - batch_col: Name of the column representing batch information in the data.
+    - bio_col: Name of the column representing biological information in the data.
+    - base_path: Base directory path for datasets and model output.
+    - fold: The specific fold identifier for cross-validation or data splitting.
+    - models_list: List of models to be used in the pipeline.
+    - latent_keys_config: Configuration dictionary for the latent keys used in model input.
+    - batch_col_categories: List or array of categories for the batch column (optional).
+    - bio_col_categories: List or array of categories for the biological column (optional).
+    - return_metrics: Boolean flag indicating whether to return performance metrics (default: True).
+    - return_adata_dict: Boolean flag indicating whether to return the AnnData dictionary (default: False).
+    - return_trained_model: Boolean flag indicating whether to return the trained model (default: False).
+    - model_type: String specifying the type of model being used (default: "mec").
+    - issparse(bool): True if X is in sparse array, False if its dense
+    - load_dense (bool): If True, forces conversion of sparse arrays to dense format.
+    - seed (int) : seed set for repreducible results of dummy classifier with strategy: stratified. Default: None
+
+    Returns:
+    - results: Dictionary containing the results based on the specified flags. Possible keys include:
+        - "dffn_model": The trained deep feedforward network model (if return_trained_model is True).
+        - "metrics": DataFrame of performance metrics for the trained model and SVM.
+        - "adata": The AnnData dictionary containing processed data (if return_adata_dict is True).
+    """
+
+    # 1. Load data latent paths and adata_dict
+    adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse, load_dense)
+    # Calculate PCA
+    adata_dict = get_pca_andplot(adata_dict, plot_params=None, eval_test=model_params.eval_test,n_components=model_params.n_components,shape_color_dict = None)
+
+    print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
+
+    # 2. Prepare data for training
+    inputs = prepare_latent_space_inputs(adata_dict, latent_keys_config, eval_test=model_params.eval_test)
+
+    # 3. Build and train model, plott loss and evaluate dffn model
+    dffn_results = build_train_evaluate_model(Model,build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type)
+
+    adata_dict = dffn_results["adata_dict"]
+    dffn_metrics = dffn_results["metrics"]
+    print("Training svc classifier")
+
+    svm_results = svm_accuracy_and_predictions(inputs, adata_dict, model_params,eval_test=model_params.eval_test)
+    adata_dict = svm_results["adata_dict"]
+    svm_metrics = svm_results["metrics"]
+    #metrics_df = pd.merge(dffn_metrics,svm_metrics)
+
+
+    # Evaluate using RandomForest
+    print("Training random forest classifier")
+
+    rf_results = random_forest_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=model_params.eval_test)
+    adata_dict = rf_results["adata_dict"]
+    rf_metrics = rf_results["metrics"]
+
+    # Calculate chance accuracy
+    chance_results = dummy_classifier_chance_accuracy(inputs, adata_dict, model_params, eval_test=model_params.eval_test,seed=seed)
+    adata_dict = chance_results["adata_dict"]
+    chance_metrics = chance_results["metrics"]
+
+    # Merge the metrics from DFFN, SVM, and RandomForest
+    metrics_df = pd.merge(dffn_metrics, svm_metrics, on="Dataset")
+    metrics_df = pd.merge(metrics_df, rf_metrics, on="Dataset")
+    metrics_df = pd.merge(metrics_df, chance_metrics, on="Dataset")
+
+    metrics_df.to_csv(os.path.join(model_params.latent_path, "metrics.csv"))
+
+    
+
+
+    # 7. Collect results based on flags
+    results = {}
+    if return_trained_model:
+        results["dffn_model"] = dffn_results["model"]
+    if return_metrics:
+        results["metrics"] = metrics_df
+    if return_adata_dict:
+        results["adata"] = adata_dict
+
+    return results
+
+
+def calculate_metrics_with_ci(df, group_col="Dataset"):
+    """
+    Calculate the mean and 95% confidence intervals for numeric columns in a DataFrame, grouped by a specified column.
+
+    Parameters:
+    - df (pd.DataFrame): The input DataFrame containing the data.
+    - group_col (str): The column to group by before calculating metrics. Default is "Dataset".
+
+    Returns:
+    - pd.DataFrame: A DataFrame containing the mean, lower 95% CI, and upper 95% CI for each numeric column.
+    """
+    from scipy import stats
+    
+    def calculate_95ci(series):
+        """
+        Calculate the 95% confidence interval for a given pandas Series.
+
+        Parameters:
+        - series (pd.Series): The data series to calculate the confidence interval for.
+
+        Returns:
+        - tuple: A tuple containing the lower and upper bounds of the 95% confidence interval.
+        """
+        n = series.count()
+        mean = series.mean()
+        sem = series.sem()  # Standard error of the mean
+        margin_of_error = sem * stats.t.ppf((1 + 0.95) / 2., n-1)  # t-distribution critical value for 95% CI
+        lower_bound = mean - margin_of_error
+        upper_bound = mean + margin_of_error
+        return lower_bound, upper_bound
+
+    # Select only numeric columns for the operations
+    numeric_columns = df.select_dtypes(include=[np.number]).columns
+
+    # Calculate the mean for each numeric column, grouped by the specified column
+    mean_df = df.groupby(group_col)[numeric_columns].mean()
+
+    # Rename the columns in mean_df to indicate they are means
+    mean_df.columns = [f"{col}_mean" for col in mean_df.columns]
+
+    # Apply the function to each numeric column in the DataFrame, grouped by the specified column
+    ci_df = df.groupby(group_col)[numeric_columns].agg(calculate_95ci)
+
+    # Separate the CI into lower and upper bounds
+    ci_lower_df = ci_df.applymap(lambda x: x[0])
+    ci_upper_df = ci_df.applymap(lambda x: x[1])
+
+    # Rename the columns to indicate they are lower and upper bounds
+    ci_lower_df.columns = [f"{col}_95CI_lower" for col in ci_lower_df.columns]
+    ci_upper_df.columns = [f"{col}_95CI_upper" for col in ci_upper_df.columns]
+
+    # Combine the mean, lower CI, and upper CI into one DataFrame
+    results_df = pd.concat([mean_df, ci_lower_df, ci_upper_df], axis=1)
+
+    return results_df

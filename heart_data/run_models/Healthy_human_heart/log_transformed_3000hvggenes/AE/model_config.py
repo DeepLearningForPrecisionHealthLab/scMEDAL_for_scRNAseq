@@ -32,7 +32,7 @@ build_model_dict = {
 
 
 load_data_dict = {
-    "eval_test": False,# Set to true if you want to load test data
+    "eval_test": True,# Set to true if you want to load test data
     "use_z": False, # Depending on the model you may need z design matrix: For AE_conv you do not need it
     "get_pred": False, #I put it here because it is not needed in build_model_dict but we still use it to load data
     "scaling": "min_max" # Scaling of input data: "min_max" or "z_scores"
@@ -42,7 +42,7 @@ train_model_dict = {
 #    "batch_size": 60,  # training settings
     "batch_size": 512,
 #    "epochs": 20,
-    "epochs":2,
+    "epochs":500,
     "monitor_metric": 'val_loss',
     "patience": 30,
     "stop_criteria": "early_stopping",
@@ -54,10 +54,10 @@ train_model_dict = {
 
 
 get_scores_dict = {
-    "encoder_latent_name":"AE_latent_50", #Modify depending on the model
+    "encoder_latent_name":"AE_latent_2", #Modify depending on the model
     "get_pca": True,
-    "n_components":50,
-    "get_baseline": True #take forever
+    "n_components":2,
+    "get_baseline": False #take forever
 }
 
 expt_design_dict = {'batch_col':'batch', #name of the batch column

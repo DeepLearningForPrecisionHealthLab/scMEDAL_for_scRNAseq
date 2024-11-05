@@ -6,6 +6,7 @@ data_path = "/archive/bioinformatics/DLLab/AixaAndrade/data/Genomic_data/heart_d
 # data2split_foldername = "Healthy_human_heart_data/raw"
 #data2split_foldername = "Healthy_human_heart_data/log_transformed"
 data2split_foldername = "Healthy_human_heart_data/log_transformed_3000hvggenes"
+#data2split_foldername = "Healthy_human_heart_data/log_transformed_2916hvggenes"
 
 import os
 # folder in which the splits will be saved. They are saved inside of data2split_foldername. Please create your own paths to store data to avoid rewriting

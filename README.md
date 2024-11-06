@@ -1,48 +1,54 @@
-# ARMED_genomics
+# Mixed Effects Deep Learning (MEDL) Autoencoder for Interpretable Analysis of Single-cell RNA Sequencing (scRNA-seq) Data
 
-Updated code on 7/19/2024
-
-## Welcome to ARMED Genomics repository
+Updated README description and healthy heart experiment on 11/6/2024
 
 ## Description
-The goal of this project is to obtain meaningful latent representations from single cell RNA seq data. To obtain this latent space, we will take inspiration from Nguyen et al 2023 and apply an ARMED vector autoencoder to a single cell RNA seq data gene expression matrix, also known as count matrix. 
 
-For the simulation examples, the fixed effects are the celltypes and the random effects are the donors. The random effects are known in the literature as batch effects.
+The Mixed Effects Deep Learning (MEDL) framework is designed to extract meaningful latent representations from single-cell RNA sequencing (scRNA-seq) data while accounting for batch effects?common confounders that can obscure true biological signals. By extending linear mixed-effects models into a nonlinear context, MEDL effectively addresses the inherent non-linearity in confounded scRNA-seq datasets.
 
-* The inputs are count matrices of size = n cells * m genes.
-* The outputs are reconstructed count matrices of the same size than the input.
-* The latent space is of size = n cells * p reduced features
+**Key Features:**
 
-## ARMED Framework Overview
+- **Inputs:** Gene expression count matrix \( X \in \mathbb{R}^{n \times m} \), where \( n \) is the number of cells and \( m \) is the number of genes.
+- **Outputs:** Reconstructed gene expression matrix \( \hat{X} \) and latent space representations.
+- **Latent Space:** Reduced feature space of size \( n \times p \), capturing essential biological variability.
 
+## MEDL Framework Overview
 
-The ARMED framework integrates seamlessly with an Autoencoder Classifier (AEC) to process gene expression count matrices (\\(X\\)) and predict cell types (\\(\hat{y}\\)). This framework is designed to enhance the conventional AEC by addressing both predictable and variable batch effects through its dual subnetwork architecture.
+The MEDL framework consists of two parallel subnetworks that jointly model fixed and random effects within gene expression data:
 
+1. **Fixed Effects Subnetwork (MEDL-AE-FE):** Captures batch-invariant features by suppressing batch effects. It employs an autoencoder with weight tying, dense hidden layers, and an adversarial classifier that learns to predict batch labels. The loss function balances reconstruction error and adversarial loss to mitigate batch-specific variations.
 
-### Subnetworks Description
+2. **Random Effects Subnetwork:** Models batch-specific variations using variational inference. It approximates true batch distributions with optimized surrogate posteriors and includes a classifier for batch label prediction. By maximizing the Evidence Lower Bound (ELBO), it ensures the latent space encodes batch-specific information while regularizing the model to prevent overfitting.
 
-#### Fixed Effects Subnetwork
+![MEDL Diagram](./images/MEDL.png)
 
-![ARMED Fixed Effects Subnetwork](./images/FEsubnet.png)
+### Subnetwork Details
 
-The Fixed Effects Subnetwork augments the AEC with an adversarial classifier. This configuration aims to refine the model by preventing the prediction of predictable batch effects, thereby improving the accuracy and reliability of the AEC in standardized conditions.
+- **Fixed Effects Loss Function:**
+  \[
+  L_{\text{FE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}) - \lambda_{\text{A}} \cdot L_{\text{CCE}}(z, \hat{z})
+  \]
+  Balances reconstruction and adversarial losses to capture fixed effects.
 
-#### Random Effects Subnetwork
-
-![ARMED Random Effects Subnetwork](./images/REsubnet.png)
-
-The Random Effects Subnetwork extends the AEC by incorporating a design matrix for batch effects into each layer of an autoencoder. It utilizes variational layers where the weight distributions (\(p\)) are optimized to approximate a target distribution (\(q\)), addressing inter-cluster variability effectively. Additionally, this subnetwork includes a classifier specifically designed to ensure the predictability and consistency of batch effects across different datasets.
-
-
-
+- **Random Effects Loss Function:**
+  \[
+  L_{\text{RE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}') + \lambda_{\text{CCE}} \cdot L_{\text{CCE}}(z, \hat{z}') + \lambda_{\text{KL}} \cdot D_{\text{KL}}(q(U) \| p(U))
+  \]
+  Combines reconstruction error, batch classification loss, and KL divergence for modeling random effects.
 
 ## Usage
 
-To implement the ARMED framework in your research or applications, ensure that your dataset includes a well-defined gene expression count matrix and corresponding cell type annotations. By leveraging the ARMED model, researchers can achieve more nuanced and robust analyses, crucial for studies involving complex biological datasets. 
+To implement the MEDL framework:
 
-For further details on model architecture and implementation, refer to the diagrams provided for each subnetwork. These visual aids will help clarify the operational dynamics and the strategic enhancements made to the traditional AEC model.
-![ARMED Subnetworks](./images/latent_spaces.png)
+1. **Data Preparation:** Ensure your dataset includes a gene expression count matrix and corresponding batch labels (e.g., donor IDs, experimental batches).
 
+2. **Model Training:** Use the provided MEDL-AE code to train on your data. The model outputs reconstructed gene expression matrices and latent space representations with reduced batch effects.
+
+3. **Downstream Analysis:** Utilize the latent representations for tasks like clustering, visualization, or differential expression analysis to uncover true biological signals.
+
+
+
+By leveraging the MEDL framework, researchers can achieve more accurate and interpretable analyses of scRNA-seq data, effectively separating true biological variability from technical noise due to batch effects.
 
 ### Models
 * [AE_v4.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/models/AE_v4.py): Contains models including the simple AEC (Autoencoder Classifier), DA_AE (Domain Adversarial Autoencoder for fixed effects), and the DomainEnhancingAutoencoderClassifier (for Random Effects).
@@ -141,3 +147,5 @@ model_name = "AE_RE"  # the folder name of your output
 
 Make sure to change the path to the utils folder in each of the files of the type: `run_modelname_allfolds.py`.
 ```
+
+

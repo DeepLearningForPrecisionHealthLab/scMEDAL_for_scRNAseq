@@ -40,7 +40,7 @@ build_model_dict = {
                 }
 
 load_data_dict = {
-    "eval_test": False,# Set to true if you want to load test data
+    "eval_test": True,# Set to true if you want to load test data
     "use_z": True, # Depending on the model you may need z design matrix
     "scaling": "min_max" # Scaling of input data: "min_max" or "z_scores"
 }
@@ -48,7 +48,7 @@ load_data_dict = {
 train_model_dict = {
     "batch_size": 512,  # training settings
 #    "epochs": 20,
-    "epochs": 1,
+    "epochs": 500,
     "monitor_metric": 'val_total_loss',
     "patience": 30,
     "stop_criteria": "early_stopping",
@@ -60,11 +60,11 @@ train_model_dict = {
 
 
 get_scores_dict = {
-    "encoder_latent_name":"RE_AE_latent_50", #Modify depending on the model
+    "encoder_latent_name":"RE_AE_latent_2", #Modify depending on the model
     "get_pca": False,
-    "n_components":50,
+    "n_components":2,
     "get_baseline": False,
-    "get_cf_batch":False
+    "get_cf_batch":True
 }
 
 
@@ -131,7 +131,7 @@ if RAY_RUN==False:
 
     # Define the run name (ensure model_params_dict is defined before this point)
     #"layer_units"
-    constant_keys = ["n_components","loss_recon","loss_multiclass","metric_multiclass", "optimizer",'model_type','tissue_col','batch_col','bio_col','donor_col',"layer_units_classifier","get_recon_cluster","prior_scale","post_loc_init_scale", "layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
+    constant_keys = ["get_cf_batch","compute_latents_callback","n_components","loss_recon","loss_multiclass","metric_multiclass", "optimizer",'model_type','tissue_col','batch_col','bio_col','donor_col',"layer_units_classifier","get_recon_cluster","prior_scale","post_loc_init_scale", "layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test"]
     run_name = generate_run_name(model_params_dict, constant_keys, name='run_crossval')
     print("run_name",run_name)
 

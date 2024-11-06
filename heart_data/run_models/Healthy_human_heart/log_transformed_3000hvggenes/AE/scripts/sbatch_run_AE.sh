@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH -o job_%j.out
 #SBATCH -e job_%j.err
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0
 module load cuda118
 module load cuda118/toolkit/11.8.0
 module load parallel

@@ -1,27 +1,44 @@
 import sys
+import os
 sys.path.append("/archive/bioinformatics/DLLab/AixaAndrade/src/ARMED_genomics_git/utils")
 from model_train_utils import generate_run_name
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError as mse_loss
-from tensorflow.keras.losses import BinaryCrossentropy as bce_loss
+# from tensorflow.keras.losses import BinaryCrossentropy as bce_loss
 from tensorflow.keras.metrics import MeanSquaredError as mse_metric
-from tensorflow.keras.metrics import AUC as auc_metric
-import os
-
-
+# from tensorflow.keras.metrics import AUC as auc_metric
+from tensorflow.keras.losses import CategoricalCrossentropy as cce_loss
+from tensorflow.keras.metrics import CategoricalAccuracy as cce_metric
 
 
 # Define individual dictionaries
 
+
+
 compile_dict = {# compile settings
     "optimizer":Adam(lr=0.0001),
     "loss":{'reconstruction_output': mse_loss(name='mse'),
-    'classification_output': bce_loss(name='bce')},
-    "loss_weights":{'reconstruction_output': 81.0,
+    'classification_output': cce_loss(name='cce')},
+    "loss_weights":{'reconstruction_output':100,
     'classification_output': 0.1},
     "metrics":{'reconstruction_output':[mse_metric(name="mse_metric")],
-    'classification_output': [auc_metric(name='auroc')]}
+    'classification_output': [cce_metric(name='cce_metric')]}
 }
+
+
+
+
+# # Define individual dictionaries
+
+# compile_dict = {# compile settings
+#     "optimizer":Adam(lr=0.0001),
+#     "loss":{'reconstruction_output': mse_loss(name='mse'),
+#     'classification_output': bce_loss(name='bce')},
+#     "loss_weights":{'reconstruction_output': 81.0,
+#     'classification_output': 0.1},
+#     "metrics":{'reconstruction_output':[mse_metric(name="mse_metric")],
+#     'classification_output': [auc_metric(name='auroc')]}
+# }
 
 
 
@@ -38,7 +55,7 @@ build_model_dict = {
 }
 
 load_data_dict = {
-    "eval_test": False,# Set to true if you want to load test data
+    "eval_test": True,# Set to true if you want to load test data
     "use_z": False, # Depending on the model you may need z design matrix: For AE_conv you do not need it
     "get_pred": True, #I put it here because it is not needed in build_model_dict but we still use it to load data,
     "scaling": "min_max" # Scaling of input data: "min_max" or "z_scores"
@@ -52,16 +69,16 @@ train_model_dict = {
     "monitor_metric": 'val_loss',
     "patience": 30,
     "stop_criteria": "early_stopping",
-    "compute_latents_callback": True,
+    "compute_latents_callback": False,
     "sample_size":10000,
     "model_type":"aec" 
 }
 
 get_scores_dict = {
-    "encoder_latent_name":"AEC_latent_50", #Modify depending on the model
+    "encoder_latent_name":"AEC_latent_2", #Modify depending on the model
     "get_pca": True,
-    "n_components":50,
-    "get_baseline": True #take forever
+    "n_components":2,
+    "get_baseline": False #take forever
 }
 
 

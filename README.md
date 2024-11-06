@@ -25,21 +25,18 @@ The MEDL framework consists of two parallel subnetworks that jointly model fixed
 
 ### Subnetwork Details
 
-- **Fixed Effects Loss Function:**
 
-  $$
-  L_{\text{FE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}) - \lambda_{\text{A}} \cdot L_{\text{CCE}}(z, \hat{z})
-  $$
+**Fixed Effects Loss Function:**
 
-  Balances reconstruction and adversarial losses to capture fixed effects.
+`L_FE = ?_MSE * L_MSE(X, X?) - ?_A * L_CCE(z, ?)`
 
-- **Random Effects Loss Function:**
+Balances reconstruction and adversarial losses to capture fixed effects.
 
-  $$
-  L_{\text{RE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}') + \lambda_{\text{CCE}} \cdot L_{\text{CCE}}(z, \hat{z}') + \lambda_{\text{KL}} \cdot D_{\text{KL}}(q(U) \parallel p(U))
-  $$
+**Random Effects Loss Function:**
 
-  Combines reconstruction error, batch classification loss, and KL divergence for modeling random effects.
+`L_RE = ?_MSE * L_MSE(X, X?') + ?_CCE * L_CCE(z, ?') + ?_KL * D_KL(q(U) || p(U))`
+
+Combines reconstruction error, batch classification loss, and KL divergence for modeling random effects.
 
 
 ## Usage

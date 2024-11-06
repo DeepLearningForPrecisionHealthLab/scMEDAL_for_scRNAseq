@@ -26,19 +26,29 @@ The MEDL framework consists of two parallel subnetworks that jointly model fixed
 ### Subnetwork Details
 
 
-**Subnetwork Details**
+### Fixed Effects Loss Function
+The fixed effects loss function combines reconstruction accuracy with suppression of batch effects to capture fixed effects:
+$$
+L_{\text{FE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}) - \lambda_{\text{A}} \cdot L_{\text{CCE}}(z, \hat{z})
+$$
 
-- **Fixed Effects Loss Function:**  
-  $L_{\text{FE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}) - \lambda_{\text{A}} \cdot L_{\text{CCE}}(z, \hat{z})$
+- **$L_{\text{MSE}}(X, \hat{X})$**: Mean Squared Error (MSE) to ensure accurate reconstruction of the original gene expression matrix $X$ by minimizing the difference from $\hat{X}$, the reconstructed matrix.
+- **$\lambda_{\text{MSE}}$**: Weight for reconstruction accuracy.
+- **$L_{\text{CCE}}(z, \hat{z})$**: Categorical Cross-Entropy (CCE) loss for the adversarial classifier, discouraging batch label predictability in the latent space.
+- **$\lambda_{\text{A}}$**: Weight for the CCE term, controlling the model?s emphasis on batch effect suppression.
 
-  Balances reconstruction and adversarial losses to capture fixed effects.
+### Random Effects Loss Function
+The random effects loss function incorporates reconstruction, batch classification, and regularization to capture batch-specific variations:
+$$
+L_{\text{RE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}') + \lambda_{\text{CCE}} \cdot L_{\text{CCE}}(z, \hat{z}') + \lambda_{\text{KL}} \cdot D_{\text{KL}}(q(U) \parallel p(U))
+$$
 
-- **Random Effects Loss Function:**  
-  $L_{\text{RE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}') + \lambda_{\text{CCE}} \cdot L_{\text{CCE}}(z, \hat{z}') + \lambda_{\text{KL}} \cdot D_{\text{KL}}(q(U) \parallel p(U))$
-
-
-
-Combines reconstruction error, batch classification loss, and KL divergence for modeling random effects.
+- **$L_{\text{MSE}}(X, \hat{X}')$**: Mean Squared Error to ensure accurate reconstruction in the random effects subnetwork.
+- **$\lambda_{\text{MSE}}$**: Weight for the reconstruction term.
+- **$L_{\text{CCE}}(z, \hat{z}')$**: Categorical Cross-Entropy (CCE) to encourage batch-specific feature encoding by training the classifier to predict batch labels.
+- **$\lambda_{\text{CCE}}$**: Weight for the CCE term, balancing emphasis on batch classification.
+- **$D_{\text{KL}}(q(U) \parallel p(U))$**: Kullback-Leibler (KL) divergence, regularizing the model by aligning the learned distribution $q(U)$ with the prior distribution $p(U)$.
+- **$\lambda_{\text{KL}}$**: Weight for the KL divergence term, controlling the degree of regularization to prevent overfitting.
 
 
 ## Usage

@@ -35,7 +35,7 @@ $$
 - **$L_{\text{MSE}}(X, \hat{X})$**: Mean Squared Error (MSE) to ensure accurate reconstruction of the original gene expression matrix $X$ by minimizing the difference from $\hat{X}$, the reconstructed matrix.
 - **$\lambda_{\text{MSE}}$**: Weight for reconstruction accuracy.
 - **$L_{\text{CCE}}(z, \hat{z})$**: Categorical Cross-Entropy (CCE) loss for the adversarial classifier, discouraging batch label predictability in the latent space.
-- **$\lambda_{\text{A}}$**: Weight for the CCE term, controlling the model?s emphasis on batch effect suppression.
+- **$\lambda_{\text{A}}$**: Weight for the CCE term, controlling the model's emphasis on batch effect suppression.
 
 ### Random Effects Loss Function
 The random effects loss function incorporates reconstruction, batch classification, and regularization to capture batch-specific variations:

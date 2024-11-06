@@ -52,7 +52,7 @@ train_model_dict = {
 }
 
 get_scores_dict = {
-    "encoder_latent_name":"FE_AE_latent_50", #Modify depending on the model
+    "encoder_latent_name":"FE_AE_latent_2", #Modify depending on the model
     "get_pca": False,
     "n_components":2,
     "get_baseline": False

@@ -7,34 +7,40 @@ Updated README description and healthy heart experiment on 11/6/2024
 The Mixed Effects Deep Learning (MEDL) framework is designed to extract meaningful latent representations from single-cell RNA sequencing (scRNA-seq) data while accounting for batch effects?common confounders that can obscure true biological signals. By extending linear mixed-effects models into a nonlinear context, MEDL effectively addresses the inherent non-linearity in confounded scRNA-seq datasets.
 
 **Key Features:**
+- **Inputs:** Gene expression count matrix $X \in \mathbb{R}^{n \times m}$, where $n$ is the number of cells and $m$ is the number of genes.
 
-- **Inputs:** Gene expression count matrix $$\( X \in \mathbb{R}^{n \times m} \)$$, where $$\( n \)$$ is the number of cells and $$\( m \)$$ is the number of genes.
-- **Outputs:** Reconstructed gene expression matrix \( \hat{X} \) and latent space representations.
-- **Latent Space:** Reduced feature space of size \( n \times p \), capturing essential biological variability.
+- **Outputs:** Reconstructed gene expression matrix $\hat{X}$ and latent space representations.
+
+- **Latent Space:** Reduced feature space of size $n \times p$, capturing essential biological variability.
 
 ## MEDL Framework Overview
 
 The MEDL framework consists of two parallel subnetworks that jointly model fixed and random effects within gene expression data:
 
-1. **Fixed Effects Subnetwork (MEDL-AE-FE):** Captures batch-invariant features by suppressing batch effects. It employs an autoencoder with weight tying, dense hidden layers, and an adversarial classifier that learns to predict batch labels. The loss function balances reconstruction error and adversarial loss to mitigate batch-specific variations.
+1. **Fixed Effects Subnetwork (MEDL-AE-FE):** This subnetwork captures batch-invariant features by suppressing batch effects. It employs an autoencoder with weight tying, dense hidden layers, and an adversarial classifier that learns to predict batch labels. The loss function balances reconstruction error and adversarial loss to mitigate batch-specific variations.
 
-2. **Random Effects Subnetwork:** Models batch-specific variations using variational inference. It approximates true batch distributions with optimized surrogate posteriors and includes a classifier for batch label prediction. By maximizing the Evidence Lower Bound (ELBO), it ensures the latent space encodes batch-specific information while regularizing the model to prevent overfitting.
+2. **Random Effects Subnetwork:** This subnetwork models batch-specific variations using variational inference. It approximates true batch distributions with optimized surrogate posteriors and includes a classifier for batch label prediction. By maximizing the Evidence Lower Bound (ELBO), the model ensures that the latent space encodes batch-specific information while regularizing to prevent overfitting.
 
 ![MEDL Diagram](./images/MEDL.png)
 
 ### Subnetwork Details
 
 - **Fixed Effects Loss Function:**
-  $$\[
+
+  $$
   L_{\text{FE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}) - \lambda_{\text{A}} \cdot L_{\text{CCE}}(z, \hat{z})
-  \]$$
+  $$
+
   Balances reconstruction and adversarial losses to capture fixed effects.
 
 - **Random Effects Loss Function:**
-  $$\[
-  L_{\text{RE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}') + \lambda_{\text{CCE}} \cdot L_{\text{CCE}}(z, \hat{z}') + \lambda_{\text{KL}} \cdot D_{\text{KL}}(q(U) \| p(U))
-  \]$$
+
+  $$
+  L_{\text{RE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}') + \lambda_{\text{CCE}} \cdot L_{\text{CCE}}(z, \hat{z}') + \lambda_{\text{KL}} \cdot D_{\text{KL}}(q(U) \parallel p(U))
+  $$
+
   Combines reconstruction error, batch classification loss, and KL divergence for modeling random effects.
+
 
 ## Usage
 

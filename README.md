@@ -161,6 +161,5 @@ model_name = "AE_RE"  # the folder name of your output
 ### Notes
 
 Make sure to change the path to the utils folder in each of the files of the type: `run_modelname_allfolds.py`.
-```
 
 

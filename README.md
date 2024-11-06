@@ -26,17 +26,17 @@ The MEDL framework consists of two parallel subnetworks that jointly model fixed
 ### Subnetwork Details
 
 
-**Fixed Effects Loss Function:**
-$
-L_{\text{FE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}) - \lambda_{\text{A}} \cdot L_{\text{CCE}}(z, \hat{z})
-$
-Balances reconstruction and adversarial losses to capture fixed effects.
+**Subnetwork Details**
+
+- **Fixed Effects Loss Function:**  
+  $L_{\text{FE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}) - \lambda_{\text{A}} \cdot L_{\text{CCE}}(z, \hat{z})$
+
+  Balances reconstruction and adversarial losses to capture fixed effects.
+
+- **Random Effects Loss Function:**  
+  $L_{\text{RE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}') + \lambda_{\text{CCE}} \cdot L_{\text{CCE}}(z, \hat{z}') + \lambda_{\text{KL}} \cdot D_{\text{KL}}(q(U) \parallel p(U))$
 
 
-**Random Effects Loss Function:**
-$
-L_{\text{RE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}') + \lambda_{\text{CCE}} \cdot L_{\text{CCE}}(z, \hat{z}') + \lambda_{\text{KL}} \cdot D_{\text{KL}}(q(U) \parallel p(U))
-$
 
 Combines reconstruction error, batch classification loss, and KL divergence for modeling random effects.
 

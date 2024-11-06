@@ -4,14 +4,14 @@ Updated README description and healthy heart experiment on 11/6/2024
 
 ## Description
 
-The Mixed Effects Deep Learning (MEDL) framework is designed to extract meaningful latent representations from single-cell RNA sequencing (scRNA-seq) data while accounting for batch effects?common confounders that can obscure true biological signals. By extending linear mixed-effects models into a nonlinear context, MEDL effectively addresses the inherent non-linearity in confounded scRNA-seq datasets.
+The Mixed Effects Deep Learning (MEDL) framework is designed to extract meaningful latent representations from single-cell RNA sequencing (scRNA-seq) data while accounting for batch effects, which are common confounders that can obscure true biological signals. By extending linear mixed-effects models into a nonlinear context, MEDL effectively addresses the inherent non-linearity in confounded scRNA-seq datasets.
 
 **Key Features:**
 - **Inputs:** Gene expression count matrix $X \in \mathbb{R}^{n \times m}$, where $n$ is the number of cells and $m$ is the number of genes.
 
 - **Outputs:** Reconstructed gene expression matrix $\hat{X}$ and latent space representations.
 
-- **Latent Space:** Reduced feature space of size $n \times p$, capturing essential biological variability.
+- **Latent Space:** Reduced feature space of size $n \times p$.
 
 ## MEDL Framework Overview
 

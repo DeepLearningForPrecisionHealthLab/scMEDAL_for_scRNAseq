@@ -31,7 +31,7 @@ build_model_dict = {
 }
 
 load_data_dict = {
-    "eval_test": False,# Set to true if you want to load test data
+    "eval_test": True,# Set to true if you want to load test data
     "use_z": True, # Depending on the model you may need z design matrix
     "scaling": "min_max" # Scaling of input data: "min_max" or "z_scores"
 }
@@ -43,15 +43,15 @@ train_model_dict = {
     "monitor_metric": 'val_total_loss',
     "patience": 30,
     "stop_criteria": "early_stopping",
-    "compute_latents_callback": True,
+    "compute_latents_callback": False,
     "sample_size":10000, #This sample size is used in the clustering scores callback
     "model_type":"ae_da"
 }
 
 get_scores_dict = {
-    "encoder_latent_name":"FE_AEC_latent_50", #Modify depending on the model
+    "encoder_latent_name":"FE_AEC_latent_2", #Modify depending on the model
     "get_pca": False,
-    "n_components":50,
+    "n_components":2,
     "get_baseline": False
 }
 

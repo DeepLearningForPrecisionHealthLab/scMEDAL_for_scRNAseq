@@ -56,13 +56,13 @@ To implement the MEDL framework:
 
 1. **Data Preparation:** Ensure your dataset includes a gene expression count matrix and corresponding batch labels (e.g., donor IDs, experimental batches).
 
-2. **Model Training:** Use the provided MEDL-AE code to train on your data. The model outputs reconstructed gene expression matrices and latent space representations with reduced batch effects.
+2. **Model Training:** Use the provided MEDL-AE code to train on your data. The model outputs reconstructed gene expression matrices and latent space representations from the fixed and random effects subnetworks.
 
 3. **Downstream Analysis:** Utilize the latent representations for tasks like clustering, visualization, or differential expression analysis to uncover true biological signals.
 
 
 
-By leveraging the MEDL framework, researchers can achieve more accurate and interpretable analyses of scRNA-seq data, effectively separating true biological variability from technical noise due to batch effects.
+By leveraging the MEDL framework, researchers can achieve more accurate and interpretable analyses of scRNA-seq data, effectively separating batch invariant from batch specific effects.
 
 ## Models
 * [AE_v4.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/models/AE_v4.py): Contains models including the simple AEC (Autoencoder Classifier), DA_AE (Domain Adversarial Autoencoder for fixed effects), and the DomainEnhancingAutoencoderClassifier (for Random Effects).

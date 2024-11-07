@@ -65,11 +65,11 @@ To implement the MEDL framework:
 
 By leveraging the MEDL framework, researchers can achieve more accurate and interpretable analyses of scRNA-seq data, effectively separating true biological variability from technical noise due to batch effects.
 
-### Models
+## Models
 * [AE_v4.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/models/AE_v4.py): Contains models including the simple AEC (Autoencoder Classifier), DA_AE (Domain Adversarial Autoencoder for fixed effects), and the DomainEnhancingAutoencoderClassifier (for Random Effects).
 * [random_effects.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/models/random_effects.py): Implements random effects classes, originally developed by Kevin Nguyen for the ARMED paper.
 
-### Utilities
+## Utilities
 * [utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/utils.py)
   * Functions for reading and saving data, plotting, and calculating clustering scores.
 * [model_train_utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/model_train_utils.py)

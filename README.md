@@ -108,7 +108,6 @@ Explore the models used in the Heart Data dataset:
 
 
 ### Scripts to compare models
-Explore the models used in the Heart Data dataset:
 - **[Compare Results Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results)**
   - [Clustering scores](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results/clustering_scores)
   - [Generate Genomaps](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results/genomaps)

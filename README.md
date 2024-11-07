@@ -84,7 +84,8 @@ By leveraging the MEDL framework, researchers can achieve more accurate and inte
 * [genomaps.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/genomaps_utils.py)
   * Code to generate Genomaps, obtained from [xinglab-ai/genomap](https://github.com/xinglab-ai/genomap) (Islam & Xing, 2023)
 * [preprocessing_utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/preprocessing_utils.py)
-# Experiment Files
+
+# ExperimentS
 
 ## Healthy Heart dataset
 Access the Healthy Human Heart dataset utilized in this experiment from [here](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2) (Yu et al., 2023).

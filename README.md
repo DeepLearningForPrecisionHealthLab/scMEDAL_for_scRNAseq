@@ -78,7 +78,13 @@ By leveraging the MEDL framework, researchers can achieve more accurate and inte
   * Function to split data into training, validation, and test sets. Includes support for 5-fold cross-validation.
 * [utils_load_model.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/utils_load_model.py)
   * Functions to load previously saved models.
-
+* [callbacks.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/callbacks.py)
+  * Track DB and CH while training
+* [compare_results_utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/compare_results_utils.py)
+  * Contains functions to compare results from various models
+* [genomaps.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/genomaps_utils.py)
+  * Code to generate Genomaps, obtained from [xinglab-ai/genomap](https://github.com/xinglab-ai/genomap) (Islam & Xing, 2023)
+* [preprocessing_utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/preprocessing_utils.py)
 # Experiment Files
 
 ## Healthy Heart dataset

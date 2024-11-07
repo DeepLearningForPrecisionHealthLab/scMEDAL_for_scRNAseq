@@ -108,7 +108,6 @@ Explore the models used in the Heart Data dataset:
   - [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
   - [Fixed Effects Subnetwork (MEDL-AEC-FE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC_DA)
 
-
 ### Scripts to compare models
 - **[Compare Results Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results)**
   - [Clustering scores](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results/clustering_scores)
@@ -116,12 +115,11 @@ Explore the models used in the Heart Data dataset:
   - [Generate UMAPs](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results/umap_plots)
 
 ## Autism Spectrum Disorder and Control (ASDc) dataset
-Access the ASDc utilized in this experiment from [here]((https://autism.cells.ucsc.edu)(Speir et al., 2021; Velmeshev et al., 2019).
+Access the ASDc dataset utilized in this experiment from [here]((https://autism.cells.ucsc.edu)(Speir et al., 2021; Velmeshev et al., 2019).
 
 ### Preprocessing
   - [Preprocessing script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/ASD/preprocessing/preprocess_asd.py)
   - [5-Fold Cross-Validation Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/preprocessing/5fold_cross_val)
-
 
 Explore the models used in the ASDc dataset:
 ### Experiment 1: Characterize the fixed and random effect latent spaces and visualizing learned batches
@@ -139,12 +137,42 @@ Explore the models used in the ASDc dataset:
   - [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AEC)
   - [Autoencoder Calssifier Fixed Effects Subnetwork (MEDL-AEC-FE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AEC_DA)
 
-
-### Scripts to compare models
+### Scripts to compare results
 - **[Compare Results Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results)**
   - [Clustering scores](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/compare_results/clustering_scores)
   - [Generate Genomaps](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/compare_results/genomaps)
   - [Generate UMAPs](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/compare_results/umap_plots)
+
+## Acute Myeloid Leukemia and healthy (AMLh) dataset
+The AMLh dataset can be retrieved from the Gene expression Omnibus with accesion number[GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE116256) (van Galen et al., 2019).
+
+### Preprocessing
+  - [Preprocessing script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/VanGallen_2019/preprocessing/preprocess_AML.py)
+  - [5-Fold Cross-Validation Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/preprocessing/5fold_cross_val)
+
+Explore the models used in the AMLh dataset:
+### Experiment 1: Characterize the fixed and random effect latent spaces and visualizing learned batches
+- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes)**
+  - [Autoencoder (AE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/AE)
+  - [Fixed Effects Subnetwork (MEDL-AE-FE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/AE_DA)
+  - [Random Effects Subnetwork (AE_RE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/AE_RE)
+
+### Experiment 2: Evaluate the complementary nature of the FE and RE latent representations for enhancing prediction performance
+- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes)**
+  - [Mixed Effects Classifier (MEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/MEC)
+    - [Cell type target](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/MEC/celltype_target)
+    - [Patient Group target](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/MEC/dx_target)
+
+### Experiment 3: Quantify the impact of a cell type classifier on batch and cell type separability
+- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes)**
+  - [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/AEC)
+  - [Autoencoder Calssifier Fixed Effects Subnetwork (MEDL-AEC-FE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/AEC_DA)
+
+### Scripts to compare results
+- **[Compare Results Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/compare_results)**
+  - [Clustering scores](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/compare_results/clustering_scores)
+  - [Generate Genomaps](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/compare_results/genomaps)
+  - [Generate UMAPs](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/compare_results/umap_plots)
 
 
 

@@ -84,17 +84,19 @@ By leveraging the MEDL framework, researchers can achieve more accurate and inte
 ## Healthy Heart dataset
 Access the Healthy Human Heart dataset utilized in this experiment from [here](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2) (Yu et al., 2023).
 
-### 5-Fold Cross-Validation
-- **[5-Fold Cross-Validation Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/preprocessing/5fold_cross_val)**
-  - [Create Splits Notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/create_splits.ipynb): A notebook for splitting data using 5-fold cross-validation.
-  - [Config Split Paths Script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/config_split_paths.py): Manages paths for input data and data splits.
-  - [Check Splits Notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/check_splits.ipynb): Ensures no data leakage between training, testing, and validation sets.
+### Preprocessing
+  - [Preprocessing notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/Healthy_human_heart/preprocessing_healthy_heart_3000hvggenes.ipynb)
+
+  - [5-Fold Cross-Validation Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/preprocessing/5fold_cross_val)
+    - [Create Splits Notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/create_splits.ipynb): A notebook for splitting data using 5-fold cross-validation.
+    - [Config Split Paths Script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/config_split_paths.py): Manages paths for input data and data splits.
+    - [Check Splits Notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/check_splits.ipynb): Ensures no data leakage between training, testing, and validation sets.
 
 Explore the models used in the Heart Data dataset:
 ### Experiment 1: Characterize the fixed and random effect latent spaces and visualizing learned batches
 - **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)**
   - [Autoencoder (AE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE)
-  - [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
+  - [Autoencoder Calssifier Fixed Effects Subnetwork (MEDL-AEC-FE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_DA)
   - [Random Effects Subnetwork (AE_RE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE)
 
 ### Experiment 2: Evaluate the complementary nature of the FE and RE latent representations for enhancing prediction performance
@@ -103,7 +105,7 @@ Explore the models used in the Heart Data dataset:
 
 ### Experiment 3: Quantify the impact of a cell type classifier on batch and cell type separability
 - **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)**
-  - [MEDL Autoencoder Classifier (MEDL-AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
+  - [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
   - [Fixed Effects Subnetwork (MEDL-AEC-FE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC_DA)
 
 
@@ -113,6 +115,36 @@ Explore the models used in the Heart Data dataset:
   - [Generate Genomaps](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results/genomaps)
   - [Generate UMAPs](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results/umap_plots)
 
+## Autism Spectrum Disorder and Control (ASDc) dataset
+Access the ASDc utilized in this experiment from [here]((https://autism.cells.ucsc.edu)(Speir et al., 2021; Velmeshev et al., 2019).
+
+### Preprocessing
+  - [Preprocessing script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/ASD/preprocessing/preprocess_asd.py)
+  - [5-Fold Cross-Validation Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/preprocessing/5fold_cross_val)
+
+
+Explore the models used in the Heart Data dataset:
+### Experiment 1: Characterize the fixed and random effect latent spaces and visualizing learned batches
+- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD)**
+  - [Autoencoder (AE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AE)
+  - [Fixed Effects Subnetwork (MEDL-AE-FE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AE_DA)
+  - [Random Effects Subnetwork (AE_RE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AE_RE)
+
+### Experiment 2: Evaluate the complementary nature of the FE and RE latent representations for enhancing prediction performance
+- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models)**
+  - [Mixed Effects Classifier (MEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/MEC)
+
+### Experiment 3: Quantify the impact of a cell type classifier on batch and cell type separability
+- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)**
+  - [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AEC)
+  - [Autoencoder Calssifier Fixed Effects Subnetwork (MEDL-AEC-FE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AEC_DA)
+
+
+### Scripts to compare models
+- **[Compare Results Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results)**
+  - [Clustering scores](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/compare_results/clustering_scores)
+  - [Generate Genomaps](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/compare_results/genomaps)
+  - [Generate UMAPs](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/compare_results/umap_plots)
 
 
 

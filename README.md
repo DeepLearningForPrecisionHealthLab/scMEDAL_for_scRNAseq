@@ -123,7 +123,7 @@ Access the ASDc utilized in this experiment from [here]((https://autism.cells.uc
   - [5-Fold Cross-Validation Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/preprocessing/5fold_cross_val)
 
 
-Explore the models used in the Heart Data dataset:
+Explore the models used in the ASDc dataset:
 ### Experiment 1: Characterize the fixed and random effect latent spaces and visualizing learned batches
 - **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD)**
   - [Autoencoder (AE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AE)

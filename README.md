@@ -19,14 +19,6 @@ The MEDL framework consists of two parallel subnetworks that jointly model fixed
 
 1. **Fixed Effects Subnetwork (MEDL-AE-FE):** This subnetwork captures batch-invariant features by suppressing batch effects. It employs an autoencoder with weight tying, dense hidden layers, and an adversarial classifier that learns to predict batch labels. The loss function balances reconstruction error and adversarial loss to mitigate batch-specific variations.
 
-2. **Random Effects Subnetwork:** This subnetwork models batch-specific variations using variational inference. It approximates true batch distributions with optimized surrogate posteriors and includes a classifier for batch label prediction. By maximizing the Evidence Lower Bound (ELBO), the model ensures that the latent space encodes batch-specific information while regularizing to prevent overfitting.
-
-![MEDL Diagram](./images/MEDL.png)
-
-### Subnetwork Details
-
-
-### Fixed Effects Loss Function
 The fixed effects loss function combines reconstruction accuracy with suppression of batch effects to capture fixed effects:
 $$
 L_{\text{FE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}) - \lambda_{\text{A}} \cdot L_{\text{CCE}}(z, \hat{z})
@@ -37,7 +29,8 @@ $$
 - **$L_{\text{CCE}}(z, \hat{z})$**: Categorical Cross-Entropy (CCE) loss for the adversarial classifier, discouraging batch label predictability in the latent space.
 - **$\lambda_{\text{A}}$**: Weight for the CCE term, controlling the model's emphasis on batch effect suppression.
 
-### Random Effects Loss Function
+2. **Random Effects Subnetwork:** This subnetwork models batch-specific variations using variational inference. It approximates true batch distributions with optimized surrogate posteriors and includes a classifier for batch label prediction. By maximizing the Evidence Lower Bound (ELBO), the model ensures that the latent space encodes batch-specific information while regularizing to prevent overfitting.
+
 The random effects loss function incorporates reconstruction, batch classification, and regularization to capture batch-specific variations:
 $$
 L_{\text{RE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}') + \lambda_{\text{CCE}} \cdot L_{\text{CCE}}(z, \hat{z}') + \lambda_{\text{KL}} \cdot D_{\text{KL}}(q(U) \parallel p(U))
@@ -51,7 +44,11 @@ $$
 - **$\lambda_{\text{KL}}$**: Weight for the KL divergence term, controlling the degree of regularization to prevent overfitting.
 
 
-## Usage
+
+![MEDL Diagram](./images/MEDL.png)
+
+
+## MEDL Usage
 
 To implement the MEDL framework:
 

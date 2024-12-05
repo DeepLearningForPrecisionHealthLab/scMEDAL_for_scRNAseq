@@ -1,0 +1,16 @@
+channels:
+- conda-forge
+- defaults
+dependencies:
+- python=3.8.18
+- numpy=1.20.0
+- pandas=1.3.1
+- scanpy=1.9.8
+- anndata=0.7.6
+- scipy=1.5.3
+- scikit-learn=0.24.2
+- matplotlib=3.7.4
+- seaborn=0.13.2
+- h5py=3.10.0
+- pyyaml=6.0.1
+name: Aixa_scDML

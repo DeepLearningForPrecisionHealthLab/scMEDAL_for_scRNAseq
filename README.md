@@ -227,20 +227,96 @@ folder_name = "how you want to name your expt"
 model_name = "AE_RE"  # the folder name of your output
 ```
 
+
 # Script Execution
 
-- **Run Model Across All Folds**
-  - Command: `python run_modelname_allfolds.py`
-- **Slurm Submission Script**
-  - Command: `sbatch sbatch_run_modelname.sh`
+### **Steps to Run the Model**
 
-### Execution Environment
+1. **Run the Model Across All Folds**
+   - Use the following command:
+     ```bash
+     python run_modelname_allfolds.py
+     ```
 
-- The experiments are executed within the ARMED_Aixa_v2 environment.
+2. **Submit a Job via Slurm**
+   - Use the following command:
+     ```bash
+     sbatch sbatch_run_modelname.sh
+     ```
 
-### Notes
+### **Important Notes**
 
-Make sure to change the path to the utils folder in each of the files of the type: `run_modelname_allfolds.py`.
+1. Update the path to the `utils` folder in all files of the type `run_modelname_allfolds.py`. Ensure the correct path is set before running the script.
+
+2. Always activate the corresponding execution environment before running the scripts. If you use a Slurm file, ensure the Slurm script is updated to load the correct Conda environment.
+
+---
+
+# Execution Environment
+
+### **Environment Details**
+
+To resolve dependency conflicts, the experiments are executed within three separate Conda environments.
+
+If you are part of DLLab you can clone my environments below to run the experiments: 
+
+1. **Aixa_genomap**: For generating genomaps.
+2. **Aixa_scDML**: For preprocessing data and plotting UMAPs.
+3. **ARMED_Aixa_v2**: For splitting data and running models.
+
+Otherwise, you can create the environments using the requirenments files:
+
+1. **genomaps_env**: For generating genomaps.
+2. **preprocess_and_plot_umaps_env**: For preprocessing data and plotting UMAPs.
+3. **run_models_env**: For splitting data and running models.
+
+### **Steps to Set Up the Environments**
+
+#### Step 1: Navigate to the Environment Directory
+
+Navigate to the `scMEDAL_env` directory where the environment YAML files are stored:
+
+```bash
+cd scMEDAL_env
+```
+
+#### Step 2: Create the Conda Environments
+
+Create each environment using the respective YAML file:
+
+```bash
+conda env create -f genomaps_env.yaml
+conda env create -f preprocess_and_plot_umaps_env.yaml
+conda env create -f run_models_env.yaml
+```
+
+#### Step 3: Activate the Required Environment
+
+Before running a script, activate the specific environment needed:
+
+**For `genomaps_env`**:
+```bash
+conda activate genomaps_env
+```
+
+**For `preprocess_and_plot_umaps_env`**:
+```bash
+conda activate preprocess_and_plot_umaps_env
+```
+
+**For `run_models_env`**:
+```bash
+conda activate run_models_env
+```
+
+---
+
+### **Additional Notes**
+
+1. **Switch Environments as Needed**: Use the environment relevant to the script you're running.
+2. **Slurm Compatibility**: When using Slurm, make sure the Slurm script activates the correct Conda environment.
+3. **Dependency Management**: Separate environments are maintained to handle dependency conflicts efficiently.
+
 
 # References
 Nguyen KP, Treacher AH, Montillo AA. Adversarially-Regularized Mixed Effects Deep Learning (ARMED) Models Improve Interpretability, Performance, and Generalization on Clustered (non-iid) Data. IEEE Trans Pattern Anal Mach Intell. 2023 Jul;45(7):8081-8093. doi: 10.1109/TPAMI.2023.3234291. Epub 2023 Jun 6. PMID: 37018678; PMCID: PMC10644386.

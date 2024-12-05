@@ -47,7 +47,7 @@ $$
 
 
 
-![scMEDAL Diagram](./images/MEDL.png)
+![scMEDAL Diagram](./images/scMEDAL.png)
 
 
 ## scMEDAL Usage

@@ -1,324 +1,246 @@
-# Mixed Effects Deep Autoencoder Learning for the interpretable analysis of single cell RNA sequencing data by quantifying and visualizing batch effects
+# **scMEDAL: Mixed Effects Deep Autoencoder Learning Framework**
+### For details on how to reproduce our experiments, see: **[ExperimentsReproducibility](./docs/ExperimentsReproducibility.md)**
 
-Updated README description on 12/4/2024
-
-## Description
-
-The single-cell Mixed Effects Deep Autoencoder Learning (scMEDAL) framework is designed to extract meaningful latent representations from single-cell RNA sequencing (scRNA-seq) data while accounting for batch effects, which are common confounders that can obscure true biological signals. By extending linear mixed-effects models into a nonlinear context, scMEDAL effectively addresses the inherent non-linearity in confounded scRNA-seq datasets.
-
-**Key Features:**
-- **Inputs:** Gene expression count matrix $X \in \mathbb{R}^{n \times m}$, where $n$ is the number of cells and $m$ is the number of genes.
-
-- **Outputs:** Reconstructed gene expression matrix $\hat{X}$ and latent space representations.
-
-- **Latent Space:** Reduced feature space of size $n \times p$.
-
-## scMEDAL Framework Overview
-
-The scMEDAL framework consists of two parallel subnetworks that jointly model fixed and random effects within gene expression data.
-
-### Fixed Effects Subnetwork (scMEDAL-FE)
-This subnetwork captures batch-invariant features by suppressing batch effects. It employs an autoencoder with weight tying, dense hidden layers, and an adversarial classifier that learns to predict batch labels. The loss function balances reconstruction error and adversarial loss to mitigate batch-specific variations.
-
-The fixed effects loss function combines reconstruction accuracy with suppression of batch effects to capture fixed effects:
-$$
-L_{\text{FE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}) - \lambda_{\text{A}} \cdot L_{\text{CCE}}(z, \hat{z})
-$$
-
-- **$L_{\text{MSE}}(X, \hat{X})$**: Mean Squared Error (MSE) to ensure accurate reconstruction of the original gene expression matrix $X$ by minimizing the difference from $\hat{X}$, the reconstructed matrix.
-- **$\lambda_{\text{MSE}}$**: Weight for reconstruction accuracy.
-- **$L_{\text{CCE}}(z, \hat{z})$**: Categorical Cross-Entropy (CCE) loss for the adversarial classifier, discouraging batch label predictability in the latent space.
-- **$\lambda_{\text{A}}$**: Weight for the CCE term, controlling the model's emphasis on batch effect suppression.
-
-### Random Effects Subnetwork (scMEDAL-RE)
-This subnetwork models batch-specific variations using variational inference. It approximates true batch distributions with optimized surrogate posteriors and includes a classifier for batch label prediction. By maximizing the Evidence Lower Bound (ELBO), the model ensures that the latent space encodes batch-specific information while regularizing to prevent overfitting.
-
-The random effects loss function incorporates reconstruction, batch classification, and regularization to capture batch-specific variations:
-$$
-L_{\text{RE}} = \lambda_{\text{MSE}} \cdot L_{\text{MSE}}(X, \hat{X}') + \lambda_{\text{CCE}} \cdot L_{\text{CCE}}(z, \hat{z}') + \lambda_{\text{KL}} \cdot D_{\text{KL}}(q(U) \parallel p(U))
-$$
-
-- **$L_{\text{MSE}}(X, \hat{X}')$**: Mean Squared Error to ensure accurate reconstruction in the random effects subnetwork.
-- **$\lambda_{\text{MSE}}$**: Weight for the reconstruction term.
-- **$L_{\text{CCE}}(z, \hat{z}')$**: Categorical Cross-Entropy (CCE) to encourage batch-specific feature encoding by training the classifier to predict batch labels.
-- **$\lambda_{\text{CCE}}$**: Weight for the CCE term, balancing emphasis on batch classification.
-- **$D_{\text{KL}}(q(U) \parallel p(U))$**: Kullback-Leibler (KL) divergence, regularizing the model by aligning the learned distribution $q(U)$ with the prior distribution $p(U)$.
-- **$\lambda_{\text{KL}}$**: Weight for the KL divergence term, controlling the degree of regularization to prevent overfitting.
+---
+## **Overview**
+The single-cell Mixed Effects Deep Autoencoder Learning (**scMEDAL**) framework provides a robust approach to analyze single-cell RNA sequencing (scRNA-seq) data. By disentangling batch-invariant from batch-specific signals, scMEDAL offers a more interpretable representation of complex datasets.
 
 
 
-![scMEDAL Diagram](./images/scMEDAL.png)
+![scMEDAL Diagram](./docs/images/scMEDAL.png)
 
+---
 
-## scMEDAL Usage
+## **1. Framework Overview**
 
-To implement the scMEDAL framework:
+### **Fixed Effects Subnetwork (scMEDAL-FE)**
+- Captures features that remain consistent across batches.
+- Uses adversarial learning to minimize batch label predictability, ensuring batch-invariant latent representations.
 
-1. **Data Preparation:** Ensure your dataset includes a gene expression count matrix and corresponding batch labels (e.g., donor IDs, experimental batches).
+### **Random Effects Subnetwork (scMEDAL-RE)**
+- Models batch-specific variability using variational inference.
+- Regularizes the latent space to accurately represent batch-specific patterns without overfitting.
 
-2. **Model Training:** Use the provided scMEDAL code to train on your data. The model outputs reconstructed gene expression matrices and latent space representations from the fixed and random effects subnetworks.
+---
 
-3. **Downstream Analysis:** Utilize the latent representations for tasks like clustering, visualization, or differential expression analysis to uncover true biological signals.
+## **2. scMEDAL Setup and Installation**
 
+General structure of the repository:
 
-
-By leveraging the scMEDAL framework, researchers can achieve more accurate and interpretable analyses of scRNA-seq data, effectively separating batch invariant from batch specific effects.
-
-## Models
-* [AE_v4.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/models/AE_v4.py): Contains models including the simple AEC (Autoencoder Classifier), DA_AE (Domain Adversarial Autoencoder for fixed effects or scMEDAL-FE), and the DomainEnhancingAutoencoderClassifier (for Random Effects or scMEDAL-RE).
-* [random_effects.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/models/random_effects.py): This script builds classes for Bayesian layers for random effects. The code is largely based on Nguyen et al. (2023), with minor adaptations to fit our specific use case.
-
-## Utilities
-* [utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/utils.py)
-  * Functions for reading and saving data, plotting, and calculating clustering scores.
-* [model_train_utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/model_train_utils.py)
-  * Functions to load data, build, and train models using configuration information.
-* [splitter.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/splitter.py)
-  * Function to split data into training, validation, and test sets. Includes support for 5-fold cross-validation.
-* [utils_load_model.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/utils_load_model.py)
-  * Functions to load previously saved models.
-* [callbacks.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/callbacks.py)
-  * Track DB and CH while training
-* [compare_results_utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/compare_results_utils.py)
-  * Contains functions to compare results from various models
-* [genomaps.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/genomaps_utils.py)
-  * Code to generate Genomaps, obtained from [xinglab-ai/genomap](https://github.com/xinglab-ai/genomap) (Islam & Xing, 2023)
-* [preprocessing_utils.py](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/utils/preprocessing_utils.py)
-
-# Experiments
-
-## Healthy Heart dataset
-Access the Healthy Human Heart dataset utilized in this experiment from [here](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2) (Yu et al., 2023).
-
-### Preprocessing
-  - [Preprocessing notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/Healthy_human_heart/preprocessing_healthy_heart_3000hvggenes.ipynb)
-  - [5-Fold Cross-Validation Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/preprocessing/5fold_cross_val)
-    - [Create Splits Notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/create_splits.ipynb): A notebook for splitting data using 5-fold cross-validation.
-    - [Config Split Paths Script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/config_split_paths.py): Manages paths for input data and data splits.
-    - [Check Splits Notebook](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/preprocessing/5fold_cross_val/check_splits.ipynb): Ensures no data leakage between training, testing, and validation sets.
-
-### scMEDAL subnetworks create complementary batch-invariant and batch-specific latent spaces in the multi-batch Healthy Heart dataset 
-- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)**
-  - [Autoencoder (AE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE)
-  - [Autoencoder Classifier Fixed Effects Subnetwork (scMEDAL-FE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_DA)
-  - [Random Effects Subnetwork (AE_RE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE_RE)
-
-### scMEDAL complementary latent spaces improve prediction accuracy at the cellular level (Healthy Heart dataset)
-- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)**
-  - [Mixed Effects Classifier (MEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/MEC/celltype_target)
-
-### scMEDAL-FEC Enhances Cell Type Preservation in Latent Spaces (Healthy Heart dataset)
-- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)**
-  - [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC)
-  - [Fixed Effects Subnetwork with a cell type classifier (scMEDAL-FEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AEC_DA)
-
-### Scripts to compare models
-- **[Compare Results Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results)**
-  - [Clustering scores](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results/clustering_scores)
-  - [Generate Genomaps](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results/genomaps)
-  - [Generate UMAPs](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results/umap_plots)
-
-## Autism Spectrum Disorder (ASD) dataset
-Access the ASDc dataset utilized in this experiment from [here]((https://autism.cells.ucsc.edu)(Speir et al., 2021; Velmeshev et al., 2019).
-
-### Preprocessing
-  - [Preprocessing script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/ASD/preprocessing/preprocess_asd.py)
-  - [5-Fold Cross-Validation Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/preprocessing/5fold_cross_val)
-
-Explore the models used in the ASDc dataset:
-### scMEDAL disentangles donor effects to highlight disease-associated neuronal patterns in the ASD dataset 
-- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD)**
-  - [Autoencoder (AE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AE)
-  - [Fixed Effects Subnetwork (scMEDAL-FE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AE_DA)
-  - [Random Effects Subnetwork (scMEDAL-RE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AE_RE)
-
-### scMEDAL complementary latent spaces improve prediction accuracy at the cellular level (ASD dataset)
-- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models)**
-  - [Mixed Effects Classifier (MEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/MEC)
-
-### scMEDAL-FEC Enhances Cell Type Preservation in Latent Spaces (ASD dataset)
-- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models)**
-  - [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AEC)
-  - [Fixed Effects Subnetwork with a cell type classifier (scMEDAL-FEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/AEC_DA)
-
-### Scripts to compare results
-- **[Compare Results Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/compare_results)**
-  - [Clustering scores](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/compare_results/clustering_scores)
-  - [Generate Genomaps](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/compare_results/genomaps)
-  - [Generate UMAPs](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/ASD/run_models/compare_results/umap_plots)
-
-## Acute Myeloid Leukemia(AML) dataset
-The AMLh dataset can be retrieved from the Gene expression Omnibus with accesion number[GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE116256) (van Galen et al., 2019).
-
-### Preprocessing
-  - [Preprocessing script](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/VanGallen_2019/preprocessing/preprocess_AML.py)
-  - [5-Fold Cross-Validation Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/preprocessing/5fold_cross_val)
-
-Explore the models used in the AML dataset:
-### scMEDAL navigates the trade-off between batch correction and cell type preservation in the AML dataset 
-- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes)**
-  - [Autoencoder (AE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/AE)
-  - [Fixed Effects Subnetwork (scMEDAL-FE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/AE_DA)
-  - [Random Effects Subnetwork (scMEDAL-RE)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/AE_RE)
-
-### scMEDAL complementary latent spaces improve prediction accuracy at the cellular level (AML dataset)
-- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes)**
-  - [Mixed Effects Classifier (MEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/MEC)
-    - [Cell type target](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/MEC/celltype_target)
-    - [Patient Group target](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/MEC/dx_target)
-
-### scMEDAL-FEC Enhances Cell Type Preservation in Latent Spaces (AML dataset)
-- **[Run Models Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes)**
-  - [Autoencoder Classifier (AEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/AEC)
-  - [Fixed Effects Subnetwork with a cell type classifier (scMEDAL-FEC)](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/AEC_DA)
-
-### Scripts to compare results
-- **[Compare Results Directory](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/compare_results)**
-  - [Clustering scores](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/compare_results/clustering_scores)
-  - [Generate Genomaps](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/compare_results/genomaps)
-  - [Generate UMAPs](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/tree/main/VanGallen_2019/run_models/log_transformed_2916hvggenes/compare_results/umap_plots)
-
-
-
-# Experiment Configuration
-
-### Model Configuration Script
-
-- **Model Configuration**
-  - Each model has its own `model_config.py` file. For an example, see the [Health Heart AE model configuration](https://git.biohpc.swmed.edu/s437576/armed_genomics_git/-/blob/main/heart_data/run_models/Healthy_human_heart/log_transformed_3000hvggenes/AE/model_config.py).
-  - This script updates model settings and defines output paths.
-
-Make sure you update your data paths in `model_config.py`:
-
-```python
-data_base_path = "path to base path with all variants of the experiment"
-scenario_id = "path to specific pre-processing of your experiment"
+```markdown
+scMEDAL_for_scRNAseq/
+|-- Experiments/               # Scripts and notebooks for experiments
+|-- scMEDAL/                   # Main package
+|   |-- __init__.py
+|   |-- models/                # Model definitions
+|   |    |-- __init__.py
+|   |    |-- scMEDAL/
+|   |    |-- models/
+|   |-- utils/                 # Utilities for preprocessing, training, etc.
+|   |    |-- __init__.py
+|
+|-- scMEDAL_env/               # Environment YAML files
+|-- setup.py                   # Package setup
 ```
 
-## Construct the Data Paths
+### **Installing `scMEDAL`**
+1. **Activate Your Environment**  
+   ```bash
+   conda activate your_env_name
+   ```
 
-- **Path to the data from the experiment you want to run:**
+2. **Install in Editable Mode**  
+   Navigate to the `scMEDAL_for_scRNAseq` directory and install:
+   ```bash
+   cd /path/to/scMEDAL_for_scRNAseq
+   pip install -e .
+   ```
 
-```python
-data_path = os.path.join(data_base_path, scenario_id)
+3. **Verify Installation**
+   ```python
+   from scMEDAL.utils import your_function
+   print("scMEDAL is ready to use!")
+   ```
+
+---
+
+## **3. Execution Environments**
+
+To handle dependency conflicts, `scMEDAL` uses three separate Conda environments:
+
+1. **`genomaps_env`**: For generating Genomaps.
+2. **`preprocess_and_plot_umaps_env`**: For data preprocessing and UMAP visualization.
+3. **`run_models_env`**: For data splitting and running models.
+
+### **Setting Up the Environments**
+1. Navigate to the `scMEDAL_env` directory:
+   ```bash
+   cd /path/to/scMEDAL_for_scRNAseq/scMEDAL_env
+   ```
+
+2. Create each environment:
+   ```bash
+   conda env create -f genomaps_env.yaml
+   conda env create -f preprocess_and_plot_umaps_env.yaml
+   conda env create -f run_models_env.yaml
+   ```
+
+3. Activate the desired environment:
+   ```bash
+   conda activate genomaps_env
+
+   ```
+   or 
+   ```bash
+   conda activate preprocess_and_plot_umaps_env
+   ```
+   or
+   ```bash
+   conda activate run_models_env
+   ```
+
+### **Switching Environments**
+- Use the environment that matches the script or task you are running.
+- Ensure that all environments have the `scMEDAL` package installed (Step 2 above).
+- Configure Slurm scripts to load the correct Conda environment before execution.
+
+---
+
+## **4. scMEDAL Utilities and Modules**
+
+### **Utilities**
+- **[utils.py](./scMEDAL/utils/utils.py):** Provides data I/O, plotting, and clustering score functions.
+- **[model_train_utils.py](./scMEDAL/utils/model_train_utils.py):** Functions for training and loading models.
+- **[splitter.py](./scMEDAL/utils/splitter.py):** Utility for k-fold cross-validation splitting.
+- **[callbacks.py](./scMEDAL/utils/callbacks.py):** Tracks clustering metrics during training.
+- **[compare_results_utils.py](./scMEDAL/utils/compare_results_utils.py):** Combines clustering results from multiple models.
+- **[genomaps_utils.py](./scMEDAL/utils/genomaps_utils.py):** Custom Genomap generation functions.
+- **[preprocessing_utils.py](./scMEDAL/utils/preprocessing_utils.py):** Preprocessing routines for datasets.
+- **[utils_load_model.py](./scMEDAL/utils/utils_load_model.py):** Utilities for loading trained models.
+
+### **Models**
+- **[scMEDAL.py](./scMEDAL/models/scMEDAL.py):** Implements AEC, DA_AE, and DomainEnhancingAutoencoderClassifier models.
+- **[random_effects.py](./scMEDAL/models/random_effects.py):** Bayesian layers and utilities for random effects modeling.
+
+---
+
+## **5. Experiment Setup**
+This setup will allow you to run our models in the Healthy Heart, ASD and AML datasets.
+**Experiment Folder Structure**: Each dataset-specific experiment follows a standard directory layout:
+
+```markdown
+
+scMEDAL_for_scRNAseq/
+|-- Experiments/ 
+   |--  data/ # Download and Setup your data folders
+   |-- outputs 
+   |--  <dataset_name>/
+      |-- preprocessing/
+      |   |-- 5fold_cross_val/
+      |   |   |-- create_splits.ipynb
+      |   |   |-- check_splits.ipynb
+      |   |   |-- config_split_paths.py
+      |   |-- preprocess_datasetname.py
+      |   |-- batch_preprocess_dataset.sh
+      |   |-- preprocess_datasetname.ipynb
+      |-- run_models/
+      |   |-- AE/
+      |   |-- AEC/
+      |   |-- scMEDAL-FEC/
+      |   |-- scMEDAL-FE/
+      |   |-- scMEDAL-RE/
+      |   |-- compare_results/
+      |   |   |-- clustering_scores/
+      |   |   |-- genomaps/
+      |   |   |-- umap_plots/
+      |   |-- MEC/
+      |       |-- target/
+      |           |-- scMEDAL-FEandscMEDAL-RE_latent/
+      |           |-- scMEDAL-FE/
+      |           |-- PCA_latent/
+      |-- paths_config.py
+   
 ```
 
-- **Path to the folder that contains the specific splits (for k-fold cross validation you are running):**
-
-```python
-data_seen = os.path.join(data_base_path, scenario_id, 'splits')
-print(f"Parent folder: {data_seen}")
-```
-
-## Base Output Path
-
-Update the following variable in your script:
-
-```python
-outputs_path = "/path/to/outputs"
-```
-
-## Folder and Model Naming
-
-Define how you want to name your experiment and the model folder name:
-
-```python
-folder_name = "how you want to name your expt"
-model_name = "AE_RE"  # the folder name of your output
-```
+- **`data/`**  
+   - *(Download and set up your data folders here.)*
+- **`outputs/`**  
+   - *(This folder will be created automatically when running: `import outputs_path` from `paths_config`.)*
+- **`datasetname/`**  
+   - Folder with scripts to preprocess and run models.
 
 
-# Script Execution
+For instructions on setting up experiments, see **[How2SetupYourExpt](./docs/How2SetupYourExpt.md)**.
 
-### **Steps to Run the Model**
+### **Model Configuration**
+Each model directory contains a `model_config.py` file that specifies settings and paths. For example:  
+- [Healthy Heart AE Model Configuration](./Experiments/HealthyHeart/run_models/AE/model_config.py)
 
-1. **Run the Model Across All Folds**
-   - Use the following command:
-     ```bash
-     python run_modelname_allfolds.py
-     ```
+---
 
-2. **Submit a Job via Slurm**
-   - Use the following command:
-     ```bash
-     sbatch sbatch_run_modelname.sh
-     ```
+## **6. Dataset-Specific Instructions**
+
+To set up the datasets for your experiments, follow these steps:
+
+1. **Download the datasets** from the provided sources.  
+2. **Save them in the appropriate directories** under the main folder: **`/Experiments/data`**.  
+   - If the required subfolders do not exist, create them before saving the datasets.
+
+### **Datasets and Sources**
+
+- **Healthy Human Heart**  
+  - Source: [Figshare](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)  
+  - Save the dataset in: `/Experiments/data/HealthyHeart_data`  
+  - *Note: Create the folder `HealthyHeart_data` if it does not already exist.*
+
+- **Autism Spectrum Disorder (ASD)**  
+  - Source: [Autism Cell Atlas](https://autism.cells.ucsc.edu)  
+  - Save the dataset in: `/Experiments/data/ASD_data`  
+  - *Note: Create the folder `ASD_data` if it does not already exist.*
+
+- **Acute Myeloid Leukemia (AML)**  
+  - Source: [GEO: GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE116256)  
+  - Save the dataset in: `/Experiments/data/AML_data`  
+  - *Note: Create the folder `AML_data` if it does not already exist.*
+
+---
+
+## **7. Running Models and Experiments**
+
+You can run AE, AEC, scMEDAL-FE, scMEDAL-FEC, or scMEDAL-RE independently. PCA can be generated simultaneously by setting `"get_pca": True` in `config.py`.
+
+The MEC model requires latent outputs from one of the above models; it cannot run independently.
+
+### **Steps to Run Models**
+1. **Run All Folds Locally:**
+   ```bash
+   python run_modelname_allfolds.py
+   ```
+
+2. **Submit Jobs via Slurm:**
+   ```bash
+   sbatch sbatch_run_modelname.sh
+   ```
+
+For detailed instructions, see **[How2RunYourExpt](./docs/How2RunYourExpt.md)**.
 
 ### **Important Notes**
-
-1. Update the path to the `utils` folder in all files of the type `run_modelname_allfolds.py`. Ensure the correct path is set before running the script.
-
-2. Always activate the corresponding execution environment before running the scripts. If you use a Slurm file, ensure the Slurm script is updated to load the correct Conda environment.
+- Always activate the correct Conda environment before running scripts.
 
 ---
 
-# Execution Environment
+## **8. Experiment Outputs**
 
-### **Environment Details**
-
-To resolve dependency conflicts, the experiments are executed within three separate Conda environments.
-
-If you are part of DLLab you can clone my environments below to run the experiments: 
-
-1. **Aixa_genomap**: For generating genomaps.
-2. **Aixa_scDML**: For preprocessing data and plotting UMAPs.
-3. **ARMED_Aixa_v2**: For splitting data and running models.
-
-Otherwise, you can create the environments using the requirenments files:
-
-1. **genomaps_env**: For generating genomaps.
-2. **preprocess_and_plot_umaps_env**: For preprocessing data and plotting UMAPs.
-3. **run_models_env**: For splitting data and running models.
-
-### **Steps to Set Up the Environments**
-
-#### Step 1: Navigate to the Environment Directory
-
-Navigate to the `scMEDAL_env` directory where the environment YAML files are stored:
-
-```bash
-cd scMEDAL_env
-```
-
-#### Step 2: Create the Conda Environments
-
-Create each environment using the respective YAML file:
-
-```bash
-conda env create -f genomaps_env.yaml
-conda env create -f preprocess_and_plot_umaps_env.yaml
-conda env create -f run_models_env.yaml
-```
-
-#### Step 3: Activate the Required Environment
-
-Before running a script, activate the specific environment needed:
-
-**For `genomaps_env`**:
-```bash
-conda activate genomaps_env
-```
-
-**For `preprocess_and_plot_umaps_env`**:
-```bash
-conda activate preprocess_and_plot_umaps_env
-```
-
-**For `run_models_env`**:
-```bash
-conda activate run_models_env
-```
+For more information about output files and their contents, refer to [ExperimentOutputs](./docs/ExperimentOutputs.md).
 
 ---
 
-### **Additional Notes**
+## **9. Analyzing Your Model Outputs**
 
-1. **Switch Environments as Needed**: Use the environment relevant to the script you're running.
-2. **Slurm Compatibility**: When using Slurm, make sure the Slurm script activates the correct Conda environment.
-3. **Dependency Management**: Separate environments are maintained to handle dependency conflicts efficiently.
+For guidance on analyzing and interpreting model outputs, see [How2AnalyzeYourModelOutputs](./docs/How2AnalyzeYourModelOutputs.md).
 
+---
 
-# References
-Nguyen KP, Treacher AH, Montillo AA. Adversarially-Regularized Mixed Effects Deep Learning (ARMED) Models Improve Interpretability, Performance, and Generalization on Clustered (non-iid) Data. IEEE Trans Pattern Anal Mach Intell. 2023 Jul;45(7):8081-8093. doi: 10.1109/TPAMI.2023.3234291. Epub 2023 Jun 6. PMID: 37018678; PMCID: PMC10644386.
-
+## **10. References**
+1. Nguyen KP, et al., 2023. *Adversarially-Regularized Mixed Effects Deep Learning Models Improve Interpretability*. [IEEE TPAMI](https://doi.org/10.1109/TPAMI.2023.3234291).
 

@@ -84,7 +84,7 @@ print("Saving results to", out_name)
 
 
 # --------------------------------------------------------------------------------------
-# Copy path2results.py and 'pipeline_CMmultibatch_genomap_and_plot_file.py' file
+# Copy paths_config.py and 'pipeline_CMmultibatch_genomap_and_plot_file.py' file
 # --------------------------------------------------------------------------------------
 path2results_destination_path = os.path.join(out_name, 'paths_config.py')
 
@@ -176,7 +176,9 @@ elif extra_recon == "all":
 # Get genes metadata (var)
 # The splits did not store the real gene_ids. This changes on every experiment.
 gene_ids_path = os.path.join(data_base_path, scenario_id, "geneids.csv")
-var = pd.read_csv(gene_ids_path, index_col="_index")
+# Make sure the index col is the real index col
+gene_index_col = "_index"
+var = pd.read_csv(gene_ids_path, index_col=gene_index_col)
 
 # Get cell metadata (obs) from inputs_path. This is the same for all models for same Type, split
 _, _, obs = read_adata(inputs_path, issparse=True)

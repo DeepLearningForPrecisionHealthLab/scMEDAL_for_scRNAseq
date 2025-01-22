@@ -1,138 +1,168 @@
-
 import sys
-# import paths
-sys.path.append("../../")
-from paths_config import data_base_path,scenario_id,outputs_path 
 import os
+import numpy as np
+import pandas as pd
+import tensorflow as tf
 
+# Add paths for custom imports
+sys.path.append("../../")
+from paths_config import data_base_path, scenario_id, outputs_path
 from scMEDAL.utils.model_train_utils import generate_run_name
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError as mse_loss
-#from tensorflow.keras.losses import BinaryCrossentropy as bce_loss
-from tensorflow.keras.metrics import MeanSquaredError as mse_metric
-#from tensorflow.keras.metrics import AUC as auc_metric
-import os
-
 from tensorflow.keras.losses import CategoricalCrossentropy as cce_loss
+from tensorflow.keras.metrics import MeanSquaredError as mse_metric
 from tensorflow.keras.metrics import CategoricalAccuracy as cce_metric
 
-
-# Define individual dictionaries
-
-
-
-compile_dict = {# compile settings
-    "optimizer":Adam(lr=0.0001),
-    "loss":{'reconstruction_output': mse_loss(name='mse'),
-    'classification_output': cce_loss(name='cce')},
-    "loss_weights":{'reconstruction_output':100,
-    'classification_output': 0.1},
-    "metrics":{'reconstruction_output':[mse_metric(name="mse_metric")],
-    'classification_output': [cce_metric(name='cce_metric')]}
+# --------------------------------------------------------------------------------------
+# 1. Compilation Parameters
+# --------------------------------------------------------------------------------------
+compile_dict = {
+    "optimizer": Adam(lr=0.0001),  # Optimizer with learning rate
+    "loss": {
+        'reconstruction_output': mse_loss(name='mse'),  # Loss for reconstruction
+        'classification_output': cce_loss(name='cce')  # Loss for classification
+    },
+    "loss_weights": {
+        'reconstruction_output': 100,  # Weight for reconstruction loss
+        'classification_output': 0.1  # Weight for classification loss
+    },
+    "metrics": {
+        'reconstruction_output': [mse_metric(name="mse_metric")],
+        'classification_output': [cce_metric(name='cce_metric')]
+    }
 }
 
-
-
-
+# --------------------------------------------------------------------------------------
+# 2. Model Building Parameters
+# --------------------------------------------------------------------------------------
 build_model_dict = {
-    "n_latent_dims": 2,  # init settings
-#    "layer_units": [10],
-    "layer_units": [512,132],
-    "layer_units_latent_classifier": [2],
-    "n_pred": 17, #n celltypes
-    # "last_activation": "sigmoid",
-    "last_activation": "linear", #last activation of the decoder (will determine how the reconstructed outputs look)
-    "use_batch_norm":True, #This is batch norm for encoder. Default is False
-    "name": "AEC" # Call the model that you want to use
+    "n_latent_dims": 2,              # Number of latent dimensions
+    "layer_units": [512, 132],       # Units for encoder/decoder layers
+    "layer_units_latent_classifier": [2],  # Units for latent classifier
+    "n_pred": 17,                    # Number of predictions (e.g., cell types)
+    "last_activation": "linear",     # Last activation of the decoder
+                                     # 'linear' for real-valued outputs
+    "use_batch_norm": True,          # Use batch normalization in encoder
+    "name": "AEC"                    # Model name
 }
 
+# --------------------------------------------------------------------------------------
+# 3. Data Loading Parameters
+# --------------------------------------------------------------------------------------
 load_data_dict = {
-    "eval_test": True,# Set to true if you want to load test data
-    "use_z": False, # Depending on the model you may need z design matrix: For AE_conv you do not need it
-    "get_pred": True, #I put it here because it is not needed in build_model_dict but we still use it to load data,
-    "scaling": "min_max" # Scaling of input data: "min_max" or "z_scores"
+    "eval_test": True,       # Load test data for evaluation
+    "use_z": False,          # Use design matrix Z if required
+    "get_pred": True,        # Enable predictions
+    "scaling": "min_max"     # Scaling method: "min_max" or "z_scores"
 }
 
+# --------------------------------------------------------------------------------------
+# 4. Training Parameters
+# --------------------------------------------------------------------------------------
 train_model_dict = {
-#    "batch_size": 60,  # training settings
-    "batch_size": 512,
-#    "epochs": 20,
-    "epochs": 500,
-    "monitor_metric": 'val_loss',
-    "patience": 30,
-    "stop_criteria": "early_stopping",
-    "compute_latents_callback": False,
-    "sample_size":10000,
-    "model_type":"aec" 
+    "batch_size": 512,       # Batch size for training
+    "epochs": 2,            # For testing; for full experiments use larger epochs (e.g., 500)
+    # "epochs": 500,
+    "monitor_metric": 'val_loss',  # Metric to monitor during training
+    "patience": 30,          # Early stopping patience
+    "stop_criteria": "early_stopping",  # Early stopping criteria
+    "compute_latents_callback": False,  # Compute latents during callbacks
+    "sample_size": 10000,    # Sample size for clustering score callbacks
+    "model_type": "aec"      # Model type
 }
 
+# --------------------------------------------------------------------------------------
+# 5. Latent Space and Score Computation Parameters
+# --------------------------------------------------------------------------------------
 get_scores_dict = {
-    "encoder_latent_name":"AEC_latent_2", #Modify depending on the model
-    "get_pca": True,
-    "n_components":2,
-    "get_baseline": False #take forever
+    "encoder_latent_name": "AEC_latent_2",  # Encoder latent space name
+    "get_pca": True,                       # Enable PCA computation
+    "n_components": 2,                     # Number of PCA components
+    "get_baseline": False                  # Compute baseline (time-intensive)
 }
 
+# --------------------------------------------------------------------------------------
+# 6. Experimental Design Parameters
+# --------------------------------------------------------------------------------------
+expt_design_dict = {
+    'batch_col': 'batch',    # Name of the batch column
+    'bio_col': 'celltype'    # Biological condition column (e.g., cell type)
+}
 
-expt_design_dict = {'batch_col':'batch', #name of the batch column
-                        'bio_col':'celltype',
-                    }
-# Combine all dictionaries into model_params_dict
+# --------------------------------------------------------------------------------------
+# 7. Combine All Parameters into a Single Dictionary
+# --------------------------------------------------------------------------------------
+model_params_dict = {
+    **compile_dict,
+    **build_model_dict,
+    **load_data_dict,
+    **train_model_dict,
+    **get_scores_dict,
+    **expt_design_dict
+}
 
-# model_params_dict now contains all key-value pairs from the individual dictionaries
-model_params_dict = {**compile_dict, **build_model_dict, **load_data_dict, **train_model_dict, **get_scores_dict,**expt_design_dict}
+# --------------------------------------------------------------------------------------
+# 8. Plotting Parameters
+# --------------------------------------------------------------------------------------
+plot_params = {
+    "shape_col": "celltype",
+    "color_col": "donor",
+    "markers": [
+        "x", "+", "<", "h", "s", ".", 'o', 's', '^', '*', '1', '8', 'p', 'P', 'D', '|',
+        0, ',', 'd', 2
+    ],
+    "showplot": False,
+    "save_fig": True,
+    "outpath": None  # Will be set later by ModelManager
+}
 
-# Define common plotting parameters. You will update the outpath after creating model_params with ModelManager
-plot_params = {"shape_col": "celltype",
-        "color_col": "donor",
-        "markers":["x","+","<","h","s",".",'o', 's', '^', '*','1','8','p','P','D','|',0,',','d',2],
-        "showplot": False,
-        "save_fig": True,
-        "outpath": None}
+# --------------------------------------------------------------------------------------
+# 9. Define Data Paths
+# --------------------------------------------------------------------------------------
+data_path = os.path.join(data_base_path, scenario_id)
+input_base_path = os.path.join(data_base_path, scenario_id, 'splits')
+print(f"Parent folder: {input_base_path}")
 
-# Base data path
-
-
-# Construct the data paths
-# data_path = os.path.join(data_base_path, simulation_folder)
-# data_seen = os.path.join(data_path, scenario_id,'splits')
-data_path = os.path.join(data_base_path,scenario_id)
-data_seen = os.path.join(data_base_path,scenario_id,'splits')
-print(f"Parent folder: {data_seen}")
-
-
-
-# Base output path
-
+# --------------------------------------------------------------------------------------
+# 10. Define Output Paths
+# --------------------------------------------------------------------------------------
 folder_name = scenario_id
 model_name = "AEC"
 
-# Folder structure setup
-# saved_models_base = 'path_to_saved_models'
 saved_models_base = os.path.join(outputs_path, "saved_models", folder_name, model_name)
-# figures_base = 'path_to_figures'
 figures_base = os.path.join(outputs_path, "figures", folder_name, model_name)
-# latent_space_base = 'path_to_latent_space'
 latent_space_base = os.path.join(outputs_path, "latent_space", folder_name, model_name)
 
+# --------------------------------------------------------------------------------------
+# 11. Generate Run Name
+# --------------------------------------------------------------------------------------
+constant_keys = [
+    "n_components", 'batch_col', 'bio_col', 'donor_col', "layer_units_latent_classifier",
+    "name", "monitor_metric", "stop_criteria", "get_pca", "get_baseline", 'use_z',
+    'encoder_latent_name', 'sigmoid_eval_test', 'last_activation', 'get_pred', "eval_test",
+    "optimizer", "loss", "loss_weights", "metrics"
+]
 
-# Define the run name (ensure model_params_dict is defined before this point)
-#"layer_units"
-constant_keys = ["n_components",'batch_col','bio_col','donor_col',"layer_units_latent_classifier", "name", "monitor_metric", "stop_criteria","get_pca","get_baseline",'use_z','encoder_latent_name','sigmoid_eval_test','last_activation','get_pred',"eval_test","optimizer","loss","loss_weights","metrics"]
-# run_name = generate_run_name(model_params_dict, constant_keys, name='run_HPO')
 run_name = generate_run_name(model_params_dict, constant_keys, name='run_crossval')
-print("run_name",run_name)
+print("Run name:", run_name)
 
-# define dict of base paths: # base_paths = {"models:'/path/to/saved_models', "figures":'/path/to/figures',"latent": '/path/to/latent_spaces'}
-base_paths_dict = {"models":saved_models_base,"figures":figures_base,"latent":latent_space_base}
-# set save_model to False/True
+# --------------------------------------------------------------------------------------
+# 12. Define Base Paths Dictionary
+# --------------------------------------------------------------------------------------
+base_paths_dict = {
+    "models": saved_models_base,
+    "figures": figures_base,
+    "latent": latent_space_base
+}
+
+# --------------------------------------------------------------------------------------
+# 13. Set Save Model Flag
+# --------------------------------------------------------------------------------------
 save_model = True
-print("save model set to ",save_model)
-# initialize model manager
-# model_manager = ModelManager(model_params_dict =model_params_dict, base_paths_dict=base_paths_dict, run_name=run_name, save_model=save_model)
-# Update parameters if needed:
-# model_manager.update_params({'new_param': 'new_value'})
+print("Save model set to:", save_model)
 
-
-# Get the source path of the config_file.py
+# --------------------------------------------------------------------------------------
+# 14. Get Source Path of Configuration File
+# --------------------------------------------------------------------------------------
 source_file = os.path.abspath(__file__)

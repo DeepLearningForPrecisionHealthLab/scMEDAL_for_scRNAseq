@@ -71,7 +71,7 @@ get_scores_dict = {
 # --------------------------------------------------------------------------------------
 expt_design_dict = {
     'batch_col': 'batch',
-    'bio_col': 'celltype'  # e.g. AML, healthy, cell line
+    'bio_col': 'celltype'  # e.g. celltype
 }
 
 # --------------------------------------------------------------------------------------

@@ -37,7 +37,6 @@ compile_dict = {
 # --------------------------------------------------------------------------------------
 build_model_dict = {
     "n_latent_dims": 2,        # Number of latent dimensions
-    # "layer_units": [10],
     "layer_units": [512, 132],
     "layer_units_latent_classifier": [2],
     "n_pred": 13,              # Number of celltypes

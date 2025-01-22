@@ -38,7 +38,7 @@ if expt == "expt_test":
 
     # Unique run names with timestamps should be provided here
     run_names_dict = {
-        "scMEDAL-RE": "run_crossval_loss_recon_weight-110.0_loss_latent_cluster_weight-0.1_n_latent_dims-2_layer_units-512-132_kl_weight-0.0_scaling-min_max_batch_size-512_epochs-2_patience-30_sample_size-10000_2024-12-12_17-39",
+        "scMEDAL-RE": "scMEDAL-RE_run_name",
         "run_name_all": "DefineGeneralname4yourexpt"
     }
 
@@ -48,10 +48,10 @@ if expt == "expt_test":
     # If calculating clustering scores, add other models
     if calculate_clustering_scores:
         run_names_dict.update({
-            "AE": "run_crossval_n_latent_dims-2_layer_units-512-132_use_batch_norm-True_scaling-min_max_batch_size-512_epochs-2_patience-30_compute_latents_callback-False_sample_size-10000_model_type-ae_n_components-2_2024-12-12_17-22",
-            "AEC": "run_crossval_n_latent_dims-2_layer_units-512-132_n_pred-13_use_batch_norm-True_scaling-min_max_batch_size-512_epochs-2_patience-30_compute_latents_callback-False_sample_size-10000_model_type-aec_2024-12-12_17-31",
-            "scMEDAL-FE": "run_crossval_loss_gen_weight-1_loss_recon_weight-5400_loss_class_weight-1_n_latent_dims-2_layer_units-512-132_use_batch_norm-True_scaling-min_max_batch_size-512_epochs-2_patience-30_sample_size-10000_model_type-ae_da_2024-12-12_17-31",
-            "scMEDAL-FEC": "run_crossval_loss_gen_weight-1_loss_recon_weight-9450_loss_class_weight-1_n_latent_dims-2_layer_units-512-132_use_batch_norm-True_scaling-min_max_batch_size-512_epochs-2_patience-30_sample_size-10000_model_type-ae_da_2024-12-12_17-38"
+            "AE": "AE_run_name",
+            "AEC": "AEC_run_name",
+            "scMEDAL-FEC": "scMEDAL-FEC_run_name",
+            "scMEDAL-FE": "scMEDAL-FE_run_name"
         })
 
     # Dictionaries to hold paths to latent space results and saved model results

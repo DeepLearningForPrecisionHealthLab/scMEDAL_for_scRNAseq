@@ -1,9 +1,9 @@
 import os
 import sys
-# Define general data paths for all the simulation outputs
 
 # Update this path to where you store your data
-# /MyscMEDALExpt/Experiments/data/HealthyHeart_data
+# /scMEDAL_for_scRNAseq/Experiments/data/HealthyHeart_data
+
 
 
 # To import data_base_path from paths_config

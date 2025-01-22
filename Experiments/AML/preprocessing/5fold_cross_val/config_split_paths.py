@@ -1,11 +1,21 @@
-# Define general data paths to the all the simulation outputs
-
-data_path = "/archive/bioinformatics/DLLab/AixaAndrade/data/Genomic_data/VanGallen_2019"
-# Path data to split (path to the location of the data)
-
-data2split_foldername = "log_transformed_2916hvggenes"
-
 import os
-# folder in which the splits will be saved. They are saved inside of data2split_foldername. Please create your own paths to store data to avoid rewriting
-folder_splits = os.path.join(data2split_foldername,"splits")
-#folder_splits_unseen_pairs_odds = data2split_foldername  +"/unseen_splits_pairs_odds"
+import sys
+# Define general data paths for all the simulation outputs
+
+# Update this path to where you store your data
+# To import data_base_path from paths_config
+# Add the parent directory to the Python path
+sys.path.append("../../")
+
+# Now you can import from the parent directory
+from paths_config import data_base_path,scenario_id
+
+data_path = data_base_path
+
+# Specify the folder containing the data to split
+data2split_foldername = scenario_id
+
+
+# Define the folder to save the splits, located inside data2split_foldername
+# Ensure you create your own paths to prevent overwriting data
+folder_splits = os.path.join(data2split_foldername, "splits")

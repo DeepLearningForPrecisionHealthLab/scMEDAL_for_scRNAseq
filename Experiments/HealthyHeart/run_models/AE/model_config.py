@@ -32,9 +32,6 @@ compile_dict = {
 build_model_dict = {
     "n_latent_dims": 2,          # Number of latent dimensions in the model
     "layer_units": [512, 132],   # Units for encoder/decoder layers
-    # "layer_units_latent_classifier": [2], # Uncomment if you need a classifier (for supervised AE)
-    # "n_pred": 13,               # Number of cell types (if needed)
-    # "last_activation": "sigmoid",
     "last_activation": "linear", # Last activation of the decoder
                                 # 'linear' outputs can capture real-valued gene expression
     "use_batch_norm": True,      # Whether to use batch normalization in the encoder

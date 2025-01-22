@@ -1,6 +1,6 @@
 # Setup experiment in paths_config.py
 # Add the path to the configuration file
-# Path to paths_config: /MyscMEDALExpt/Experiments/HealthyHeart/paths_config.py
+# Path to paths_config: /scMEDAL_for_scRNAseq/Experiments/HealthyHeart/paths_config.py
 import sys
 sys.path.append("../../../")
 from paths_config import run_names_dict, results_path_dict, compare_models_path

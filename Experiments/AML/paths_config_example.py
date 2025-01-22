@@ -8,14 +8,15 @@ import os
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Define data base path relative to the current file's directory
-data_base_path = os.path.join(base_dir, "../data/HealthyHeart_data")
+data_base_path = os.path.join(base_dir, "../data/AML_data")
 print("data_base_path:", data_base_path)
 
-scenario_id = "log_transformed_3000hvggenes"
+scenario_id = "log_transformed_2916hvggenes"
 input_base_path = os.path.join(data_base_path, scenario_id, 'splits')
 
 # Define output paths
-outputs_path = os.path.join(base_dir, "../outputs/HealthyHeart_outputs")
+outputs_path = os.path.join(base_dir, "../outputs/AML_outputs")
+# Ensure the directory is created when the module is imported
 os.makedirs(outputs_path, exist_ok=True)
 print("outputs_path:", outputs_path)
 
@@ -38,7 +39,7 @@ if expt == "expt_test":
 
     # Unique run names with timestamps should be provided here
     run_names_dict = {
-        "scMEDAL-RE": "scMEDAL-RE_run_name",
+        "scMEDAL-RE": "run_crossval_loss_recon_weight-110.0_loss_latent_cluster_weight-0.1_n_latent_dims-2_layer_units-512-132_kl_weight-0.0_scaling-min_max_batch_size-512_epochs-2_patience-30_sample_size-10000_2024-12-24_15-32",
         "run_name_all": "DefineGeneralname4yourexpt"
     }
 
@@ -48,10 +49,10 @@ if expt == "expt_test":
     # If calculating clustering scores, add other models
     if calculate_clustering_scores:
         run_names_dict.update({
-            "AE": "AE_run_name",
-            "AEC": "AEC_run_name",
-            "scMEDAL-FEC": "scMEDAL-FEC_run_name",
-            "scMEDAL-FE": "scMEDAL-FE_run_name"
+            "AE": "run_crossval_n_latent_dims-2_layer_units-512-132_use_batch_norm-True_scaling-min_max_batch_size-512_epochs-2_patience-30_compute_latents_callback-False_sample_size-10000_model_type-ae_n_components-2_2024-12-24_14-30",
+            "AEC": "run_crossval_n_latent_dims-2_layer_units-512-132_n_pred-21_use_batch_norm-True_scaling-min_max_batch_size-512_epochs-2_patience-30_compute_latents_callback-False_sample_size-10000_model_type-aec_2024-12-24_14-45",
+            "scMEDAL-FEC": "run_crossval_loss_gen_weight-1_loss_recon_weight-2000_loss_class_weight-1_n_latent_dims-2_layer_units-512-132_use_batch_norm-True_scaling-min_max_batch_size-512_epochs-2_patience-30_sample_size-10000_model_type-ae_da_2024-12-24_15-14",
+            "scMEDAL-FE": "run_crossval_loss_gen_weight-1_loss_recon_weight-4000_loss_class_weight-1_n_latent_dims-2_layer_units-512-132_use_batch_norm-True_scaling-min_max_batch_size-512_epochs-2_patience-30_sample_size-10000_model_type-ae_da_2024-12-24_15-10"
         })
 
     # Dictionaries to hold paths to latent space results and saved model results

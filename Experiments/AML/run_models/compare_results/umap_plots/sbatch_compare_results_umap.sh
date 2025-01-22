@@ -17,4 +17,4 @@ source activate /archive/bioinformatics/DLLab/shared/CondaEnvironments/Aixa_scDM
 
 
 # python get_single_genomap_multibatch.py
-python compare_results_umap_v1.py
+python compare_results_umap.py

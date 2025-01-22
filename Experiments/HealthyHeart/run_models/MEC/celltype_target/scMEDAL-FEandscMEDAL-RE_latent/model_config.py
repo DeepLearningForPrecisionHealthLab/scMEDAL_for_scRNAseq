@@ -5,9 +5,6 @@ sys.path.append("../../../../")
 from paths_config import data_base_path, scenario_id, outputs_path
 from scMEDAL.utils.model_train_utils import generate_run_name
 import os
-# import glob
-# import anndata as ad
-# from anndata import AnnData
 
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import CategoricalCrossentropy

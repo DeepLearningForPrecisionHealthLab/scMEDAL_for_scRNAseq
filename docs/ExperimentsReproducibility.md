@@ -26,15 +26,15 @@ The Healthy Heart dataset is available from Yu et al. (2023) at [figshare](https
 ### Models and Scripts to Reproduce Results Sections (RS)
 ---
 
-** RS 2.2: scMEDAL subnetworks create complementary batch-invariant and batch-specific latent spaces:**
+**RS 2.2: scMEDAL subnetworks create complementary batch-invariant and batch-specific latent spaces:**
 - [Autoencoder (AE)](../Experiments/HealthyHeart/run_models/AE)
 - [Fixed Effects Subnetwork (scMEDAL-FE)](../Experiments/HealthyHeart/run_models/scMEDAL-FE)
 - [Random Effects Subnetwork (scMEDAL-RE)](../Experiments/HealthyHeart/run_models/scMEDAL-RE)
 
-** RS 2.6: scMEDAL complementary latent spaces improve prediction accuracy at the cellular level:**
+**RS 2.6: scMEDAL complementary latent spaces improve prediction accuracy at the cellular level:**
 - [Mixed Effects Classifier (MEC)](../Experiments/HealthyHeart/run_models/MEC)
 
-** RS 2.7: scMEDAL-FEC enhances cell type preservation in latent spaces:**
+**RS 2.7: scMEDAL-FEC enhances cell type preservation in latent spaces:**
 - [Autoencoder Classifier (AEC)](../Experiments/HealthyHeart/run_models/AEC)
 - [Fixed Effects Subnetwork with Cell Type Classifier (scMEDAL-FEC)](../Experiments/HealthyHeart/run_models/scMEDAL-FEC)
 
@@ -59,15 +59,15 @@ The ASD dataset can be accessed via the UCSC Cell Browser: [https://autism.cells
 
 ### Models and Scripts to Reproduce Results Sections
 
-** RS 2.3: scMEDAL disentangles donor effects to highlight disease-associated neuronal patterns:**
+**RS 2.3: scMEDAL disentangles donor effects to highlight disease-associated neuronal patterns:**
 - [Autoencoder (AE)](../Experiments/ASD/run_models/AE)
 - [Fixed Effects Subnetwork (scMEDAL-FE)](../Experiments/ASD/run_models/scMEDAL-FE)
 - [Random Effects Subnetwork (scMEDAL-RE)](../Experiments/ASD/run_models/scMEDAL-RE)
 
-** RS 2.6: scMEDAL complementary latent spaces improve prediction accuracy at the cellular level:**
+**RS 2.6: scMEDAL complementary latent spaces improve prediction accuracy at the cellular level:**
 - [Mixed Effects Classifier (MEC)](../Experiments/ASD/run_models/MEC)
 
-** RS 2.7: scMEDAL-FEC enhances cell type preservation in latent spaces:**
+**RS 2.7: scMEDAL-FEC enhances cell type preservation in latent spaces:**
 - [Autoencoder Classifier (AEC)](../Experiments/HealthyHeart/run_models/AEC)  
   *(Note: This link points to the Healthy Heart directory. Please ensure the correct path for ASD models.)*
 - [Fixed Effects Subnetwork with Cell Type Classifier (scMEDAL-FEC)](../Experiments/HealthyHeart/run_models/scMEDAL-FEC)  
@@ -91,17 +91,17 @@ The AML dataset is available at the Gene Expression Omnibus (GEO) under accessio
 
 ### Models and Scripts to Reproduce Results Sections (RS)
 
-** RS 2.4: scMEDAL navigates the trade-off between batch correction and cell type preservation:**
+**RS 2.4: scMEDAL navigates the trade-off between batch correction and cell type preservation:**
 - [Autoencoder (AE)](../Experiments/AML/run_models/AE)
 - [Fixed Effects Subnetwork (scMEDAL-FE)](../Experiments/AML/run_models/scMEDAL-FE)
 - [Random Effects Subnetwork (scMEDAL-RE)](../Experiments/AML/run_models/scMEDAL-RE)
 
-** RS 2.6: scMEDAL complementary latent spaces improve prediction accuracy at the cellular level:**
+**RS 2.6: scMEDAL complementary latent spaces improve prediction accuracy at the cellular level:**
 - [Mixed Effects Classifier (MEC)](../Experiments/AML/run_models/MEC)
   - [Cell Type Target](../Experiments/AML/run_models/MEC/celltype_target)
   - [Patient Group Target](../Experiments/AML/run_models/MEC/dx_target)
 
-** RS 2.7: scMEDAL-FEC enhances cell type preservation in latent spaces:**
+**RS 2.7: scMEDAL-FEC enhances cell type preservation in latent spaces:**
 - [Autoencoder Classifier (AEC)](../Experiments/AML/run_models/AEC)
 - [Fixed Effects Subnetwork with Cell Type Classifier (scMEDAL-FEC)](../Experiments/AML/run_models/scMEDAL-FEC)
 

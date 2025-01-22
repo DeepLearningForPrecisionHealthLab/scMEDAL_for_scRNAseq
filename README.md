@@ -189,12 +189,12 @@ To set up the datasets for your experiments, follow these steps:
 ### **Datasets and Sources**
 
 - **Healthy Human Heart**  
-  - Source: [Figshare](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)  
+  - Source: [Figshare from Yu et al. (2023)](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)  
   - Save the dataset in: `/Experiments/data/HealthyHeart_data`  
   - *Note: Create the folder `HealthyHeart_data` if it does not already exist.*
 
 - **Autism Spectrum Disorder (ASD)**  
-  - Source: [Autism Cell Atlas](https://autism.cells.ucsc.edu)  
+  - Source: [Autism Cell Atlas (Speir et al., 2021; Velmeshev et al., 2019)](https://autism.cells.ucsc.edu)  
   - Save the dataset in: `/Experiments/data/ASD_data`  
   - *Note: Create the folder `ASD_data` if it does not already exist.*
 

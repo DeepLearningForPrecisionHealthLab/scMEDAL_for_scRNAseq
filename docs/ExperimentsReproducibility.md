@@ -39,7 +39,7 @@ The Healthy Heart dataset is available from Yu et al. (2023) at [figshare](https
 - [Fixed Effects Subnetwork with Cell Type Classifier (scMEDAL-FEC)](../Experiments/HealthyHeart/run_models/scMEDAL-FEC)
 
 ### Comparison Scripts
-- RS 2.2 and 2.6[Clustering Scores](../Experiments/HealthyHeart/run_models/compare_results/clustering_scores)
+- RS 2.2 and 2.6 [Clustering Scores](../Experiments/HealthyHeart/run_models/compare_results/clustering_scores)
 - RS 2.5 [Generate Genomaps](../Experiments/HealthyHeart/run_models/compare_results/genomaps)
 - RS 2.2 - 2.4 and 2.6[Generate UMAPs](../Experiments/HealthyHeart/run_models/compare_results/umap_plots)
 

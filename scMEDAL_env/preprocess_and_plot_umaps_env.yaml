@@ -13,4 +13,4 @@ dependencies:
 - seaborn=0.13.2
 - h5py=3.10.0
 - pyyaml=6.0.1
-name: Aixa_scDML
+name: preprocess_and_plot_umaps_env

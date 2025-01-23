@@ -121,7 +121,7 @@ Due to the inherent variability in TensorFlow, results may differ slightly each 
 
 ## References
 
-- Litvinukova, M. et al. *Cells of the adult human heart.* Nature 588, 466?472 (2020).
+- Litvinukova, M. et al. Cells of the adult human heart. Nature 588, 466-472 (2020).
 - van Galen, P. et al. *Single-Cell RNA-Seq Reveals AML Hierarchies Relevant to Disease Progression and Immunity.* Cell 176, 1265?1281.e24 (2019).
 - Velmeshev, D. et al. *Single-cell genomics identifies cell type-specific molecular changes in autism.* Science 364, 685?689 (2019).
 - Speir, M. L. et al. *UCSC Cell Browser: visualize your single-cell data.* Bioinformatics 37, 4578?4580 (2021).

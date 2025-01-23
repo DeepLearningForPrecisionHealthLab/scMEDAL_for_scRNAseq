@@ -13,7 +13,6 @@ module load cuda118
 module load cuda118/toolkit/11.8.0
 module load parallel
 module load python/3.7.x-anaconda
-#source activate /archive/bioinformatics/DLLab/shared/CondaEnvironments/Aixa_ARMED_2
-source activate /project/bioinformatics/DLLab/shared/CondaEnvironments/Aixa_ARMED_2
-
+# Update the path to the environment you use to run your script
+source activate /path/to/run_models_env
 python run_scMEDAL-RE_allfolds.py

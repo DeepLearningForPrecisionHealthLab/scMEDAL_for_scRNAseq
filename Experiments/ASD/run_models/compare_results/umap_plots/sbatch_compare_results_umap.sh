@@ -13,8 +13,6 @@ module load cuda118
 module load cuda118/toolkit/11.8.0
 module load parallel
 module load python/3.7.x-anaconda
-source activate /archive/bioinformatics/DLLab/shared/CondaEnvironments/Aixa_scDML
-
-
-# python get_single_genomap_multibatch.py
+# Update the path to the environment you use to run your script
+source activate /path/to/preprocess_and_plot_umaps_env
 python compare_results_umap.py

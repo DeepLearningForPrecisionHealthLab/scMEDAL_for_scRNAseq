@@ -99,13 +99,30 @@ To handle dependency conflicts, `scMEDAL` uses three separate Conda environments
    conda activate run_models_env
    ```
 
+
 ### **Switching Environments**
-- Use the environment that matches the script or task you are running.
-- Ensure that all environments have the `scMEDAL` package installed (Step 2 above).
-- Configure Slurm scripts to load the correct Conda environment before execution.
 
----
+- **Match the Environment to the Task**  
+   Use the Conda environment that corresponds to the specific script or task you need to run.
 
+- **Install Required Packages**  
+   Make sure that all relevant environments have the `scMEDAL` package installed (see Step 2 above for instructions).
+
+- **Configure Your Slurm Scripts**  
+   When submitting jobs via Slurm, load the appropriate Conda environment before executing the script. For example:
+
+   ```bash
+   # For running models
+   source activate /path/to/run_models_env
+
+   # For preprocessing and plotting UMAPs
+   source activate /path/to/preprocess_and_plot_umaps_env
+
+   # For generating genomaps
+   source activate /path/to/genomaps_env
+   ```
+
+By following the steps above, you ensure each script is run in the correct environment, with the necessary dependencies in place.
 ## **4. scMEDAL Utilities and Modules**
 
 ### **Utilities**

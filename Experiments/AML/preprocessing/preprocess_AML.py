@@ -9,7 +9,8 @@ The script then preprocesses the data and saves the processed output in:
 
 By default, `scenario_id` is set to `"log_transformed_2916hvggenes"`.
 
-Environment: Aixa_scDML env 
+Environment: preprocess_and_plot_umaps_env
+
 """
 import os
 import sys

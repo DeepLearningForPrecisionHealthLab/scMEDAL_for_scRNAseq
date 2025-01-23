@@ -16,10 +16,10 @@ from scMEDAL.utils.compare_results_utils import (
     process_confidence_intervals,
 )
 
-# Normally run with Aixa_ARMED_2
 """
 This script reorganizes clustering scores into a single table. 
 It also adds 95% confidence intervals (CI) to the results.
+Environment: run_models_env
 """
 
 # --------------------------------------------------------------------------------------

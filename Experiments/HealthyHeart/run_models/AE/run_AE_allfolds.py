@@ -12,7 +12,7 @@ from model_config import *  # Imports all model configurations and parameters
 from scMEDAL.models.scMEDAL import AE
 
 print("TensorFlow version:", tf.__version__)
-
+# Environment: run_models_env
 
 # ---------------------------------------------------------------------------------------
 # 0. Define 5-fold cross-validation

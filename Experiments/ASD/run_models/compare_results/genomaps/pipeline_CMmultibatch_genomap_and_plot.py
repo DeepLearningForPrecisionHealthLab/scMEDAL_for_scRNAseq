@@ -24,7 +24,7 @@ from scMEDAL.utils.genomaps_utils import (
 from scMEDAL.utils.utils import read_adata
 
 # Add the path to the configuration file
-# Path to paths_config: /MyscMEDALExpt/Experiments/HealthyHeart/paths_config.py
+# Path to paths_config: /MyscMEDALExpt/Experiments/ASD/paths_config.py
 sys.path.append("../../../")
 
 # Make sure you update the expt

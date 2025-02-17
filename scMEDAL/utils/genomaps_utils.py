@@ -47,11 +47,12 @@ def createInteractionMatrix(data, metric='correlation'):
 
 def create_gene_coordinates_mapping(projMat, gene_names, num_genes=2916, rowNum=54, colNum=54):
     """
-    This function takes a projection matrix and a list of gene names, applies the matrix to a 
-    diagnostic matrix representing gene indices, and reshapes the resulting matrix into a 
-    54x54 matrix. It then maps each gene to its new coordinates in this matrix.
+    Applies a projection matrix to a diagnostic array of gene indices, reshapes the
+    result into a 54×54 grid, and maps each gene to an (x,y) coordinate. Note that
+    if 'projMat' contains fractional assignments (e.g., from Gromov-Wasserstein),
+    rounding to int can cause collisions and potentially overwrite or miss certain
+    gene indices. Any missing genes are reported in the console.
     """
-    
     # Create and transform the diagnostic matrix
     diagnostic_matrix = np.arange(num_genes).reshape(1, -1)
     transformed_indices = np.matmul(diagnostic_matrix, projMat).flatten()
@@ -93,6 +94,13 @@ def construct_genomap(data,rowNum,colNum,epsilon=0,num_iter=1000):
     from genomap.genomap import createMeshDistance
     """
     Adapted function from genomap github: https://github.com/xinglab-ai/genomap/blob/main/genomap/genomap.py
+
+    Constructs 2D "genomaps" by coupling a gene-gene interaction matrix with
+    a grid distance matrix using Gromov-Wasserstein. Note that GW transport
+    yields fractional assignments, so forcibly rounding positions to integer
+    grid coordinates can cause collisions (duplicate integer indices) and
+    result in missing or overwritten gene indices.
+
     Returns the constructed genomaps
     I added code to avoid nan in interactions matrix
 
@@ -151,7 +159,8 @@ def construct_genomap(data,rowNum,colNum,epsilon=0,num_iter=1000):
         dx = px[i, :]
         fullVec = np.zeros((1,rowNum*colNum))
         fullVec[:dx.shape[0],:dx.shape[1]] = dx
-        ex = np.reshape(fullVec, (rowNum, colNum), order='F').copy()
+        #ex = np.reshape(fullVec, (rowNum, colNum), order='F').copy()
+        ex = np.reshape(fullVec, (rowNum, colNum), order='C').copy()
         genomaps[i, :, :, 0] = ex
         
     geno_dict = {"genomaps":genomaps,"T":T,"totalGridPoint":totalGridPoint} 
@@ -505,7 +514,8 @@ def get_genomapfromT(t_files_path, inputs_path, recon_path,ncells=50000, ngenes=
         dx = px[i, :]
         fullVec = np.zeros((1, rowNum * colNum))
         fullVec[:dx.shape[0], :dx.shape[1]] = dx
-        ex = np.reshape(fullVec, (rowNum, colNum), order='F').copy()
+        #ex = np.reshape(fullVec, (rowNum, colNum), order='F').copy()
+        ex = np.reshape(fullVec, (rowNum, colNum), order='C').copy()
         genomaps[i, :, :, 0] = ex
 
     # Map genes to genomap

@@ -1,7 +1,7 @@
 # Experiment reproducibility guide
 
 This guide provides instructions for reproducing the experiments described in our paper. It links each section of our paper to the corresponding code and datasets, ensuring that you can run the models and scripts as described.
-Use the Experiments Acute Myeloid Leukemia dataset as a DEMO to run our model as it is the smallest dataset used in our paper.
+Use the Experiments Acute Myeloid Leukemia dataset as a **DEMO** to run our model as it is the smallest dataset used in our paper.
 
 ## Overview
 

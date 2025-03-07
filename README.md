@@ -1,6 +1,7 @@
 # **scMEDAL: Mixed Effects Deep Autoencoder Learning Framework**
-### For details on reproducing our experiments, see: **[ExperimentsReproducibility](./docs/ExperimentsReproducibility.md).** 
+### For details on reproducing our experiments, see: **[ExperimentsReproducibility](./docs/ExperimentsReproducibility.md)**. 
 Use the **experiments on the Acute Myeloid Leukemia** dataset as a **DEMO** to run our model as it is the smallest dataset used in our paper.
+
 ---
 ## **Overview**
 The single-cell Mixed Effects Deep Autoencoder Learning (**scMEDAL**) framework provides a robust approach to analyze single-cell RNA sequencing (scRNA-seq) data. By disentangling batch-invariant from batch-specific signals, scMEDAL offers a more interpretable representation of complex datasets.

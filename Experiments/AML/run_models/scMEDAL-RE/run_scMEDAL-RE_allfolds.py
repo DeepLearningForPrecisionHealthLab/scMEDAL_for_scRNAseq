@@ -11,6 +11,18 @@ from scMEDAL.models.scMEDAL import DomainEnhancingAutoencoderClassifier
 
 print(f"TensorFlow version: {tf.__version__}")
 
+
+import datetime
+# Function to get current timestamp
+def get_timestamp():
+    return datetime.datetime.now()
+
+# Start time
+start_time = get_timestamp()
+print(f"Script started at: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+print(f"TensorFlow version: {tf.__version__}")
+
+
 # --------------------------------------------------------------------------------------
 # 0. Define Fold Parameters
 # --------------------------------------------------------------------------------------
@@ -89,3 +101,14 @@ os.makedirs(os.path.dirname(destination_path), exist_ok=True)
 # Copy the configuration file to the specified destination
 print(f"\nCopying config.py file to: {destination_path}")
 shutil.copy(source_file, destination_path)
+
+
+
+# End time
+end_time = get_timestamp()
+print(f"Script completed at: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+# Compute total execution time
+total_duration = end_time - start_time
+print(f"Total execution time: {total_duration}")
+

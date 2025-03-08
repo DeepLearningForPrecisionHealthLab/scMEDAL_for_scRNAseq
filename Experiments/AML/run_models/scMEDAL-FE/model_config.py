@@ -48,8 +48,8 @@ load_data_dict = {
 # --------------------------------------------------------------------------------------
 train_model_dict = {
     "batch_size": 512,  # Batch size
-    "epochs": 2,            # For testing; for full experiments use larger epochs (e.g., 500)
-    # "epochs": 500,             # Number of training epochs
+    # "epochs": 2,            # For testing; for full experiments use larger epochs (e.g., 500)
+    "epochs": 500,             # Number of training epochs
     "monitor_metric": 'val_total_loss',  # Metric to monitor during training
     "patience": 30,  # Early stopping patience
     "stop_criteria": "early_stopping",  # Early stopping criteria

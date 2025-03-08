@@ -11,6 +11,14 @@ from scMEDAL.utils.model_train_utils import run_all_folds
 from model_config import *  # Import all model configurations and parameters
 from scMEDAL.models.scMEDAL import DomainAdversarialAE
 
+import datetime
+# Function to get current timestamp
+def get_timestamp():
+    return datetime.datetime.now()
+
+# Start time
+start_time = get_timestamp()
+print(f"Script started at: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
 print(f"TensorFlow version: {tf.__version__}")
 
 # --------------------------------------------------------------------------------------
@@ -93,3 +101,13 @@ os.makedirs(os.path.dirname(destination_path), exist_ok=True)
 # Copy the configuration file to the output folder
 print(f"\nCopying config.py file to: {destination_path}")
 shutil.copy(source_file, destination_path)
+
+
+
+# End time
+end_time = get_timestamp()
+print(f"Script completed at: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+# Compute total execution time
+total_duration = end_time - start_time
+print(f"Total execution time: {total_duration}")

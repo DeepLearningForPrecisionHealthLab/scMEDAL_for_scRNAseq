@@ -128,7 +128,7 @@ Each model has its own directory under `run_models/`. For example, `<modelname>/
 
 - `model_config.py`: Configure model hyperparameters, output paths, plotting parameters, and other settings. It also generates a unique `run_name` (with a timestamp) needed for analyzing outputs.
 
-Example: [Healthy Heart AE Model Configuration](./Experiments/HealthyHeart/run_models/AE/model_config.py)
+Example: [Healthy Heart AE Model Configuration](../Experiments/HealthyHeart/run_models/AE/model_config.py)
 
 **Note:**  
 - You can update the number of epochs you want to run by modifying the `epochs` parameter in the dictionary:

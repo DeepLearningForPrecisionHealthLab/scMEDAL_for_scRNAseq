@@ -7,7 +7,7 @@ We recommend using the **Acute Myeloid Leukemia (AML)** dataset as a **demo** fo
 - [scMEDAL-FE Model Configuration](../Experiments/AML/run_models/scMEDAL-FE/model_config.py)  
 - [scMEDAL-RE Model Configuration](../Experiments/AML/run_models/scMEDAL-RE/model_config.py)  
 
-Follow the instructions to download the [AML dataset](#acute-myeloid-leukemia-aml-dataset) and set up the splits.  
+Follow the instructions to download the [AML dataset](#acute-myeloid-leukemia-aml-dataset), [set up the paths of the experiment](How2SetupYourExpt.md), preprocess the data and set up the splits.  
 Once the 5-fold splits are set up, the estimated runtime for all folds is:
 
 - **scMEDAL-FE:** ~8 minutes (500 epochs with early stopping)  
@@ -34,10 +34,10 @@ python run_scMEDAL-FE_allfolds.py
 
 For more detailed instructions, refer to:
 
-- **[How to Set Up Your Experiment](./docs/How2SetupYourExpt.md)**  
-- **[How to Run Your Experiment](./docs/How2RunYourExpt.md)**  
-- **[How to Analyze Your Model Outputs](./docs/How2AnalyzeYourModelOutputs.md)**  
-- **[Experiment Outputs](./docs/ExperimentOutputs.md)**  
+- **[How to Set Up Your Experiment](How2SetupYourExpt.md)**  
+- **[How to Run Your Experiment](How2RunYourExpt.md)**  
+- **[How to Analyze Your Model Outputs](How2AnalyzeYourModelOutputs.md)**  
+- **[Experiment Outputs](ExperimentOutputs.md)**  
 
 # Experiment Reproducibility Guide
 

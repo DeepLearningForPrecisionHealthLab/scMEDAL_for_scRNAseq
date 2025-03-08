@@ -3,12 +3,11 @@
 
 ### Reproducing Our Experiments
 
-For details on reproducing our experiments, see **[Experiments Reproducibility](./docs/ExperimentsReproducibility.md)**.  
+For details on reproducing our experiments, see **[Experiment Reproducibility Guide](./docs/ExperimentsReproducibility.md#experiment-reproducibility-guide)**.
 
-We recommend using the **Acute Myeloid Leukemia** dataset as a **DEMO** to run our model, as it is the smallest dataset used in our paper.  
 
-Once the 5-fold splits are set up, the estimated runtime for all folds, with 500 epochs and early stopping (which may halt training earlier), is approximately 8 minutes for scMEDAL-FE and 24 minutes for scMEDAL-RE on an Nvidia Tesla P4 GPU with 8 GB of memory.
- 
+We recommend using the **Acute Myeloid Leukemia** dataset as a **DEMO** to run our model, as it is the smallest dataset used in our paper. See **[Running the AML Demo](./docs/ExperimentsReproducibility.md#running-the-aml-demo)**.
+
 
 Our documentation includes:  
 - **Instructions on setting up experiments:** See **[How to Set Up Your Experiment](./docs/How2SetupYourExpt.md)**.  
@@ -209,9 +208,9 @@ For instructions on setting up experiments, see **[How2SetupYourExpt](./docs/How
 ### **Model Configuration**
 Each model directory contains a `model_config.py` file that specifies settings and paths. For example:  
 - [Healthy Heart AE Model Configuration](./Experiments/HealthyHeart/run_models/AE/model_config.py)
-Note: 
-**Note:**  
-- You can update the number of epochs you want to run by modifying the `epochs` parameter in the dictionary:
+
+
+**Note:** You can update the number of epochs you want to run by modifying the `epochs` parameter in the dictionary:
 
 ```python
 train_model_dict = {

@@ -1,47 +1,57 @@
+
+# Running the AML Demo
+
+We recommend using the **Acute Myeloid Leukemia (AML)** dataset as a **demo** for running our model, as it is the smallest dataset used in our study. To adjust the number of training epochs, modify the `model_config.py` file. In our experiments, we used **500 epochs** with early stopping, which may halt training earlier.
+
+### AML Model Configuration Files:
+- [scMEDAL-FE Model Configuration](../Experiments/AML/run_models/scMEDAL-FE/model_config.py)  
+- [scMEDAL-RE Model Configuration](../Experiments/AML/run_models/scMEDAL-RE/model_config.py)  
+
+Follow the instructions to download the [AML dataset](#acute-myeloid-leukemia-aml-dataset) and set up the splits.  
+Once the 5-fold splits are set up, the estimated runtime for all folds is:
+
+- **scMEDAL-FE:** ~8 minutes (500 epochs with early stopping)  
+- **scMEDAL-RE:** ~24 minutes (500 epochs with early stopping)  
+
+These benchmarks were obtained using an **Nvidia Tesla P4 GPU (8 GB memory)**.
+
+### Example: Running scMEDAL-FE
+
+To run **scMEDAL-FE**, execute the following commands:
+
+```bash
+# Navigate to the model directory
+cd /Experiments/AML/run_models/scMEDAL-FE
+
+# Activate the environment
+source activate /path/to/run_models_env
+
+# Run the model for all folds
+python run_scMEDAL-FE_allfolds.py
+```
+
+## Additional Documentation
+
+For more detailed instructions, refer to:
+
+- **[How to Set Up Your Experiment](./docs/How2SetupYourExpt.md)**  
+- **[How to Run Your Experiment](./docs/How2RunYourExpt.md)**  
+- **[How to Analyze Your Model Outputs](./docs/How2AnalyzeYourModelOutputs.md)**  
+- **[Experiment Outputs](./docs/ExperimentOutputs.md)**  
+
 # Experiment Reproducibility Guide
 
 This guide provides instructions for reproducing the experiments described in our paper. It maps each section of the paper to the corresponding code and datasets, ensuring that you can run the models and scripts as described.
-
-We recommend using the **Acute Myeloid Leukemia (AML)** dataset as a **DEMO** for running our model, as it is the smallest dataset used in our study. To adjust the number of training epochs, modify the `model_config.py` file. In our experiments, we used **500 epochs** with early stopping, which may halt training earlier.
-
-- [AML Model Configuration for **scMEDAL-FE**](../Experiments/AML/run_models/scMEDAL-FE/model_config.py)  
-- [AML Model Configuration for **scMEDAL-RE**](../Experiments/AML/run_models/scMEDAL-RE/model_config.py)  
-
-Once the 5-fold splits are set up, the estimated runtime for all folds with **500 epochs and early stopping** is approximately **8 minutes for scMEDAL-FE** and **24 minutes for scMEDAL-RE** on an **Nvidia Tesla P4 GPU with 8 GB of memory**.
-
-
-Our documentation also includes:  
-- **Instructions on setting up experiments:** See **[How to Set Up Your Experiment](./docs/How2SetupYourExpt.md)**.  
-- **Guidance on analyzing and interpreting model outputs:** See **[How to Analyze Your Model Outputs](./docs/How2AnalyzeYourModelOutputs.md)**.  
-- **Step-by-step instructions for running experiments:** See **[How to Run Your Experiment](./docs/How2RunYourExpt.md)**.  
-- **Details on experiment outputs:** See **[Experiment Outputs](./docs/ExperimentOutputs.md)**.  
 
 ---
 ## Experiments overview
 
 We conducted experiments on three datasets: **Healthy Heart**, **Autism Spectrum Disorder (ASD)**, and **Acute Myeloid Leukemia (AML)**. For each dataset, we provide:
 
-### Scripts  
-
 - Preprocessing scripts and 5-fold cross-validation scripts to split the data in train, val and test.
 - Directories and scripts to run various models (e.g., Autoencoder, scMEDAL variants, Mixed Effects Classifier).
 - Scripts to generate and compare results (e.g., clustering scores, Genomaps, and UMAP plots).
 - Example configuration files (`model_config.py`) for each model, along with a list of variables and hyperparameters needed to reproduce our experiments. You can review these details [here](scMEDAL_user_variables.pdf).
-
-
-### Data  
-
-We have included:  
-- The 5 cross-validation splits metadata  
-- The highly variable genes (HVGs) selected for each experiment 
-
-These are available in:  
-
-```
-./Experiments/<dataset>_data/<scenario_id>
-```
-We also provide links to access the public datasets used in this study.
-You can either run the 5-fold cross-validation scripts or use the cell ids provided to generate splits.
 
 
 **Note:** Due to variability in TensorFlow, model outputs may differ slightly across runs. To account for this, we report 95% confidence intervals (CI) as an estimate of variability.
@@ -118,6 +128,11 @@ The ASD dataset can be accessed via the UCSC Cell Browser: [https://autism.cells
 
 **Data source:**  
 The AML dataset is available at the Gene Expression Omnibus (GEO) under accession number [GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE116256) (van Galen et al., 2019).
+
+
+**Data splits** are available in [AML_data.zip](../Experiments/AML_data.zip). We have included the 5 cross-validation splits metadata  and the highly variable genes (HVGs) selected for this experiment.
+
+You can either run the 5-fold cross-validation scripts or use the cell ids provided to generate splits.
 
 ### Preprocessing
 - [AML data reader Notebook](../Experiments/AML/preprocessing/AML_data_reader.ipynb)

@@ -1,6 +1,40 @@
 # **scMEDAL: Mixed Effects Deep Autoencoder Learning Framework**
-### For details on reproducing our experiments, see: **[ExperimentsReproducibility](./docs/ExperimentsReproducibility.md)**. 
-Use the **experiments on the Acute Myeloid Leukemia** dataset as a **DEMO** to run our model as it is the smallest dataset used in our paper.
+
+
+### Reproducing Our Experiments
+
+For details on reproducing our experiments, see **[Experiments Reproducibility](./docs/ExperimentsReproducibility.md)**.  
+
+We recommend using the **Acute Myeloid Leukemia** dataset as a **DEMO** to run our model, as it is the smallest dataset used in our paper.  
+
+Once the 5-fold splits are set up, the estimated runtime for all folds, with 500 epochs and early stopping (which may halt training earlier), is approximately 8 minutes for scMEDAL-FE and 24 minutes for scMEDAL-RE on an Nvidia Tesla P4 GPU with 8 GB of memory.
+
+We have provided the 5 cross validation splits metadata and the high variable genes selected that we used for each experiment in ./Experiments/<dataset>/<scenario_id>
+
+**Provided Data ** 
+We have included:
+
+The 5 cross-validation splits metadata
+The highly variable genes (HVGs) selected for each experiment
+
+
+Here is your updated version with the new information incorporated for clarity and readability:
+
+---
+
+### Reproducing Our Experiments  
+
+For details on reproducing our experiments, see **[Experiments Reproducibility](./docs/ExperimentsReproducibility.md)**.  
+
+We recommend using the **Acute Myeloid Leukemia** dataset as a **DEMO** to run our model, as it is the smallest dataset used in our paper.  
+
+The estimated runtime for **scMEDAL-FE** with **500 epochs and early stopping** (which may stop earlier) is approximately **8 minutes** on an **Nvidia Tesla P4 GPU with 8 GB of memory**.  
+
+Our documentation includes:  
+- **Instructions on setting up experiments:** See **[How to Set Up Your Experiment](./docs/How2SetupYourExpt.md)**.  
+- **Guidance on analyzing and interpreting model outputs:** See **[How to Analyze Your Model Outputs](./docs/How2AnalyzeYourModelOutputs.md)**.  
+- **Step-by-step instructions for running experiments:** See **[How to Run Your Experiment](./docs/How2RunYourExpt.md)**.  
+- **Details on experiment outputs:** See **[Experiment Outputs](./docs/ExperimentOutputs.md)**.  
 
 ---
 ## **Overview**
@@ -45,24 +79,26 @@ scMEDAL_for_scRNAseq/
 ```
 
 ### **Installing `scMEDAL`**
-1. **Activate Your Environment**  
+1. **Clone repository**
+2. **Setup and activate your environment**  
    ```bash
    conda activate your_env_name
    ```
 
-2. **Install in Editable Mode**  
+3. **Install in editable mode**  
    Navigate to the `scMEDAL_for_scRNAseq` directory and install:
    ```bash
    cd /path/to/scMEDAL_for_scRNAseq
    pip install -e .
    ```
 
-3. **Verify Installation**
+4. **Verify installation**
    ```python
    from scMEDAL.utils import your_function
    print("scMEDAL is ready to use!")
    ```
 
+The estimated time for installation is around 30 mins.
 ---
 
 ## **3. Execution Environments**
@@ -193,7 +229,16 @@ For instructions on setting up experiments, see **[How2SetupYourExpt](./docs/How
 ### **Model Configuration**
 Each model directory contains a `model_config.py` file that specifies settings and paths. For example:  
 - [Healthy Heart AE Model Configuration](./Experiments/HealthyHeart/run_models/AE/model_config.py)
+Note: 
+**Note:**  
+- You can update the number of epochs you want to run by modifying the `epochs` parameter in the dictionary:
 
+```python
+train_model_dict = {
+    "epochs": 2,        # For testing; for full experiments, use a larger value (e.g., 500)
+    # "epochs": 500,     # Number of training epochs used in our experiments
+}
+```
 ---
 
 ## **6. Dataset-Specific Instructions**

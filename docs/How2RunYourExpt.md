@@ -127,6 +127,19 @@ See instructions in **[How2SetupYourExpt](How2SetupYourExpt.md)**.
 Each model has its own directory under `run_models/`. For example, `<modelname>/` might contain:
 
 - `model_config.py`: Configure model hyperparameters, output paths, plotting parameters, and other settings. It also generates a unique `run_name` (with a timestamp) needed for analyzing outputs.
+
+Example: [Healthy Heart AE Model Configuration](./Experiments/HealthyHeart/run_models/AE/model_config.py)
+
+**Note:**  
+- You can update the number of epochs you want to run by modifying the `epochs` parameter in the dictionary:
+
+```python
+train_model_dict = {
+    "epochs": 2,        # For testing; for full experiments, use a larger value (e.g., 500)
+    # "epochs": 500,     # Number of training epochs used in our experiments
+}
+```
+
 - `run_<modelname>_allfolds.py`: Executes the entire training pipeline for all 5 folds.
 - `sbatch_run_<modelname>.py`: SLURM script to run the model training on a cluster.
 

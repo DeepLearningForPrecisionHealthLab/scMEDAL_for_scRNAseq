@@ -4,8 +4,8 @@ This guide provides instructions for reproducing the experiments described in ou
 
 We recommend using the **Acute Myeloid Leukemia (AML)** dataset as a **DEMO** for running our model, as it is the smallest dataset used in our study. To adjust the number of training epochs, modify the `model_config.py` file. In our experiments, we used **500 epochs** with early stopping, which may halt training earlier.
 
-- [AML Model Configuration for **scMEDAL-FE**](./Experiments/AML/run_models/scMEDAL-FE/model_config.py)  
-- [AML Model Configuration for **scMEDAL-RE**](./Experiments/AML/run_models/scMEDAL-RE/model_config.py)  
+- [AML Model Configuration for **scMEDAL-FE**](../Experiments/AML/run_models/scMEDAL-FE/model_config.py)  
+- [AML Model Configuration for **scMEDAL-RE**](../Experiments/AML/run_models/scMEDAL-RE/model_config.py)  
 
 Once the 5-fold splits are set up, the estimated runtime for all folds with **500 epochs and early stopping** is approximately **8 minutes for scMEDAL-FE** and **24 minutes for scMEDAL-RE** on an **Nvidia Tesla P4 GPU with 8 GB of memory**.
 

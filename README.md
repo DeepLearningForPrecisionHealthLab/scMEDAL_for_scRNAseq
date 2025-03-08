@@ -9,16 +9,9 @@ We recommend using the **Acute Myeloid Leukemia** dataset as a **DEMO** to run o
 
 Once the 5-fold splits are set up, the estimated runtime for all folds, with 500 epochs and early stopping (which may halt training earlier), is approximately 8 minutes for scMEDAL-FE and 24 minutes for scMEDAL-RE on an Nvidia Tesla P4 GPU with 8 GB of memory.
 
-We have provided the 5 cross validation splits metadata and the high variable genes selected that we used for each experiment in ./Experiments/<dataset>/<scenario_id>
-
-**Provided Data ** 
-We have included:
-
-The 5 cross-validation splits metadata
-The highly variable genes (HVGs) selected for each experiment
+**Provided Data** : We have provided the 5 cross validation splits metadata and the high variable genes selected that we used for each experiment in `/Experiments/<dataset>/<scenario_id>`
 
 
-Here is your updated version with the new information incorporated for clarity and readability:
 
 ---
 

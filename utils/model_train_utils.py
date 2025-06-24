@@ -1342,7 +1342,7 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
             recon = output
         elif model_type == "aec":
             recon = output['reconstruction_output']
-        elif model_type == "ae_da":
+        elif model_type in ["scmedalfe","scmedalfec"]:
             if model_params.get_pred:
                 recon, pred_class, pred_cluster = output
             else:

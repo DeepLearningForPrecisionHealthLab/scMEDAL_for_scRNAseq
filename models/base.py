@@ -11,7 +11,7 @@ from utils.model_train_utils import generate_run_name, run_all_folds
 
 
 class Model:
-    valid_models=["ae", "aec"]
+    valid_models=["ae","aec","scmedalfe","scmedalfec"]
     valid_named_experiment=["AML"]
 
     def __init__(self, model_name:str, **kwargs):
@@ -38,7 +38,7 @@ class Model:
         return self.model_configs
       
     def _init_data_configs(self, kwargs:Optional[Dict[str, Any]]=None):
-        self.data_configs = cfg.DataConfigs()        
+        self.data_configs = cfg.DataConfigs(self.model_name).configs        
         if kwargs is not None:
             self.data_configs = self.data_configs._replace(**{k:v for k,v in kwargs.items() if k in self.data_configs._fields})
         return self.data_configs
@@ -113,14 +113,15 @@ class Model:
 
         model_name = self.model_name
 
+        if outputs_path is None:
+            outputs_path = os.path.join(os.getcwd(), "outputs")
+
         if named_experiment is not None:
             paths = self.load_named_experiment_paths(named_experiment)
             data_path = paths.get("data_path")
             folder_name = paths.get("scenario_id")
             splits_path = os.path.join(data_path, folder_name, paths.get("splits_folder"))
-
-        if outputs_path is None:
-            outputs_path = os.path.join(os.getcwd(), "outputs")
+            outputs_path = os.path.join(outputs_path, named_experiment)
 
         print(f"Parent folder: {splits_path}")
 

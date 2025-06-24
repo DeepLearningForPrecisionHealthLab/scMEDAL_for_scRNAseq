@@ -22,7 +22,7 @@ class TrainingConfigs(NamedTuple):
 
 
 class CompileConfigs:
-    valid_model_names=["ae", "aec"]
+    valid_model_names=["ae", "aec", "scmedalfe","scmedalfec"]
 
     def __init__(self, model_name:Optional[str]=None):
         self.configs:Dict[str, Any] = None
@@ -38,7 +38,10 @@ class CompileConfigs:
             self.configs = self._load_ae_configs()
         elif name == "aec":
             self.configs = self._load_aec_configs()
-
+        elif name == "scmedalfe":
+            self.configs = self._load_scmedalfe_configs()
+        elif name == "scmedalfec":
+            self.configs = self._load_scmedalfec_configs()
 
     def _load_ae_configs(self) -> Dict[str, Any]:
         return { 
@@ -64,3 +67,28 @@ class CompileConfigs:
                 'classification_output': [cce_metric(name='cce_metric')]
             }
         }
+
+    def _load_scmedalfe_configs(self) -> Dict[str, Any]:
+        return {
+            "loss_recon": mse_loss(),  # Reconstruction loss
+            "loss_multiclass": cce_loss(),  # Classification loss
+            "metric_multiclass":cce_metric(name='acc'),  # Classification accuracy
+            "opt_autoencoder": Adam(lr=0.0001),  # Optimizer for autoencoder
+            "opt_adversary": Adam(lr=0.0001),  # Optimizer for adversary
+            "loss_gen_weight": 1,  # Generator loss weight
+            "loss_recon_weight": 4000,  # Reconstruction loss weight
+            "loss_class_weight": 1  # Classification loss weight
+        }
+    
+    def _load_scmedalfec_configs(self) -> Dict[str,Any]:
+        return {
+            "loss_recon": mse_loss(),  # Reconstruction loss
+            "loss_multiclass": cce_loss(),  # Classification loss
+            "metric_multiclass":cce_metric(name='acc'),  # Classification accuracy
+            "opt_autoencoder": Adam(lr=0.0001),  # Optimizer for autoencoder
+            "opt_adversary": Adam(lr=0.0001),  # Optimizer for adversary
+            "loss_gen_weight": 1,  # Generator loss weight
+            "loss_recon_weight": 2000,  # Reconstruction loss weight
+            "loss_class_weight": 1  # Classification loss weight
+        }
+    

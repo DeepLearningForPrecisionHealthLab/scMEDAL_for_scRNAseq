@@ -5,9 +5,10 @@ OUTPUTS_DIR = os.path.join(os.getcwd(), "outputs")
 
 
 ## AML
+AML_DATA_PATH = f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/AML_data/",
 AML_OUTPUTS_DIR = os.path.join(OUTPUTS_DIR, "AML")
 AML_DATA_DIR = os.path.join(DATA_DIR, "AML_data")
-AML_DATA_PATH = os.path.join(DATA_DIR, "AML", "AML_data.zip")
+#AML_DATA_PATH = os.path.join(DATA_DIR, "AML", "AML_data.zip")
 AML_EXPERIMENT_NAME = "log_transformed_2916hvggenes"
 
 

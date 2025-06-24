@@ -1,6 +1,8 @@
 import numpy as np
 import anndata as ad
 import sys
+
+from typing import Dict, List, Any
 from .utils import create_folder,read_adata,get_OHE,min_max_scaling,plot_rep,calculate_merge_scores,get_split_paths,calculate_zscores,get_clustering_scores_optimized
 # from utils import create_folder,read_adata,get_OHE,min_max_scaling,plot_rep,calculate_merge_scores,get_split_paths,calculate_zscores,get_clustering_scores_optimized
 from .callbacks import ComputeLatentsCallback
@@ -1440,7 +1442,7 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
     import time
     import gc
     # Initialize dictionaries to hold results for each dataset type
-    all_scores = {
+    all_scores:Dict[str,List[Any]] = {
         'train': [],
         'val': [],
         'test': []
@@ -1500,7 +1502,7 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
         if "history" in fold_results:
             history_df = pd.DataFrame(fold_results["history"])
             history_df['fold'] = intFold
-            all_history_df = all_history_df.append(history_df, ignore_index=True)
+            all_history_df = pd.concat([all_history_df, history_df])
             
 
 
@@ -1981,12 +1983,13 @@ def evaluate_model(trained_model, inputs, adata_dict, model_params,metric_name =
         # Evaluate the model on the current dataset
         loss, metric = trained_model.evaluate(inputs_data, outputs_data, batch_size=model_params.batch_size)  # Default batch_size to 32 if not set
 
-        # Append the results to the DataFrame
-        metrics_df = metrics_df.append({
+        currdf = pd.DataFrame().from_dict({
             'Dataset': dataset_type,
             'Loss': loss,
             metric_name: metric
-        }, ignore_index=True)
+        })
+        # Append the results to the DataFrame
+        metrics_df = pd.concat([metrics_df, currdf])
 
     metrics_df.to_csv(os.path.join(model_params.latent_path, "metrics.csv"))
 
@@ -2113,13 +2116,14 @@ def evaluate_model_v2(trained_model, inputs, adata_dict, model_params, metric_na
         adata_dict[f'{dataset_type}'].obs["pred_labels"] = [y_pred_df.columns[ind] for ind in predicted_classes]
         adata_dict[f'{dataset_type}'].obs.to_csv(os.path.join(model_params.latent_path, f"y_pred_{dataset_type}.csv"))
 
-        # Append the results to the DataFrame
-        metrics_df = metrics_df.append({
+        currdf = pd.DataFrame().from_dict({
             'Dataset': dataset_type,
             'Loss': loss,
             f'{metric_name}_dffn': metric,
             'Balanced_Accuracy_dffn': balanced_acc  # Add balanced accuracy here
-        }, ignore_index=True)
+        })
+        # Append the results to the DataFrame
+        metrics_df = pd.concat([metrics_df, currdf])
 
     return {
         "metrics": metrics_df,
@@ -2261,12 +2265,13 @@ def svm_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=Fal
         X_test = scaler.transform(X_test)
         y_test = label_encoder.transform(adata_dict["test_y"].values.argmax(axis=1))
         test_results = process_dataset("test", X_test, y_test)
-
-        metrics_df = metrics_df.append({
+        test_df = pd.DataFrame().from_dict({
             "Dataset": "test",
             "SVMAccuracy": test_results["accuracy"],
             "SVMBalancedAccuracy": test_results["balanced_accuracy"]
-        }, ignore_index=True)
+        })
+
+        metrics_df = pd.concat([metrics_df, test_df], ignore_index=True)
         adata_dict["test"] = test_results["adata_dict"]["test"]
 
     adata_dict["train"] = train_results["adata_dict"]["train"]
@@ -2367,11 +2372,14 @@ def random_forest_accuracy_and_predictions(inputs, adata_dict, model_params, eva
         y_test = label_encoder.transform(adata_dict["test_y"].values.argmax(axis=1))
         test_results = process_dataset("test", X_test, y_test)
 
-        metrics_df = metrics_df.append({
+        currdf = pd.DataFrame().from_dict({
             "Dataset": "test",
             "RFAccuracy": test_results["accuracy"],
             "RFBalancedAccuracy": test_results["balanced_accuracy"]
-        }, ignore_index=True)
+        })
+        # Append the results to the DataFrame
+        metrics_df = pd.concat([metrics_df, currdf])
+
         adata_dict["test"] = test_results["adata_dict"]["test"]
 
     adata_dict["train"] = train_results["adata_dict"]["train"]
@@ -2465,10 +2473,12 @@ def dummy_classifier_chance_accuracy(inputs, adata_dict, model_params, eval_test
         y_test = label_encoder.transform(adata_dict["test_y"].values.argmax(axis=1))
         test_results = process_dataset("test", X_test, y_test)
 
-        metrics_df = metrics_df.append({
+        currdf = pd.DataFrame().from_dict({
             "Dataset": "test",
             "ChanceAccuracy": test_results["chance_accuracy"],
-        }, ignore_index=True)
+        })
+        # Append the results to the DataFrame
+        metrics_df = pd.concat([metrics_df, currdf])
         adata_dict["test"] = test_results["adata_dict"]["test"]
 
     adata_dict["train"] = train_results["adata_dict"]["train"]

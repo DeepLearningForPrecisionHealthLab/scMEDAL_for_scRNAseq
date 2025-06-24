@@ -691,11 +691,11 @@ class PlotLoss:
         self.showplot = showplot
         self.average_curve = average_curve
 
-        if self.model_type == "ae_da":
+        if self.model_type in ["scmedalfe", "scmedalfec"]:
             self.plot_ae_da()
         elif self.model_type == "ae":
             self.plot_ae()
-        elif self.model_type == "ae_re":
+        elif self.model_type == "scmedalre":
             self.plot_ae_re()
         elif self.model_type == "aec":
             self.plot_aec()
@@ -1091,7 +1091,7 @@ def get_encoder_latentandscores(adata_dict, model_encoder, model_params, batch_c
         if data_type in valid_data_types:
             print("Subset:",data_type)
             # Determine input structure based on model_type and data format
-            if model_type == "ae_re" and isinstance(adata, AnnData) and z_ohe_dict is not None:
+            if model_type == "scmedalre" and isinstance(adata, AnnData) and z_ohe_dict is not None:
                 # AE_RE.encoder inputs are = (x,z).
                 inputs = (adata.X, z_ohe_dict[data_type].values)
                 print(data_type,"inputs x,z shape:",np.shape(inputs[0]),np.shape(inputs[1]))
@@ -1259,7 +1259,7 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
     # if model_type == "ae_re":
     #     print(trained_model.re_encoder.summary())
     #     print(trained_model.re_decoder.summary())
-    if model_type == "ae_re":
+    if model_type == "scmedalre":
         print("Available keys in re_layers:", trained_model.re_decoder.re_layers.keys())
         for key,layer in trained_model.re_decoder.re_layers.items():
             print(key," re layer summary\n",layer.summary())
@@ -1299,12 +1299,12 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
     z_ohe_dict = None
 
     # If model_type is 'ae_re', get z_ohe_dict
-    if model_type == "ae_re":
+    if model_type == "scmedalre":
         z_ohe_dict = get_z_ohe_dict(adata_dict, batch_col, batch_col_categories)
         print("z_ohe_dict keys check:",z_ohe_dict.keys())
     print("\ngetting encoder")
     # 6. Process latent representations and calculate clustering scores
-    encoder_method = trained_model.re_encoder if model_type == "ae_re" else trained_model.encoder
+    encoder_method = trained_model.re_encoder if model_type == "scmedalre" else trained_model.encoder
     
     encoder_out = get_encoder_latentandscores(
         adata_dict=adata_dict,
@@ -1347,7 +1347,7 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
                 recon, pred_class, pred_cluster = output
             else:
                 recon, pred_cluster = output
-        elif model_type == "ae_re":
+        elif model_type == "scmedalre":
             recon = output['recon']
 
         # Ensure recon is a numpy array
@@ -1382,7 +1382,7 @@ def run_model_pipeline(Model, input_path_dict, build_model_dict, compile_dict, m
         results["history"]=history_df
 
     #
-    if model_type == "ae_re" and getattr(model_params, 'get_cf_batch', False):
+    if model_type == "scmedalre" and getattr(model_params, 'get_cf_batch', False):
         print("\nComputing counterfactual for all batches")
         inputs_dict = {"train": train_in, "val": val_in}
         if model_params.eval_test:

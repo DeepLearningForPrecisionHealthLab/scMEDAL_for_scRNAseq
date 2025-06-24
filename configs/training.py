@@ -22,7 +22,7 @@ class TrainingConfigs(NamedTuple):
 
 
 class CompileConfigs:
-    valid_model_names=["ae", "aec", "scmedalfe","scmedalfec"]
+    valid_model_names=["ae", "aec", "scmedalfe","scmedalfec", "scmedalre"]
 
     def __init__(self, model_name:Optional[str]=None):
         self.configs:Dict[str, Any] = None
@@ -42,6 +42,8 @@ class CompileConfigs:
             self.configs = self._load_scmedalfe_configs()
         elif name == "scmedalfec":
             self.configs = self._load_scmedalfec_configs()
+        elif name == "scmedalre":
+            self.configs = self._load_scmedalre_configs()
 
     def _load_ae_configs(self) -> Dict[str, Any]:
         return { 
@@ -91,4 +93,15 @@ class CompileConfigs:
             "loss_recon_weight": 2000,  # Reconstruction loss weight
             "loss_class_weight": 1  # Classification loss weight
         }
+    
+    def _load_scmedalre_configs(self) -> Dict[str, Any]:
+        return {
+            "loss_recon": mse_loss(),  # Reconstruction loss
+            "loss_multiclass": cce_loss(),  # Classification loss
+            "metric_multiclass":cce_metric(name='acc'),  # Classification accuracy # Accuracy metric
+            "optimizer": Adam(lr=0.0001),
+            "loss_recon_weight": 110.0,  # Weight for reconstruction loss
+            "loss_latent_cluster_weight": 0.1,  # Weight for latent cluster loss
+        }
+
     

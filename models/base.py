@@ -11,7 +11,7 @@ from utils.model_train_utils import generate_run_name, run_all_folds
 
 
 class Model:
-    valid_models=["ae","aec","scmedalfe","scmedalfec"]
+    valid_models=["ae","aec","scmedalfe","scmedalfec", "scmedalre"]
     valid_named_experiment=["AML"]
 
     def __init__(self, model_name:str, **kwargs):

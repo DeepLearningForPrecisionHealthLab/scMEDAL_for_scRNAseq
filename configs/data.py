@@ -2,7 +2,7 @@ from typing import NamedTuple, List, Optional
 
 
 class DataConfigs:
-    valid_model_names=["ae", "aec","scmedalfe","scmedalfec"]
+    valid_model_names=["ae", "aec","scmedalfe","scmedalfec", "scmedalre"]
 
     def __init__(self, model_name:Optional[str]=None):
         self.configs:NamedTuple = None
@@ -22,6 +22,8 @@ class DataConfigs:
             self.configs = self._load_scmedalfe_configs()
         elif name == "scmedalfec":
             self.configs = self._load_scmedalfec_configs()
+        elif name == "scmedalre":
+            self.configs = self._load_scmedalre_configs()
 
     def _load_ae_configs(self):
         configs = BaseDataConfigs()
@@ -39,6 +41,9 @@ class DataConfigs:
         configs = BaseDataConfigs()._replace(use_z=True)
         return configs
  
+    def _load_scmedalre_configs(self):
+        configs = BaseDataConfigs()._replace(use_z=True)
+        return configs
 
 
 

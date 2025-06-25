@@ -9,6 +9,8 @@
 
 *._.DS_Store
 outputs/*
+*/tmp/*
+tmp/
 
 # Ignore Python bytecode directories
 __pycache__/

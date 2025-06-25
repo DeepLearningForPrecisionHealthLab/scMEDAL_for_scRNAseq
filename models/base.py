@@ -1,18 +1,21 @@
+import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import json
 import glob
-import os
 import configs.configs as cfg
 import tensorflow as tf
 import pandas as pd
 import numpy as np
+from abc import ABC
 from typing import Optional, Dict, Any
 from types import SimpleNamespace
 from utils.model_train_utils import generate_run_name, run_all_folds
 
 
-class Model:
+
+class Model(ABC):
     valid_models=["ae","aec","scmedalfe","scmedalfec", "scmedalre"]
-    valid_named_experiment=["AML"]
+    valid_named_experiment=["AML","ASD", "HH"]
 
     def __init__(self, model_name:str, **kwargs):
         assert model_name in self.valid_models, f"Invalid model {model_name}. Valid models include: {self.valid_models}"
@@ -94,6 +97,16 @@ class Model:
             paths["data_path"] = f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/AML_data"
             paths['scenario_id'] = "log_transformed_2916hvggenes"
             paths['splits_folder'] = "splits"
+        elif experiment == "ASD":
+            paths = {}
+            paths["data_path"] = f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/ASD_data/reverse_norm/"
+            paths['scenario_id'] = "log_transformed_2916hvggenes"
+            paths['splits_folder'] = "splits"
+        elif experiment == "HH":
+            paths = {}
+            paths["data_path"] = f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/HealthyHeart_data/"
+            paths['scenario_id'] = "log_transformed_3000hvggenes"
+            paths['splits_folder'] = "splits"
 
         return paths
 
@@ -122,6 +135,10 @@ class Model:
             folder_name = paths.get("scenario_id")
             splits_path = os.path.join(data_path, folder_name, paths.get("splits_folder"))
             outputs_path = os.path.join(outputs_path, named_experiment)
+        
+        issparse, load_dense = False, False
+        if named_experiment == "HH":
+            issparse, load_dense = True, True
 
         print(f"Parent folder: {splits_path}")
 
@@ -150,7 +167,10 @@ class Model:
 
         # Convert columns to categorical types
         metadata_all['celltype'] = metadata_all['celltype'].astype('category')
-        metadata_all['batch'] = metadata_all['batch'].astype('category')
+        if "batch" in metadata_all.columns:
+            metadata_all['batch'] = metadata_all['batch'].astype('category')
+        if "sampleID" in metadata_all.columns:
+            metadata_all['batch'] = metadata_all['sampleID'].astype('category')
 
         # Print the number of unique batches
         print("Number of batches:", len(np.unique(metadata_all[params.batch_col])))
@@ -180,8 +200,8 @@ class Model:
             batch_col_categories=seen_donor_ids,
             bio_col_categories=celltype_ids,
             model_type=self.model_name,
-            issparse=False,
-            load_dense=False,
+            issparse=issparse,
+            load_dense=load_dense,
             shape_color_dict=shape_color_dict,
             sample_size=params.sample_size
         )
@@ -191,5 +211,3 @@ class Model:
         # --------------------------------------------------------------------------------------
         destination_path = os.path.join(saved_models_base, params.run_name, "configs.json")
         self.save_configs(destination_path)
-
-

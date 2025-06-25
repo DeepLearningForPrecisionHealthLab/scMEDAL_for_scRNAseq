@@ -2,13 +2,10 @@ from typing import NamedTuple, List, Union, Optional, Dict
 from .experiment_design import ExperimentDesignConfigs
 
 class PlotConfigs(NamedTuple):
-    #shape_col:str="celltype"
-    #color_col:str="donor"
     markers:List[Union[str, int]]= ["x", "+", "<", "h", "s", ".", 'o', 's', '^', '*', '1', '8', 'p', 'P', 'D', '|',0, ',', 'd', 2],
     showplot:bool=False
     save_fig:bool=True
     output:Optional[str]=None
-    #
     use_bio_bio:bool=True
     use_batch_batch:bool=True
     use_bio_batch:bool=False

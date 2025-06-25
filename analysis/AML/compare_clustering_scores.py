@@ -15,7 +15,7 @@ It also adds 95% confidence intervals (CI) to the results.
 Environment: run_models_env
 """
 
-def compare_clustering_scores_AML(run_names_dict, results_path_dict, compare_models_path):
+def compare_clustering_scores_AML(run_names_dict, results_path_dict, compare_models_path, dataset_type, models2process_dict) -> None:
 
     # --------------------------------------------------------------------------------------
     # 1. Define dataset type and output directory
@@ -82,13 +82,13 @@ def compare_clustering_scores_AML(run_names_dict, results_path_dict, compare_mod
     # Otherwise, use "process_single_model_format" or leave empty if no processing is required.
     # NOTE: Keys in models2process_dict must match those in run_names_dict.
 
-    models2process_dict = {
-        "AE": "preprocess_results_model_pca_format",
-        "AEC": "preprocess_results_model_pca_format",
-        "scMEDAL-FEC": "process_single_model_format",
-        "scMEDAL-FE": "process_single_model_format",
-        "scMEDAL-RE": "process_single_model_format"
-    }
+    # models2process_dict = {
+    #     "AE": "preprocess_results_model_pca_format",
+    #     "AEC": "preprocess_results_model_pca_format",
+    #     "scMEDAL-FEC": "process_single_model_format",
+    #     "scMEDAL-FE": "process_single_model_format",
+    #     "scMEDAL-RE": "process_single_model_format"
+    # }
 
     # Process all results
     df_sample_size = process_all_results(df_all_paths, models2process_dict, out_name, dataset_type)

@@ -13,17 +13,15 @@ import matplotlib
 from anndata import AnnData
 from scipy.stats import mannwhitneyu
 
-
-
 # Set the Matplotlib backend to 'Agg'
 matplotlib.use('Agg')
 
-from scMEDAL.utils.compare_results_utils import (
+from utils.compare_results_utils import (
     get_recon_paths_df,
     get_input_paths_df
 )
 
-from scMEDAL.utils.utils import read_adata
+from utils.utils import read_adata
 
 # Add the path to the configuration file
 # Path to paths_config: /MyscMEDALExpt/Experiments/HealthyHeart/paths_config.py

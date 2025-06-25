@@ -13,9 +13,10 @@ import os
 import glob
 
 from scipy.spatial.distance import pdist, squareform
-from scMEDAL.utils.utils import read_adata, min_max_scaling,save_adata,calculate_zscores
+from utils.utils import read_adata, min_max_scaling,save_adata,calculate_zscores
 # I run it with Aixa_genomap
-
+from genomap.genomapOPT import create_space_distributions, gromov_wasserstein_adjusted_norm
+from genomap.genomap import createMeshDistance
 
 """Adapted genomap functions from https://github.com/xinglab-ai/genomap/blob/main/genomap/genomap.py and created utils for plotting"""
 
@@ -90,8 +91,7 @@ def create_gene_coordinates_mapping(projMat, gene_names, num_genes=2916, rowNum=
 # mapping = create_gene_name_coordinates_mapping(projMat, gene_names)
 
 def construct_genomap(data,rowNum,colNum,epsilon=0,num_iter=1000):
-    from genomap.genomapOPT import create_space_distributions, gromov_wasserstein_adjusted_norm
-    from genomap.genomap import createMeshDistance
+
     """
     Adapted function from genomap github: https://github.com/xinglab-ai/genomap/blob/main/genomap/genomap.py
 
@@ -292,27 +292,29 @@ def process_and_plot_genomaps_singlepath(inputs_path, ncells, ngenes, rowNum, co
 
     # Get input z-scores and construct genoMaps for the input data
     input_z_scores = result['input']['z_scores']
-    genoMaps_input = construct_genomap(input_z_scores, rowNum, colNum, epsilon=epsilon, num_iter=num_iter)
+    try:
+        genoMaps_input = construct_genomap(input_z_scores, rowNum, colNum, epsilon=epsilon, num_iter=num_iter)
 
-    projMat = genoMaps_input["T"]*genoMaps_input["totalGridPoint"]
+        projMat = genoMaps_input["T"]*genoMaps_input["totalGridPoint"]
 
-    # Save genoMaps and transition matrix (T) for input data
-    np.save(os.path.join(output_folder, f'genomap_{genomap_name}.npy'), genoMaps_input["genomaps"])
-    np.save(os.path.join(output_folder, f'T_input_{genomap_name}.npy'), genoMaps_input["T"])
+        # Save genoMaps and transition matrix (T) for input data
+        np.save(os.path.join(output_folder, f'genomap_{genomap_name}.npy'), genoMaps_input["genomaps"])
+        np.save(os.path.join(output_folder, f'T_input_{genomap_name}.npy'), genoMaps_input["T"])
 
-    # Plot and save the genoMaps for input data
-    input_ct_labels = result['input']['adata'].obs['celltype'].tolist()
-    input_batch_labels = result['input']['adata'].obs['batch'].tolist()
-    input_labels = [f'{ct}_{b}' for ct, b in zip(input_batch_labels, input_ct_labels)]
-    
-    plot_genomaps(genoMaps_input["genomaps"], input_labels, os.path.join(output_folder, f'{genomap_name}.png'))
-    # Map genes to genomap
-    if gene_names is not None:
-        gene_to_coordinates = create_gene_coordinates_mapping(projMat, gene_names, ngenes, rowNum, colNum)
-        gene_to_coordinates_df = pd.DataFrame(gene_to_coordinates).T
-        gene_to_coordinates_df.columns=["pixel_i","pixel_j"]
-        gene_to_coordinates_df.to_csv(os.path.join(output_folder, f'gene_coordinates_{genomap_name}.csv'))
-
+        # Plot and save the genoMaps for input data
+        input_ct_labels = result['input']['adata'].obs['celltype'].tolist()
+        input_batch_labels = result['input']['adata'].obs['batch'].tolist()
+        input_labels = [f'{ct}_{b}' for ct, b in zip(input_batch_labels, input_ct_labels)]
+        
+        plot_genomaps(genoMaps_input["genomaps"], input_labels, os.path.join(output_folder, f'{genomap_name}.png'))
+        # Map genes to genomap
+        if gene_names is not None:
+            gene_to_coordinates = create_gene_coordinates_mapping(projMat, gene_names, ngenes, rowNum, colNum)
+            gene_to_coordinates_df = pd.DataFrame(gene_to_coordinates).T
+            gene_to_coordinates_df.columns=["pixel_i","pixel_j"]
+            gene_to_coordinates_df.to_csv(os.path.join(output_folder, f'gene_coordinates_{genomap_name}.csv'))
+    except:
+        print("failed to construct genomap...") 
 
 
 def process_and_plot_genomaps(df, models, types, splits, rowNum, colNum, output_folder, return_input_zscores=True, ncells=50000, ngenes=2916, epsilon=0.0, num_iter=200):
@@ -390,24 +392,28 @@ def process_and_plot_genomaps(df, models, types, splits, rowNum, colNum, output_
                         # Get input z-scores and construct genoMaps for the input data
                         input_z_scores = result['input']['z_scores']
                         print("Computing genomaps for input..")
-                        genoMaps_input = construct_genomap(
-                            input_z_scores, rowNum, colNum, 
-                            epsilon=epsilon, num_iter=num_iter
-                        ) if input_z_scores is not None else None
-                        
-                        results[model][Type][Split]['genoMaps_input_train'] = genoMaps_input["genomaps"]
 
-                        if genoMaps_input["genomaps"] is not None:
-                            # Save genoMaps and transition matrix (T) for input data
-                            save_genomaps(genoMaps_input, output_folder, model, Type, Split, data_type="input")
+                        try:
+                            genoMaps_input = construct_genomap(
+                                input_z_scores, rowNum, colNum, 
+                                epsilon=epsilon, num_iter=num_iter
+                            ) if input_z_scores is not None else None
+                            
+                            results[model][Type][Split]['genoMaps_input_train'] = genoMaps_input["genomaps"]
 
-                            # Plot and save the genoMaps for input data
-                            input_ct_labels = result['input']['adata'].obs['celltype'].tolist()
-                            input_batch_labels = result['input']['adata'].obs['batch'].tolist()
+                            if genoMaps_input["genomaps"] is not None:
+                                # Save genoMaps and transition matrix (T) for input data
+                                save_genomaps(genoMaps_input, output_folder, model, Type, Split, data_type="input")
 
-                            input_labels = [f'{ct}_{b}' for ct, b in zip(input_batch_labels, input_ct_labels)]
-                            plot_genomaps(genoMaps_input["genomaps"], input_labels, os.path.join(output_folder, f'{model}_{Type}_{Split}_input.png'))
-                    
+                                # Plot and save the genoMaps for input data
+                                input_ct_labels = result['input']['adata'].obs['celltype'].tolist()
+                                input_batch_labels = result['input']['adata'].obs['batch'].tolist()
+
+                                input_labels = [f'{ct}_{b}' for ct, b in zip(input_batch_labels, input_ct_labels)]
+                                plot_genomaps(genoMaps_input["genomaps"], input_labels, os.path.join(output_folder, f'{model}_{Type}_{Split}_input.png'))
+                        except:
+                            print(f"Failed to construct genomap for {model} {Type} {Split} {recon_path}")
+
                     # Get reconstruction z-scores and construct genoMaps for the reconstruction data
                     recon_z_scores = result['recon']['z_scores']
                     print("Computing genomaps for recon..")

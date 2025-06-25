@@ -1,5 +1,6 @@
 """ All paths/directories assume CWD is the git repository"""
 import os
+DEFAULTS_ABS_PATH = os.path.abspath(__file__)
 DATA_DIR = os.path.join(os.getcwd(), "data")
 OUTPUTS_DIR = os.path.join(os.getcwd(), "outputs")
 

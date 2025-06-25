@@ -87,7 +87,7 @@ class Model(ABC):
         
     def save_configs(self, path:str) -> None:
         with open(path, "w") as f:
-            json.dump(self.model_configs._asdict(), f)
+            json.dump(self.model_params._asdict(), f)
     
     def load_named_experiment_paths(self, experiment:str) -> Dict[str, str]:
         assert experiment in self.valid_named_experiment, f"Unrecognized experiment name {experiment}. Valid experiments include {self.valid_named_experiment}"

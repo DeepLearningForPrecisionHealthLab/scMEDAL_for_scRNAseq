@@ -1,9 +1,9 @@
 
 import os
 import re
-from scMEDAL.utils.utils import get_split_paths,read_adata,min_max_scaling,plot_rep,calculate_zscores
+from .utils import get_split_paths,read_adata,min_max_scaling,plot_rep,calculate_zscores
 import pandas as pd
-from scMEDAL.utils.utils_load_model import get_latest_checkpoint
+from .utils_load_model import get_latest_checkpoint
 from anndata import AnnData
 import scanpy as sc
 import gc
@@ -347,7 +347,7 @@ def aggregate_paths(results_path_dict, pattern = f'mean_scores_test_samplesize')
         df = pd.DataFrame({"sample_size": sample_size, "path": files})
         df['model_name'] = model_name  # Add a column for the model name
         # Append the current DataFrame to the aggregated DataFrame
-        df_all_paths = df_all_paths.append(df, ignore_index=True)  # Ensure to reassign and use ignore_index=True
+        df_all_paths = pd.concat([df_all_paths, df])  # Ensure to reassign and use ignore_index=True
 
     # Now df_all_paths contains all the data combined from the different files and models
     return df_all_paths
@@ -379,7 +379,7 @@ def read_and_aggregate_scores(df_all_paths):
         df['sample_size'] = row['sample_size']
         # df['model_name'] = row['model_name']
         # Append the current DataFrame to the aggregated DataFrame
-        df_all_paths_allscores = df_all_paths_allscores.append(df, ignore_index=True)
+        df_all_paths_allscores = pd.concat([df_all_paths_allscores, df])#, ignore_index=True)
         df_all_paths_allscores["latent_name"] = [s.split("_latent_")[0] for s in df_all_paths_allscores["dataset_type"]]
 
 
@@ -412,12 +412,12 @@ def filter_min_max_silhouette_scores(df,batch_col='batch'):
 
         if not df_filtered.empty:
             # Find the row with the minimum silhouette score
-            min_row = df_filtered.loc[df_filtered[(batch_col, 'silhouette')].idxmin()]
-            df_min_silhouette = df_min_silhouette.append(min_row, ignore_index=True)
+            min_row = df_filtered.loc[df_filtered[(batch_col, 'silhouette')].idxmin()].reset_index(drop=True)
+            df_min_silhouette = pd.concat([df_min_silhouette, min_row])#, ignore_index=True)
             
             # Find the row with the maximum silhouette score
-            max_row = df_filtered.loc[df_filtered[(batch_col, 'silhouette')].idxmax()]
-            df_max_silhouette = df_max_silhouette.append(max_row, ignore_index=True)
+            max_row = df_filtered.loc[df_filtered[(batch_col, 'silhouette')].idxmax()].reset_index(drop=True)
+            df_max_silhouette = pd.concat([df_max_silhouette, max_row])#, ignore_index=True)
 
     return df_min_silhouette, df_max_silhouette
 
@@ -457,7 +457,7 @@ def process_all_results(df_all_paths, models2process_dict, out_name, dataset_typ
             
             # Process models without PCA results
             if models2process_dict[model_name] == "process_single_model_format":
-                df_smf = df_smf.append(process_single_model_format(file_path=model_path_dict[model_name], model_name=model_name))
+                df_smf = pd.concat([df_smf, process_single_model_format(file_path=model_path_dict[model_name], model_name=model_name) ])
                 print("smf", df_smf)
             
             # Process models with PCA results
@@ -574,6 +574,7 @@ def process_single_model_format(file_path,model_name):
 
     df = pd.read_csv(file_path, header=[0],index_col=[0,1]).T
     #df = df1.copy()
+    print(df.columns)
     del df['fold']
     data = df.to_dict()
     
@@ -671,7 +672,7 @@ def filter_adata_by_batch(adata_input, n_batches_sample, batch_col="batch"):
 
 
 
-def get_umap_plot(df, umap_path, plot_params, sample_size=10000, n_neighbors=15, scaling="min_max", n_batches_sample=20, batch_col="batch", issparse=True):
+def get_umap_plot(df, umap_path, plot_params, sample_size=10000, n_neighbors=15, scaling="min_max", n_batches_sample=20, batch_col="batch", issparse=True, seed:int=42):
     """
     Reads a DataFrame with input paths, loads input and latent spaces, applies scaling, computes UMAP, and plots the results.
 
@@ -719,7 +720,7 @@ def get_umap_plot(df, umap_path, plot_params, sample_size=10000, n_neighbors=15,
     input_prefixes = np.unique(df["input_prefix"])
     batches_sample = []
     # Set the random seed for reproducibility
-    np.random.seed(42)
+    np.random.seed(seed)
     for i, input_prefix in enumerate(input_prefixes):
         # Get the path for the current input prefix
         input_path = df.loc[df["input_prefix"] == input_prefix, "InputsPath"].values[0]

@@ -30,19 +30,29 @@ from utils.genomaps_utils import (
 from utils.utils import read_adata
 
 
-def genomap_and_plot(run_names_dict,
+def genomap_and_plot(
+    run_names_dict,
     results_path_dict,
     compare_models_path,
     data_base_path,
     scenario_id,
     input_base_path,
-    path2results_file,
-    scaling,
+    
+    celltype:Optional[List[str]]=None,
+    batches:Optional[List[str]]=None,
+    n_cells_per_batch:int=300,
+    n_batches:int=19,
+    n_genes:int=2916,
+    n_col:int=54,
+    n_row:int=54,
+    gene_index_col:str="Gene",
+
+    scaling:str="min_max",
     types:Optional[List[str]]=None,
     splits:Optional[List[int]]=None,
-    add_inputs_fe = False,
-    extra_recon = "all", # "fe" or "all"
-    seed = 42):
+    add_inputs_fe:bool = False,
+    extra_recon:str = "all", # "fe" or "all"
+    seed:int=42):
     
     # --------------------------------------------------------------------------------------
     # 3. Define variables
@@ -89,34 +99,11 @@ def genomap_and_plot(run_names_dict,
     for Type in types:
         for Split in splits:
             for model_name in [m for m in models if m != "run_name_all"]:
-                # Select the first model, type, and split
-                # Type = types[0]
-                # Split = splits[0]
-                # model_name = models[0]
-
-                # RE recon path: The counterfactual batches are stored in this directory
-                re_recon_path = os.path.join(results_path_dict[model_name], f"splits_{Split}")
-
                 # Define experiment output directory
                 out_name = os.path.join(compare_models_path, run_names_dict["run_name_all"])
                 if not os.path.exists(out_name):
                     os.makedirs(out_name)
                 print("Saving results to", out_name)
-
-
-                # --------------------------------------------------------------------------------------
-                # Copy paths_config.py and 'pipeline_CMmultibatch_genomap_and_plot_file.py' file
-                # --------------------------------------------------------------------------------------
-                # path2results_destination_path = os.path.join(out_name, 'paths_config.py')
-
-                # print("\nCopying paths_config.py and pipeline_CMmultibatch_genomap_and_plot_file.py file to:", out_name)
-                # pipeline_CMmultibatch_genomap_and_plot_file = os.path.abspath(__file__)
-                # pipeline_CMmultibatch_destination_path = os.path.join(
-                #     out_name, 'pipeline_CMmultibatch_genomap_and_plot_file.py'
-                # )
-                # # Copy the files
-                # shutil.copy(path2results_file, path2results_destination_path)
-                # shutil.copy(pipeline_CMmultibatch_genomap_and_plot_file, pipeline_CMmultibatch_destination_path)
 
                 # --------------------------------------------------------------------------------------
                 # Get batch reconstruction paths and prefix (to indicate batch)

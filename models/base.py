@@ -84,10 +84,25 @@ class Model(ABC):
         self.model_params.pop("ignore")
         self.model_params['run_name'] = generate_run_name(self.model_params, ignore, name="run_crossval") 
         return self.model_params
-        
+
+    def _is_jsonable(self, input):
+        try:
+            json.dumps(input)
+            return True
+        except:            
+            return False        
+
     def save_configs(self, path:str) -> None:
-        with open(path, "w") as f:
-            json.dump(self.model_params._asdict(), f)
+        # Ugly, but necessary b/c currently implementation uses instantiated Loss, Metrics, and Optimizer objects 
+        configs_json = {}
+        for k, v in self.model_params.items():
+            if self._is_jsonable(v):
+                configs_json[k] = v
+            else:
+                configs_json[k] = [f"Unable To Json encode {v}", str(v)]
+        
+        with open(path, "w") as f:    
+            json.dump(configs_json, f)
     
     def load_named_experiment_paths(self, experiment:str) -> Dict[str, str]:
         assert experiment in self.valid_named_experiment, f"Unrecognized experiment name {experiment}. Valid experiments include {self.valid_named_experiment}"
@@ -192,7 +207,7 @@ class Model(ABC):
             folds_list=params.fold_list,
             run_name=params.run_name,
             model_params_dict=self.model_params,
-            build_model_dict={k:v for k, v in self.model_configs._asdict().items() if k != "ignore"},
+            build_model_dict={k:v for k, v in self.model_configs.items() if k != "ignore"},
             compile_dict=self.compile_configs,
             save_model=save_model,
             batch_col=params.batch_col,

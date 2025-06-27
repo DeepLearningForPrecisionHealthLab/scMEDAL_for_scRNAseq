@@ -37,7 +37,7 @@ def genomap_and_plot(
     data_base_path,
     scenario_id,
     input_base_path,
-    
+    analysis_name:Optional[str]=None,
     celltype:Optional[List[str]]=None,
     batches:Optional[List[str]]=None,
     n_cells_per_batch:int=300,
@@ -48,28 +48,15 @@ def genomap_and_plot(
     gene_index_col:str="Gene",
 
     scaling:str="min_max",
+    models:Optional[List[str]]=None,
     types:Optional[List[str]]=None,
     splits:Optional[List[int]]=None,
     add_inputs_fe:bool = False,
     extra_recon:str = "all", # "fe" or "all"
-    seed:int=42):
+    seed:int=42
     
-    # --------------------------------------------------------------------------------------
-    # 3. Define variables
-    # --------------------------------------------------------------------------------------
-    celltype = ["Mono", "Mono-like"]
-    n_cells_per_batch = 300
-    n_batches = 19
-
-    # Define number of genes in the genomap = colNum * rowNum
-    n_genes = 2916
-    colNum = 54
-    rowNum = 54
-    batches_to_select_from = ["AML420B", "BM5", "MUTZ3"]
-
-    ### This is for AML
-    gene_index_col = "Gene"
-
+    ):
+    
     # --------------------------------------------------------------------------------------
     # I run this script with Aixa_genomap env
     # --------------------------------------------------------------------------------------
@@ -85,12 +72,12 @@ def genomap_and_plot(
     ]
     print("Reading paths,\ndf paths:", df.head(5))
 
-
     # --------------------------------------------------------------------------------------
     # 1.2. Base: I will run the genomap for random effects reconstructions: (scMEDAL-RE) outputs
     # --------------------------------------------------------------------------------------
     # Define lists of models, types, and splits. This script will only run one genomap.
-    models = list(run_names_dict.keys())  # Add all your models to this list
+    if models is None:
+        models = list(run_names_dict.keys())  # Add all your models to this list
     if types is None:
         types = ["train", "test", "val"]
     if splits is None:
@@ -98,9 +85,9 @@ def genomap_and_plot(
 
     for Type in types:
         for Split in splits:
-            for model_name in [m for m in models if m != "run_name_all"]:
+            for model_name in models:
                 # Define experiment output directory
-                out_name = os.path.join(compare_models_path, run_names_dict["run_name_all"])
+                out_name = os.path.join(compare_models_path, analysis_name)
                 if not os.path.exists(out_name):
                     os.makedirs(out_name)
                 print("Saving results to", out_name)
@@ -194,20 +181,21 @@ def genomap_and_plot(
                 # --------------------------------------------------------------------------------------
                 print("\nCreating count_matrix_multibatch..")
 
-                                ############ Spliced over from MannU script 221...    
+                ############ Spliced over from MannU script 221...    
                 # Determine patient group by batch
-                batches_provided = True
-                unique_combinations = obs[["Patient_group", "batch"]].drop_duplicates().reset_index(
-                    drop=True
-                )
-                unique_dict = dict(zip(unique_combinations["batch"],
-                                    unique_combinations["Patient_group"]))
-                print(unique_dict)
+                if batches is None:
+                    unique_combinations = obs[["Patient_group", "batch"]].drop_duplicates().reset_index(
+                        drop=True
+                    )
+                    unique_dict = dict(zip(unique_combinations["batch"],
+                                        unique_combinations["Patient_group"]))
+                    print(unique_dict)
 
-                dict_batches = unique_dict
-                print("Batch dictionary:", dict_batches)
-                batches_to_select_from = list(dict_batches.keys())
-            
+                    dict_batches = unique_dict
+                    print("Batch dictionary:", dict_batches)
+                    batches_to_select_from = list(dict_batches.keys())
+                else:
+                    batches_to_select_from = batches    
                 
                 random.seed(seed)
 
@@ -276,8 +264,8 @@ def genomap_and_plot(
                         cm_multibatch_path,
                         ncells=n_cells,
                         ngenes=n_genes,
-                        rowNum=rowNum,
-                        colNum=colNum,
+                        rowNum=n_row,
+                        colNum=n_col,
                         epsilon=0.0,
                         num_iter=100,
                         output_folder=path_2_genomap,
@@ -546,6 +534,6 @@ def genomap_and_plot(
                         genomap_coordinates.to_csv(
                             os.path.join(out_name, "pvals_300cellsavg_mwutest.csv")
                         )
-                except: 
-                    raise ValueError()
+                except Exception as e: 
+                    raise e
                     print("\n".join(["#"*50,"#"*50, "it broke", "#"*50,"#"*50]))

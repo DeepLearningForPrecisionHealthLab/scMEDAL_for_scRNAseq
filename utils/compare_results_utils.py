@@ -953,7 +953,7 @@ class DimensionalityReductionProcessor:
         self.batches_sample = batches_sample
         return batches_sample
 
-    def process_latent_data(self, input_prefix, obs, process_allbatches):
+    def process_latent_data(self, input_prefix, obs, umap:bool=True, tsne:bool=False):
         latent_prefixes = self.df.loc[self.df["input_prefix"] == input_prefix, "latent_prefix"].values
         latent_paths = self.df.loc[self.df["input_prefix"] == input_prefix, "LatentPath"].values
 
@@ -964,13 +964,13 @@ class DimensionalityReductionProcessor:
                 X = X[self.sampled_indices, :]
             adata = AnnData(X, obs=obs)
             use_rep = "X_pca" if 'input' in latent_pref else "X"
-            if process_allbatches:
+            if umap:
                 self.compute_and_save_umap(X, obs, latent_pref)
-                if self.plot_tsne:
-                    self.compute_and_save_tsne(X, obs, latent_pref)
+            if tsne:
+                self.compute_and_save_tsne(X, obs, latent_pref)
             self.filter_and_save_batch_data(adata, latent_pref)
 
-    def get_dimensionality_reduction_plots(self, process_allbatches=True, seed=42,issparse=True):
+    def get_dimensionality_reduction_plots(self,seed=42,issparse=True, umap=True, tsne=False):
         print("\nComputing UMAP and t-SNE for the following files:")
         input_prefixes = np.unique(self.df["input_prefix"])
         batches_sample = []
@@ -986,14 +986,14 @@ class DimensionalityReductionProcessor:
             X, obs = self.subset_data(X, obs)
             adata = AnnData(X, obs=obs)
             # use_rep = "X_pca" if 'input' in input_prefix else "X"
-            if process_allbatches:
+            if umap:
                 self.compute_and_save_umap(X, obs, "input_"+input_prefix)
-                if self.plot_tsne:
-                    self.compute_and_save_tsne(X, obs, "input_"+input_prefix)
+            if tsne:
+                self.compute_and_save_tsne(X, obs, "input_"+input_prefix)
             if i == 0:
                 batches_sample = self.select_batches(obs)
             self.filter_and_save_batch_data(adata, "input_"+input_prefix)
-            self.process_latent_data(input_prefix, obs, process_allbatches)
+            self.process_latent_data(input_prefix, obs, umap, tsne)
             gc.collect()
 
 

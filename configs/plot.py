@@ -2,7 +2,7 @@ from typing import NamedTuple, List, Union, Optional, Dict
 from .experiment_design import ExperimentDesignConfigs
 
 class PlotConfigs(NamedTuple):
-    markers:List[Union[str, int]]= ["x", "+", "<", "h", "s", ".", 'o', 's', '^', '*', '1', '8', 'p', 'P', 'D', '|',0, ',', 'd', 2],
+    markers:List[Union[str, int]]= ["x", "+", "<", "h", "s", ".", 'o', 's', '^', '*', '1', '8', 'p', 'P', 'D', '|',0, ',', 'd', 2]
     palette_choice:List[str] = [
         '#e6194b',  # Red
         '#3cb44b',  # Green

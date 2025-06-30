@@ -446,7 +446,7 @@ def get_colors_dict(celltype, donor,colors_list=['olive','darkolivegreen','sprin
 
 
 
-def plot_rep(adata, shape_col="celltype", color_col="donor", use_rep="X_pca", markers=['o', 'v', '^', '<', '*'], clustering_scores=None, save_fig=True, outpath="", showplot=False, palette_choice="tab20",file_name="latent"):
+def plot_rep(adata, shape_col="celltype", color_col="donor", use_rep="X_pca", markers=['o', 'v', '^', '<', '*'], clustering_scores=None, save_fig=True, outpath="", showplot=False, palette_choice="tab20",file_name="latent", *args, **kwargs):
     """Plots a dimensionally reduced representation of adata."""
     import matplotlib.pyplot as plt
     import seaborn as sns

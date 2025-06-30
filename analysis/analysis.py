@@ -81,7 +81,6 @@ class AMLAnalysis(Analysis):
         assert self.paths.saved_models_path is not None, "A dictionary of saved model paths must be provided."
         assert self.paths.latent_space_path is not None, "A dictionary of latent space paths must be provided."
         assert set(self.paths.latent_space_path.keys()) == set(self.paths.saved_models_path.keys()), "Latent space paths must have same keys as model paths."
-        #assert set(self.paths.saved_models_path.keys()) == set(self.paths.model_results_folder_dict.keys()), "Saved Model paths must have same keys as model paths."
 
     def load_configs(self, path:str, config_filename:str="configs.json"):
         fp = os.path.join(path, config_filename)

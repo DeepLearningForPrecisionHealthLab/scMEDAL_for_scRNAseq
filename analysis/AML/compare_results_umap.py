@@ -36,7 +36,8 @@ def get_umap(
         shape_col:str="celltype",
         color_col:str="celltype",
         use_rep:str="X_umap",
-        clustering_scores=None
+        clustering_scores=None, 
+        issparse=False,
     ):
     
     # Define common plotting parameters
@@ -57,7 +58,7 @@ def get_umap(
 
     # Merge latent and input paths by "Split" and "Type"
     df = pd.merge(df_latent, df_inputs, on=["Split", "Type"], how="left")
-
+    
     df["latent_prefix"] = [
         f"{model}_latent_{Type}_{Split}"
         for model, Split, Type in zip(df["Key"], df["Split"], df["Type"])
@@ -85,13 +86,12 @@ def get_umap(
     if splits is None:
         splits = list(range(1,6))             # Get data from fold 2
  
+    # Filter data to include only specific models and splits for "train" data
+    processors = []
     for type in types:
         for split in splits:
             filter_folds = {mod:split for mod in models}
-            curr_df = df.loc[(df["Split"] == split) & (df["Type"] == type)]
-
-            # Filter data to include only specific models and splits for "train" data
-            filtered_df = filter_models_by_type_and_split(curr_df, filter_folds, Type=type)
+            filtered_df = filter_models_by_type_and_split(df, filter_folds, Type=type)
 
             print("Computing UMAP projections...")
 
@@ -109,5 +109,9 @@ def get_umap(
                 n_pca_components=2
             )
 
+            print(f"{df.columns}")
+            
             # Generate UMAP plots
-            processor.get_dimensionality_reduction_plots(process_allbatches=False, seed=seed, issparse=False)
+            processor.get_dimensionality_reduction_plots(seed=seed, issparse=issparse)
+            processors.append(processor)
+    return processors

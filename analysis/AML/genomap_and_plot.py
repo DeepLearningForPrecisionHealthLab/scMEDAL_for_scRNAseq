@@ -9,8 +9,16 @@ import pandas as pd
 import numpy as np
 import matplotlib
 
+
+
 from typing import List, Optional
 from scipy.stats import mannwhitneyu
+
+from inspect import currentframe, getframeinfo
+def error_here(message:Optional[str]=None):
+    frameinfo = getframeinfo(currentframe())
+    print("ERROR HERE:", frameinfo.filename, frameinfo.lineno)
+    print(message)
 
 # Set the Matplotlib backend to 'Agg'
 matplotlib.use('Agg')
@@ -305,6 +313,7 @@ def genomap_and_plot(
 
                     cell_ids_all = np.unique(obs_multibatch[cell_id_col].values)
 
+        
                     cell_ids_2plot = []
                     if isinstance(celltype, list):
                         intersection_batches = find_intersection_batches(obs_multibatch, celltype)
@@ -329,7 +338,6 @@ def genomap_and_plot(
 
                     print("Selected cell IDs to plot:", cell_ids_2plot)
 
-                    
                     original_batch_list = []
                     for cell_id in cell_ids_2plot:
                         original_batch = obs_multibatch.loc[
@@ -376,6 +384,7 @@ def genomap_and_plot(
                         print("n cell indexes for batch CF recon", cell_indexes_batch_cf)
                         print("obs_multibatch['recon_prefix']", obs_multibatch["recon_prefix"].values)
 
+                        ###### Maybe there is also an error here??
                         genomap_coordinates = compute_cell_stats_acrossbatchrecon(
                             genomap,
                             cell_indexes_batch_cf,
@@ -402,6 +411,7 @@ def genomap_and_plot(
                             file_name=f"{cell_id}_{statistic}_{original_celltype}",
                         )
 
+                        # This is A bug. This is giving an empty array.
                         cell_indexes_few_batches = obs_multibatch.loc[
                             (obs_multibatch[cell_id_col] == cell_id)
                             & obs_multibatch["recon_prefix"].apply(
@@ -409,42 +419,49 @@ def genomap_and_plot(
                             )
                         ].index.values
                         # No gene labels
-                        plot_cell_recon_genomap(
-                            genomap,
-                            cell_indexes=cell_indexes_few_batches,
-                            genomap_coordinates=None,
-                            obs=obs_multibatch,
-                            original_batch=original_batch,
-                            n_top_genes=10,
-                            min_val=plot_min,
-                            max_val=plot_max,
-                            n_cols=n_batch_cols2plot + n_inputs_fe,
-                            order="C",
-                            path_2_genomap=path_2_genomap,
-                            file_name=f"{cell_id}_few_batches_{statistic}_{original_celltype}",
-                            remove_ticks=True,
-                        )
-
-                        plot_cell_recon_genomap(
-                            genomap,
-                            cell_indexes=cell_indexes_few_batches,
-                            genomap_coordinates=genomap_coordinates,
-                            obs=obs_multibatch,
-                            original_batch=original_batch,
-                            n_top_genes=10,
-                            min_val=plot_min,
-                            max_val=plot_max,
-                            n_cols=n_batch_cols2plot + n_inputs_fe,
-                            order="C",
-                            path_2_genomap=path_2_genomap,
-                            file_name=(
-                                f"{cell_id}_few_batches_{statistic}_{original_celltype}_genelabels"
-                            ),
-                            remove_ticks=True,
-                        )
-
-
-
+                        try:
+                            plot_cell_recon_genomap(
+                                genomap,
+                                cell_indexes=cell_indexes_few_batches,
+                                genomap_coordinates=None,
+                                obs=obs_multibatch,
+                                original_batch=original_batch,
+                                n_top_genes=10,
+                                min_val=plot_min,
+                                max_val=plot_max,
+                                n_cols=n_batch_cols2plot + n_inputs_fe,
+                                order="C",
+                                path_2_genomap=path_2_genomap,
+                                file_name=f"{cell_id}_few_batches_{statistic}_{original_celltype}",
+                                remove_ticks=True,
+                            )
+                        except Exception as e: 
+                            error_here()
+                            raise e
+                        finally:
+                            return genomap, cell_indexes_few_batches, obs_multibatch, original_batch, plot_min, plot_max, n_batch_cols2plot + n_inputs_fe, path_2_genomap
+                        
+                        try:
+                            plot_cell_recon_genomap(
+                                genomap,
+                                cell_indexes=cell_indexes_few_batches,
+                                genomap_coordinates=genomap_coordinates,
+                                obs=obs_multibatch,
+                                original_batch=original_batch,
+                                n_top_genes=10,
+                                min_val=plot_min,
+                                max_val=plot_max,
+                                n_cols=n_batch_cols2plot + n_inputs_fe,
+                                order="C",
+                                path_2_genomap=path_2_genomap,
+                                file_name=(
+                                    f"{cell_id}_few_batches_{statistic}_{original_celltype}_genelabels"
+                                ),
+                                remove_ticks=True,
+                            )
+                        except Exception as e: 
+                            error_here()
+                            raise e   
 
                         # Obtain AML and control keys (and similarly for cell lines if needed)
                         aml_keys = [key for key, value in dict_batches.items() if value == "AML"]

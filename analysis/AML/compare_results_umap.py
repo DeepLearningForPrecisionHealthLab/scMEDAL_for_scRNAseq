@@ -106,7 +106,7 @@ def get_umap(
                 n_batches_sample=n_batches,
                 batch_col=batch_col,
                 plot_tsne=False,
-                n_pca_components=2
+                n_pca_components=50
             )
 
             print(f"{df.columns}")

@@ -126,9 +126,9 @@ class Model(ABC):
         return paths
 
 
-    def run_train(self, data_path:Optional[str]=None, outputs_path:Optional[str]=None, named_experiment:Optional[str]=None, save_model:bool=True, quick:bool=False, plotconfigs:Optional[cfg.PlotConfigs]=None, plot_kwargs:Optional[Dict[str, Any]]=None): 
+    def run_train(self, data_path:Optional[str]=None, outputs_path:Optional[str]=None, named_experiment:Optional[str]=None, save_model:bool=True, quick:bool=False, quick_epochs: int = 3, plotconfigs:Optional[cfg.PlotConfigs]=None, plot_kwargs:Optional[Dict[str, Any]]=None): 
         """
-        Quick sets epochs to 3.
+        Quick sets epochs to quick_epochs.
         """
         if plotconfigs is None:
             plotconfigs = cfg.PlotConfigs() if plot_kwargs is None else cfg.PlotConfigs(**plot_kwargs)
@@ -136,7 +136,7 @@ class Model(ABC):
 
         if quick:
             self.training_configs._replace(epochs=3)
-            self.model_params['epochs'] = 3
+            self.model_params['epochs'] =  quick_epochs
             self.model_params['fold_list'] = [1]
 
         model_name = self.model_name
@@ -196,6 +196,14 @@ class Model(ABC):
 
         celltype_ids = np.unique(metadata_all[params.bio_col]).tolist()
 
+
+        try:
+        # Works if self.model_configs is already a dict-like object
+            build_model_dict = {k: v for k, v in self.model_configs.items() if k != "ignore"}
+        except AttributeError:
+        # Fallback for NamedTuple (or any object that lacks .items())
+            build_model_dict = {k: v for k, v in self.model_configs._asdict().items() if k != "ignore"}
+
         # --------------------------------------------------------------------------------------
         # 3. Run All Folds
         # --------------------------------------------------------------------------------------
@@ -207,7 +215,7 @@ class Model(ABC):
             folds_list=params.fold_list,
             run_name=params.run_name,
             model_params_dict=self.model_params,
-            build_model_dict={k:v for k, v in self.model_configs.items() if k != "ignore"},
+            build_model_dict=build_model_dict,
             compile_dict=self.compile_configs,
             save_model=save_model,
             batch_col=params.batch_col,

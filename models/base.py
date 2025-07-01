@@ -53,7 +53,7 @@ class Model(ABC):
         return self.training_configs
 
     def _init_score_configs(self, kwargs:Optional[Dict[str, Any]]=None):
-        self.score_configs = cfg.ScoreConfigs()        
+        self.score_configs = cfg.ScoreConfigs(self.model_name)        
         if kwargs is not None:
             self.score_configs = self.score_configs._replace(**{k:v for k,v in kwargs.items() if k in self.score_configs._fields})
         return self.score_configs

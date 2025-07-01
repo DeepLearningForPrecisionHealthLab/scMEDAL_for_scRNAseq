@@ -9,7 +9,7 @@ class BaseScoreConfigs(NamedTuple):
 
 
 
-class DataConfigs:
+class ScoreConfigs:
     valid_model_names=["ae", "aec","scmedalfe","scmedalfec", "scmedalre"]
 
     def __init__(self, model_name:Optional[str]=None):

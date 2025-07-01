@@ -3,7 +3,7 @@ from typing import NamedTuple, Optional
 class BaseScoreConfigs(NamedTuple):
     encoder_latent_name:str="latent"
     get_pca:bool=True
-    n_components:int=2
+    n_components:int=50
     get_baseline:bool=False
     get_cf_batch:bool=False
 

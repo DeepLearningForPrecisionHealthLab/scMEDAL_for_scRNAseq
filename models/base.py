@@ -126,7 +126,7 @@ class Model(ABC):
         return paths
 
 
-    def run_train(self, data_path:Optional[str]=None, outputs_path:Optional[str]=None, named_experiment:Optional[str]=None, save_model:bool=True, quick:bool=False, quick_epochs: int = 3, plotconfigs:Optional[cfg.PlotConfigs]=None, plot_kwargs:Optional[Dict[str, Any]]=None): 
+    def run_train(self, data_path:Optional[str]=None, outputs_path:Optional[str]=None, named_experiment:Optional[str]=None, save_model:bool=True, quick:bool=False, quick_epochs: int = 3,quick_folds=[1], plotconfigs:Optional[cfg.PlotConfigs]=None, plot_kwargs:Optional[Dict[str, Any]]=None): 
         """
         Quick sets epochs to quick_epochs.
         """
@@ -137,7 +137,7 @@ class Model(ABC):
         if quick:
             self.training_configs._replace(epochs=3)
             self.model_params['epochs'] =  quick_epochs
-            self.model_params['fold_list'] = [1]
+            self.model_params['fold_list'] = quick_folds
 
         model_name = self.model_name
 

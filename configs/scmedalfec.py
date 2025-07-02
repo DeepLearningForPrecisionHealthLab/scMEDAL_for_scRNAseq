@@ -14,5 +14,5 @@ class scMEDALFECModelConfigs(NamedTuple):
     "loss_recon", "loss_multiclass", "metric_multiclass", "opt_autoencoder", "opt_adversary",
     "layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric",
     "stop_criteria", "get_pca", "get_baseline", "use_z", "encoder_latent_name",
-    "sigmoid_eval_test", "last_activation", "get_pred", "eval_test"
+    "sigmoid_eval_test", "last_activation", "get_pred", "eval_test","configs-BaseScoreConfigs","get_cf_batch",
     ]

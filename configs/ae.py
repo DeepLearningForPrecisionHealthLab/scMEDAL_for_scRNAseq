@@ -10,7 +10,7 @@ class AEModelConfigs(NamedTuple):
     'batch_col', 'bio_col', 'donor_col', "layer_units_latent_classifier", "name",
     "monitor_metric", "stop_criteria", "get_pca", "get_baseline", 'use_z',
     'encoder_latent_name', 'sigmoid_eval_test', 'last_activation', 'get_pred',
-    "eval_test", "optimizer", "loss", "loss_weights", "metrics"
+    "eval_test", "optimizer", "loss", "loss_weights", "metrics","configs-BaseScoreConfigs","get_cf_batch",
     ]
 
 

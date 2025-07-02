@@ -968,7 +968,12 @@ def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, ori
         
         # print("cell_index",cell_index)
         # print("obs_index",obs.index)
-        recon_prefix = obs.loc[cell_index, "recon_prefix"]
+        try:
+            recon_prefix = obs.loc[cell_index, "recon_prefix"]      # label-based
+        except KeyError:
+            recon_prefix = obs.iloc[int(cell_index)]["recon_prefix"]
+
+        
         ax.set_title(recon_prefix)
         if 'input' in recon_prefix:
             ax.set_title(f'{recon_prefix}\noriginal batch: {original_batch}')

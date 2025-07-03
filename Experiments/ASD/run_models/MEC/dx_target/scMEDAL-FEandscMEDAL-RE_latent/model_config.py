@@ -81,7 +81,7 @@ LatentClassifier_config = {
     'save_model': save_model,
     'latent_keys_config': {
         'fe_latent': 'scMEDAL-FE_latent',
-        're_latent': 'scMEDAL-RE_latent'
+        're_latent': 'scMEDAL-RE_latent',
     },
     'return_metrics': True,
     'return_adata_dict': True,

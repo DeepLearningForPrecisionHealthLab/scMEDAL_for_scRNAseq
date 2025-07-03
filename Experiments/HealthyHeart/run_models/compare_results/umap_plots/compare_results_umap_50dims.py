@@ -62,14 +62,25 @@ if not os.path.exists(umap_path):
 # Specify folds (splits) for filtering data you want to plot
 filter_folds = {
     "AE_50dims": 2,
-#    "AEC_50dims": 2,
-#    "scMEDAL-FEC_50dims": 2,
+    "AEC_50dims": 2,
+    "scMEDAL-FEC_50dims": 2,
     "scMEDAL-FE_50dims": 2,
-    "scMEDAL-RE_50dims": 2
+    "scMEDAL-RE_50dims": 2,
+    "scVI_50dims":2,
+    "scANVI_50dims":2,
+    "scanorama_50dims":2,
+    "harmony_50dims":2,
+    "SAUCIE_50dims":2,
 }
+
+
+            
+            
 
 # Filter data to include only specific models and splits for "train" data
 filtered_df = filter_models_by_type_and_split(df, filter_folds, Type='train')
+
+print("\n\nfiltered_df",filtered_df)
 
 # Common plotting parameters
 # Add colors if you decide to plot more batches
@@ -108,20 +119,29 @@ plot_params = {
 
 print("Computing UMAPs...")
 
-# Initialize dimensionality reduction processor
+
+
+
+
 processor = DimensionalityReductionProcessor(
-    filtered_df,
-    umap_path,
-    plot_params,
-    sample_size=None, # Take a smaller sample size if you want faster results. Default = None. Takes all the cells.
-    n_neighbors=15, # Change if needed.
-    scaling="min_max", # Load data
-    n_batches_sample=20, # Change according to the number of batches you want to plot
-    batch_col="batch",
-    plot_tsne=False, # Add tsne plots
-    n_pca_components=2, # make sure this match the latent dimensions of you model. Default = 2.
-    min_dist=0.5 # UMAP parameter
+    df=filtered_df,
+    output_path=umap_path,
+    plot_params=plot_params,
+#    sample_size=None,          # take every cell
+    sample_size=None,          # take every cell
+    n_neighbors=15,
+    scaling="min_max",
+    n_batches_sample=20,
+    batch_col="batch",         # subsample 19 technical batches
+    plot_tsne=False,
+    n_pca_components=50,
+    rng_seed=5,                # reproducible RNG seed
+    extra_color_cols=["DonorID","TissueDetail","protocol"]  #Make sure this columns exist in the data
+    # min_dist keeps its default 0.5
 )
 
-# Generate UMAP (and t-SNE) plots
-processor.get_dimensionality_reduction_plots(process_allbatches=False, seed=5)
+# generate UMAPs
+processor.get_dimensionality_reduction_plots(
+    process_allbatches=False,  # only batch-filtered plots
+    issparse=True,             # inputs are already dense
+)

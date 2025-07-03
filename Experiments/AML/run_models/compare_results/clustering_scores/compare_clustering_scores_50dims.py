@@ -93,7 +93,13 @@ models2process_dict = {
     "AEC_50dims": "process_single_model_format",
     "scMEDAL-FEC_50dims": "process_single_model_format",
     "scMEDAL-FE_50dims": "process_single_model_format",
-    "scMEDAL-RE_50dims": "process_single_model_format"
+    "scMEDAL-RE_50dims": "process_single_model_format",
+    "scVI_50dims":"process_single_model_format",
+    "scANVI_50dims":"process_single_model_format",
+    "scanorama_50dims":"process_single_model_format",
+    "harmony_50dims":"process_single_model_format",
+    "SAUCIE_50dims":"process_single_model_format",
+
 }
 
 # Process all results

@@ -62,7 +62,12 @@ filter_folds = {
     "AEC_50dims": 2,
     "scMEDAL-FEC_50dims": 2,
     "scMEDAL-FE_50dims": 2,
-    "scMEDAL-RE_50dims": 2
+    "scMEDAL-RE_50dims": 2,
+    "scVI_50dims":2,
+    "scANVI_50dims":2,
+    "scanorama_50dims":2,
+    "harmony_50dims":2,
+    "SAUCIE_50dims":2,
 }
 
 # Filter data to include only specific models and splits for "train" data
@@ -93,7 +98,8 @@ plot_params = {
         '#e6beff',  # Lavender
         '#9a6324',  # Brown
         '#d2f53c',  # Lime
-        '#ff69b4',  # Hot pink
+#        '#ff69b4',  # Hot pink
+        '#7fff00',  # Chartreuse
         '#000080',  # Navy
         '#800000',  # Maroon
         '#808000',  # Olive
@@ -105,19 +111,67 @@ plot_params = {
 
 print("Computing UMAP projections...")
 
+# # Initialize dimensionality reduction processor
+# processor = DimensionalityReductionProcessor(
+#     filtered_df,
+#     umap_path,
+#     plot_params,
+#     sample_size=None,
+#     n_neighbors=15,
+#     scaling="min_max",
+#     n_batches_sample=19,
+#     batch_col="batch",
+#     plot_tsne=False,
+#     n_pca_components=50
+# )
+
+# # Generate UMAP plots
+# processor.get_dimensionality_reduction_plots(process_allbatches=False, seed=5, issparse=False)
+
+
+
+
 # Initialize dimensionality reduction processor
+
+# processor = DimensionalityReductionProcessor(
+#     df=filtered_df,
+#     output_path=umap_path,
+#     plot_params=plot_params,
+#     sample_size=None,          # take every cell
+#     n_neighbors=15,
+#     scaling="min_max",
+#     n_batches_sample=19,
+#     batch_col="batch",
+#     plot_tsne=False,
+#     n_pca_components=50,
+#     rng_seed=5,                # reproducible RNG seed
+#     # min_dist keeps its default 0.5; pass it explicitly if you want another value
+# )
+
+# # generate umaps
+# processor.get_dimensionality_reduction_plots(
+#     process_allbatches=False,  # only make the batch-filtered plots
+#     issparse=False             # your inputs are already dense
+# )
+
 processor = DimensionalityReductionProcessor(
-    filtered_df,
-    umap_path,
-    plot_params,
-    sample_size=None,
+    df=filtered_df,
+    output_path=umap_path,
+    plot_params=plot_params,
+    sample_size=None,          # take every cell
     n_neighbors=15,
     scaling="min_max",
     n_batches_sample=19,
-    batch_col="batch",
+    batch_col="batch",         # subsample 19 technical batches
     plot_tsne=False,
-    n_pca_components=2
+    n_pca_components=50,
+    rng_seed=5,                # reproducible RNG seed
+    extra_color_cols=["Patient_group"]  # ? NEW: additional colouring
+    # min_dist keeps its default 0.5
 )
 
-# Generate UMAP plots
-processor.get_dimensionality_reduction_plots(process_allbatches=False, seed=5, issparse=False)
+# generate UMAPs
+processor.get_dimensionality_reduction_plots(
+    process_allbatches=False,  # only batch-filtered plots
+    issparse=False             # inputs are already dense
+)

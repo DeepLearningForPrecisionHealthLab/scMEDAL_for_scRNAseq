@@ -833,15 +833,27 @@ def get_umap_plot(df, umap_path, plot_params, sample_size=10000, n_neighbors=15,
                 plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells_{n_batches_sample}{batch_col}_batchcolors", **plot_params_batch_col)
 
             gc.collect()
-
-
-
-
-
-
-
 class DimensionalityReductionProcessor:
-    def __init__(self, df, output_path, plot_params, sample_size=10000, n_neighbors=15, scaling="min_max", n_batches_sample=20, batch_col="batch", plot_tsne=False, n_pca_components=50,min_dist=0.5):
+    """Compute UMAPs, save CSV/NPY, and plot latent + UMAP reps"""
+    from typing import Optional, Tuple, List
+
+    #  INIT 
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        output_path: str,
+        plot_params: dict,
+        sample_size: Optional[int] = None,
+        n_neighbors: int = 15,
+        scaling: str = "min_max",
+        n_batches_sample: Optional[int] = 20,
+        batch_col: str = "batch",
+        plot_tsne: bool = False,        # placeholder for future use
+        n_pca_components: int = 50,
+        min_dist: float = 0.5,
+        rng_seed: int = 5,
+        extra_color_cols: Optional[List[str]] = None,
+    ):
         self.df = df
         self.output_path = output_path
         self.plot_params = plot_params
@@ -851,148 +863,170 @@ class DimensionalityReductionProcessor:
         self.scaling = scaling
         self.n_batches_sample = n_batches_sample
         self.batch_col = batch_col
-        self.plot_tsne = plot_tsne
         self.n_pca_components = n_pca_components
-        self.batches_sample = None
+        self.extra_color_cols = extra_color_cols or []
+        self.rng = np.random.RandomState(rng_seed)
 
-    def apply_scaling(self, X):
+        os.makedirs(self.output_path, exist_ok=True)
+        self.batches_sample: Optional[np.ndarray] = None
+        self.sampled_indices: Optional[np.ndarray] = None
+        self._umap_written: set[str] = set()
+
+    #  HELPERS 
+    def _scale(self, X):
         if self.scaling == "min_max":
             return min_max_scaling(X)
-        elif self.scaling == "z_scores":
+        if self.scaling == "z_scores":
             return calculate_zscores(X)
         return X
 
-    def subset_data(self, X, obs):
-        if self.sample_size is not None:
-            sampled_indices = np.random.choice(X.shape[0], self.sample_size, replace=False)
-            X = X[sampled_indices, :]
-            obs = obs.iloc[sampled_indices].reset_index(drop=True)
-            self.sampled_indices = sampled_indices
+    def _subset(self, X, obs):
+        if self.sample_size:
+            idx = self.rng.choice(X.shape[0], self.sample_size, replace=False)
+            self.sampled_indices = idx
+            return X[idx, :], obs.iloc[idx].reset_index(drop=True)
+        self.sampled_indices = np.arange(X.shape[0])
         return X, obs
 
-    def compute_pca(self, X):
-        pca = PCA(n_components=self.n_pca_components)
-        X_pca = pca.fit_transform(X)
-        return X_pca
+    def _pca(self, X):
+        return PCA(self.n_pca_components, random_state=self.rng).fit_transform(X)
 
-    def compute_and_save_umap(self, X, obs, prefix,name = None):
-        use_rep = "X_pca" if 'input' in prefix else "X"
-        adata = AnnData(X, obs=obs)
-        if use_rep == "X_pca":
-            X = self.compute_pca(X)
-            adata.obsm["X_pca"] = X
-        sc.pp.neighbors(adata, n_neighbors=self.n_neighbors, use_rep=use_rep)
-        sc.tl.umap(adata, min_dist = self.min_dist)
-        self.save_results(adata, prefix, "umap",name=name)
+    def _embed(self, adata, use_rep):
+        sc.pp.neighbors(adata, n_neighbors=self.n_neighbors, use_rep=use_rep, random_state=self.rng)
+        sc.tl.umap(adata, min_dist=self.min_dist, random_state=self.rng)
 
-    def compute_and_save_tsne(self, X, obs, prefix,name=None):
-        use_rep = "X_pca" if 'input' in prefix else "X"
-        if use_rep == "X_pca":
-            X = self.compute_pca(X)
-        tsne = TSNE(n_components=2)
-        X_tsne = tsne.fit_transform(X)
-        adata = AnnData(X_tsne, obs=obs)
-        adata.obsm["X_tsne"] = X_tsne
-        self.save_results(adata, prefix, "tsne",name=name)
+    #  central plot wrapper 
+    def _plot_all(self, adata, stem, shape_col, color_col):
+        """Generate regular & axis?free plots while avoiding duplicate kwargs."""
+        pp = self.plot_params.copy()
+        for k in ("shape_col", "color_col", "markers", "outpath", "file_name"):
+            pp.pop(k, None)
+        mk = self.plot_params.get("markers", None)
 
+        for suf, axes, box in [("", True, True), ("_noaxis", False, False)]:
+            plot_rep(
+                adata,
+                shape_col=shape_col,
+                color_col=color_col,
+                markers=mk,
+                axes=axes,
+                legend_box=box,
+                outpath=self.output_path,
+                file_name=f"{stem}{suf}",
+                **pp
+            )
 
-    def save_results(self, adata, prefix, method,name=None):
-        use_rep = f"X_{method}"
-        # Update plot params
-        plot_params = self.plot_params.copy()
-        plot_params.update({"use_rep":use_rep})
-        plot_params_batch = plot_params.copy()
-        plot_params_batch.update({"shape_col": self.batch_col, "color_col": self.batch_col})
-        # Define base name
-        file_name_base = f"{prefix}_{self.sample_size}cells"
-        if name is not None:
-            file_name_base = f"{file_name_base}_{name}"
-        # Save lat_rep
-        results_df = pd.DataFrame(adata.obsm[f"X_{method}"], columns=[f"{method.upper()}1", f"{method.upper()}2"])
-        results_df = pd.concat([results_df, adata.obs], axis=1)            
-        results_df.to_csv(os.path.join(self.output_path, f"{method}_{file_name_base}.csv"), index=False)
+    #   SAVE HELPERS 
+    def _save_csv(self, adata, fname, rep_key):
+        """Write embedding coords to CSV without mutating original obs.
 
-        try:
-            plot_rep(adata, outpath=self.output_path, file_name=file_name_base, **plot_params)
-            plot_rep(adata, outpath=self.output_path, file_name=f"{file_name_base}_batch" , **plot_params_batch)
-            # Just plot the latent rep 
-            if method == 'umap':
-                print("\n Plotting latent rep")
-                if 'input' in prefix:
-                    plot_params.update({"use_rep":"X_pca"})
-                    plot_rep(adata, outpath=self.output_path, file_name=f"modellatent_{file_name_base}", **plot_params)
-                    plot_params_batch.update({"use_rep":"X_pca"})
-                    plot_rep(adata, outpath=self.output_path, file_name=f"modellatent_{file_name_base}_batch", **plot_params_batch)
-                else:
-                    plot_params.update({"use_rep":"X"})
-                    plot_rep(adata, outpath=self.output_path, file_name=f"modellatent_{file_name_base}", **plot_params)
-                    plot_params_batch.update({"use_rep":"X"})
-                    plot_rep(adata, outpath=self.output_path, file_name=f"modellatent_{file_name_base}_batch", **plot_params_batch)
-        except Exception as e:
-            print("Check the error but probably there are too many batches")
-            print(e)
+        * `X_umap` ? CSV only (UMAP¹/² columns not added to `obs`).
+        * `X_pca`  ? CSV + full 50?PC `.npy` dump.
+        * others   ? CSV only.
+        Column names include the `fname` suffix, so collisions are impossible.
+        """
+        if rep_key not in adata.obsm:
+            return
 
-    def filter_and_save_batch_data(self, adata, prefix):
-        use_rep = "X_pca" if 'input' in prefix else "X"
-        adata = filter_adata_by_batch(adata, self.batches_sample, batch_col=self.batch_col)
-        # if use_rep == "X_pca":
-        #     X = self.compute_pca(adata.X)
-        #     adata.obsm["X_pca"] = X
-        # sc.pp.neighbors(adata, use_rep=use_rep, n_neighbors=self.n_neighbors)
-        # sc.tl.umap(adata)
-        self.compute_and_save_umap(adata.X, adata.obs, prefix,name =f"{self.n_batches_sample}{self.batch_col}")
-        # self.save_results(adata, f"{prefix}_{self.sample_size}cells_{self.n_batches_sample}{self.batch_col}", "umap")
-        if self.plot_tsne:
-            self.compute_and_save_tsne(adata.X, adata.obs, prefix,name =f"{self.n_batches_sample}{self.batch_col}")
-            # self.save_results(adata, f"{prefix}_{self.sample_size}cells_{self.n_batches_sample}{self.batch_col}", "tsne")
+        arr = adata.obsm[rep_key]
+        label = {"X_umap": "UMAP", "X_tsne": "TSNE", "X_pca": "PC"}.get(
+            rep_key, rep_key.upper().lstrip("X_"))
+        col1, col2 = f"{label}1_{fname}", f"{label}2_{fname}"
+        coords_df = pd.DataFrame(arr[:, :2], columns=[col1, col2])
+        df_out = coords_df.join(adata.obs.copy().reset_index(drop=True))
+        df_out.to_csv(os.path.join(self.output_path, f"{rep_key}_{fname}.csv"), index=False)
 
-    def select_batches(self, obs):
-        batches = np.unique(obs[self.batch_col])
-        batches_sample = np.random.choice(batches, size=self.n_batches_sample, replace=False)
-        self.batches_sample = batches_sample
-        return batches_sample
+        if rep_key == "X_pca":
+            np.save(os.path.join(self.output_path, f"{rep_key}_{fname}.npy"), arr)
 
-    def process_latent_data(self, input_prefix, obs, process_allbatches):
-        latent_prefixes = self.df.loc[self.df["input_prefix"] == input_prefix, "latent_prefix"].values
-        latent_paths = self.df.loc[self.df["input_prefix"] == input_prefix, "LatentPath"].values
+    def _save_umap_once(self, adata, fname):
+        """Ensure each global UMAP embedding is saved exactly once."""
+        if fname not in self._umap_written:
+            self._umap_written.add(fname)
+            self._save_csv(adata, fname, "X_umap")
 
-        for latent_pref, latent_path in zip(latent_prefixes, latent_paths):
-            print(latent_pref, latent_path)
-            X = np.load(latent_path)
-            if self.sample_size is not None:
-                X = X[self.sampled_indices, :]
-            adata = AnnData(X, obs=obs)
-            use_rep = "X_pca" if 'input' in latent_pref else "X"
-            if process_allbatches:
-                self.compute_and_save_umap(X, obs, latent_pref)
-                if self.plot_tsne:
-                    self.compute_and_save_tsne(X, obs, latent_pref)
-            self.filter_and_save_batch_data(adata, latent_pref)
+    # MAIN DRIVER 
+    def get_dimensionality_reduction_plots(self, process_allbatches=True, issparse=True):
 
-    def get_dimensionality_reduction_plots(self, process_allbatches=True, seed=42,issparse=True):
-        print("\nComputing UMAP and t-SNE for the following files:")
-        input_prefixes = np.unique(self.df["input_prefix"])
-        batches_sample = []
-        np.random.seed(seed)
+        # sanity: you can?t request ?subset only? without a subset size
+        if self.n_batches_sample is None and not process_allbatches:
+            raise ValueError("n_batches_sample=None but process_allbatches=False")
 
-        for i, input_prefix in enumerate(input_prefixes):
-            input_path = self.df.loc[self.df["input_prefix"] == input_prefix, "InputsPath"].values[0]
-            print(input_prefix, input_path)
-            X, var, obs = read_adata(input_path, issparse=issparse)
-            if issparse:
-                X = X.toarray()
-            X = self.apply_scaling(X)
-            X, obs = self.subset_data(X, obs)
-            adata = AnnData(X, obs=obs)
-            # use_rep = "X_pca" if 'input' in input_prefix else "X"
-            if process_allbatches:
-                self.compute_and_save_umap(X, obs, "input_"+input_prefix)
-                if self.plot_tsne:
-                    self.compute_and_save_tsne(X, obs, "input_"+input_prefix)
+        for i, ipref in enumerate(np.unique(self.df["input_prefix"])):
+
+            #  1. load & preprocess the INPUT matrix 
+            in_path = self.df.loc[self.df["input_prefix"] == ipref, "InputsPath"].values[0]
+            X, var, obs = read_adata(in_path, issparse=issparse)
+            X = X.toarray() if issparse else X
+            X, obs = self._subset(self._scale(X), obs)          # optional cell-subsample
+
+            # choose the batch subset once and reuse for every prefix / latent
             if i == 0:
-                batches_sample = self.select_batches(obs)
-            self.filter_and_save_batch_data(adata, "input_"+input_prefix)
-            self.process_latent_data(input_prefix, obs, process_allbatches)
-            gc.collect()
+                all_batches = np.unique(obs[self.batch_col])
+                self.batches_sample = (
+                    all_batches if self.n_batches_sample is None else
+                    self.rng.choice(all_batches, size=self.n_batches_sample, replace=False)
+                )
 
+            # ?? 2. build an AnnData with PCA on the full matrix (always) 
+            ad_full = AnnData(X, obs=obs, var=var)
+            ad_full.obsm["X_pca"] = self._pca(X)                 # PCA always computed
+
+            # 2A. FULL-data UMAP / plots / CSV  ? only when you ask for them
+            if process_allbatches:
+                self._embed(ad_full, "X_pca")                    # neighbour graph + UMAP
+                self._plot_all(ad_full, f"input_{ipref}",         "celltype", "celltype")
+                self._plot_all(ad_full, f"input_{ipref}_batch",   self.batch_col, self.batch_col)
+                for c in self.extra_color_cols:
+                    if c in obs:
+                        self._plot_all(ad_full, f"input_{ipref}_{c}", c, c)
+                self._save_umap_once(ad_full, f"input_{ipref}")   # CSV once per stem
+
+            # always save the PCA latent (needed downstream, cheap)
+            self._save_csv(ad_full, f"input_{ipref}_modellatent", "X_pca")
+
+            # 2B. SUBSET input (only if n_batches_sample specified)
+            if self.n_batches_sample is not None:
+                ad_sub = filter_adata_by_batch(ad_full.copy(), self.batches_sample, self.batch_col)
+                ad_sub.obsm["X_pca"] = self._pca(ad_sub.X)
+                self._embed(ad_sub, "X_pca")
+                stub = f"input_{ipref}_{len(self.batches_sample)}{self.batch_col}"
+                self._plot_all(ad_sub, stub,          "celltype", "celltype")
+                self._plot_all(ad_sub, f"{stub}_batch", self.batch_col, self.batch_col)
+                for c in self.extra_color_cols:
+                    if c in ad_sub.obs:
+                        self._plot_all(ad_sub, f"{stub}_{c}", c, c)
+                self._save_csv(ad_sub, stub, "X_umap")            # subset UMAP CSV
+
+            # ?? 3. LATENT files 
+            lat_df = self.df.loc[self.df["input_prefix"] == ipref, ["latent_prefix", "LatentPath"]]
+
+            # (a) FULL-data latent outputs only when BOTH:
+            #     process_allbatches is True  AND  we did NOT request a subset
+            if process_allbatches and self.n_batches_sample is None:
+                for lp, lpath in lat_df.values:
+                    ad_lat = AnnData(np.load(lpath)[self.sampled_indices], obs=obs)
+                    self._embed(ad_lat, "X")
+                    self._plot_all(ad_lat, lp, "celltype", "celltype")
+                    self._plot_all(ad_lat, f"{lp}_batch", self.batch_col, self.batch_col)
+                    for c in self.extra_color_cols:
+                        if c in obs:
+                            self._plot_all(ad_lat, f"{lp}_{c}", c, c)
+                    self._save_umap_once(ad_lat, lp)
+
+            # (b) SUBSET latent outputs when we have a batch subset
+            if self.n_batches_sample is not None:
+                for lp, lpath in lat_df.values:
+                    ad_lat_sub = AnnData(np.load(lpath)[self.sampled_indices], obs=obs)
+                    ad_lat_sub = filter_adata_by_batch(ad_lat_sub, self.batches_sample, self.batch_col)
+                    self._embed(ad_lat_sub, "X")
+                    stub_lat = f"{lp}_{len(self.batches_sample)}{self.batch_col}"
+                    self._plot_all(ad_lat_sub, stub_lat,          "celltype", "celltype")
+                    self._plot_all(ad_lat_sub, f"{stub_lat}_batch", self.batch_col, self.batch_col)
+                    for c in self.extra_color_cols:
+                        if c in ad_lat_sub.obs:
+                            self._plot_all(ad_lat_sub, f"{stub_lat}_{c}", c, c)
+                    self._save_csv(ad_lat_sub, stub_lat, "X_umap")
+
+            gc.collect()
 

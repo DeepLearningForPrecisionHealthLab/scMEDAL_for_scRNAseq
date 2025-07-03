@@ -90,10 +90,15 @@ for sample_size in np.unique(df_allscores["sample_size"]):
 # NOTE: Keys in models2process_dict must match those in run_names_dict.
 models2process_dict = {
     "AE_50dims": "preprocess_results_model_pca_format",
-#    "AEC_50dims": "process_single_model_format",
-#    "scMEDAL-FEC_50dims": "process_single_model_format",
+   "AEC_50dims": "process_single_model_format",
+   "scMEDAL-FEC_50dims": "process_single_model_format",
     "scMEDAL-FE_50dims": "process_single_model_format",
-    "scMEDAL-RE_50dims": "process_single_model_format"
+    "scMEDAL-RE_50dims": "process_single_model_format",
+    "scVI_50dims":"process_single_model_format",
+    "scANVI_50dims":"process_single_model_format",
+    "scanorama_50dims":"process_single_model_format",
+    "harmony_50dims":"process_single_model_format",
+    "SAUCIE_50dims":"process_single_model_format",
 }
 
 # Process all results

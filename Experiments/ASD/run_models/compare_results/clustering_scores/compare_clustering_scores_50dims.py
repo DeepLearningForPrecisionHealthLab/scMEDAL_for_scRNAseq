@@ -97,6 +97,8 @@ models2process_dict = {
     "scVI_50dims": "process_single_model_format",
     "scANVI_50dims": "process_single_model_format",
     "scanorama_50dims": "process_single_model_format",
+    "harmony_50dims": "process_single_model_format",
+    "SAUCIE_50dims":"process_single_model_format",
 
 }
 

@@ -93,7 +93,7 @@ models2process_dict = {
     "AEC": "preprocess_results_model_pca_format",
     "scMEDAL-FEC": "process_single_model_format",
     "scMEDAL-FE": "process_single_model_format",
-    "scMEDAL-RE": "process_single_model_format"
+    "scMEDAL-RE": "process_single_model_format",
 }
 
 # Process all results

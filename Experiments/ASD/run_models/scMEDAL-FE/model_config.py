@@ -17,7 +17,7 @@ compile_dict = {
     "opt_autoencoder": tf.keras.optimizers.Adam(lr=0.0001),  # Optimizer for AEC
     "opt_adversary": tf.keras.optimizers.Adam(lr=0.0001),  # Optimizer for Adversary
     "loss_gen_weight": 1,  # General loss weight
-    "loss_recon_weight": 3000,  # Reconstruction loss weight
+    "loss_recon_weight": 1000,  # Reconstruction loss weight
     "loss_class_weight": 1  # Classification loss weight
 }
 

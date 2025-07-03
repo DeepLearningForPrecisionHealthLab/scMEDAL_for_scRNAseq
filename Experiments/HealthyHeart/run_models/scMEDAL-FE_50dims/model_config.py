@@ -16,9 +16,11 @@ compile_dict = {
     "metric_multiclass": tf.keras.metrics.CategoricalAccuracy(name='acc'),
     "opt_autoencoder": tf.keras.optimizers.Adam(lr=0.0001),  # Optimizer for the autoencoder component
     "opt_adversary": tf.keras.optimizers.Adam(lr=0.0001),    # Optimizer for the adversary component
-    "loss_gen_weight": 1,  
-    # "loss_recon_weight": 1800,
-    "loss_recon_weight": 5400,  # 1800 * 3; Adjusted reconstruction loss weight
+    "loss_gen_weight": 1, 
+    #"loss_recon_weight": 600,
+    "loss_recon_weight": 900,
+    #"loss_recon_weight": 1800,
+    #"loss_recon_weight": 5400,  # 1800 * 3; Adjusted reconstruction loss weight
     # "loss_recon_weight": 0,   # For testing if we get max (4.99) - commented out
     "loss_class_weight": 1
 }

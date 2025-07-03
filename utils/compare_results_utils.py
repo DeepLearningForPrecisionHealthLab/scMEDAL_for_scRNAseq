@@ -842,7 +842,7 @@ def get_umap_plot(df, umap_path, plot_params, sample_size=10000, n_neighbors=15,
 
 
 class DimensionalityReductionProcessor:
-    def __init__(self, df, output_path, plot_params, sample_size=10000, n_neighbors=15, scaling="min_max", n_batches_sample=20, batch_col="batch", plot_tsne=False, n_pca_components=50,min_dist=0.5):
+    def __init__(self, df, output_path, plot_params, sample_size=10000, n_neighbors=15, scaling="min_max", n_batches_sample=20, batch_col="batch", plot_tsne=False, n_pca_components=50,min_dist=0.5, seed:int=5, extra_color_cols=None):
         self.df = df
         self.output_path = output_path
         self.plot_params = plot_params
@@ -855,7 +855,8 @@ class DimensionalityReductionProcessor:
         self.plot_tsne = plot_tsne
         self.n_pca_components = n_pca_components
         self.batches_sample = None
-
+        self.seed = seed
+        self.extra_color_cols= extra_color_cols if extra_color_cols else []
     def apply_scaling(self, X):
         if self.scaling == "min_max":
             return min_max_scaling(X)
@@ -970,11 +971,11 @@ class DimensionalityReductionProcessor:
                 self.compute_and_save_tsne(X, obs, latent_pref)
             self.filter_and_save_batch_data(adata, latent_pref)
 
-    def get_dimensionality_reduction_plots(self,seed=42,issparse=True, umap=True, tsne=False):
+    def get_dimensionality_reduction_plots(self,issparse=True, umap=True, tsne=False):
         print("\nComputing UMAP and t-SNE for the following files:")
         input_prefixes = np.unique(self.df["input_prefix"])
         batches_sample = []
-        np.random.seed(seed)
+        np.random.seed(self.seed)
 
         for i, input_prefix in enumerate(input_prefixes):
             input_path = self.df.loc[self.df["input_prefix"] == input_prefix, "InputsPath"].values[0]

@@ -3,6 +3,7 @@ from .aec import AEC
 from .scmedalfe import scMEDALFE
 from .scmedalfec import scMEDALFEC
 from .scmedalre import scMEDALRE
+from .saucie import SAUCIE
 from .base import Model
 
 from utils.defaults import AML_MODEL_KWARGS, ASD_MODEL_KWARGS, HH_MODEL_KWARGS
@@ -15,6 +16,7 @@ model_aliases = {
     "scMEDAL-FE":scMEDALFE, "scmedalfe":scMEDALFE, 
     "scMEDAL-FEC":scMEDALFEC, "scmedalfec":scMEDALFEC, 
     "scMEDAL-RE":scMEDALRE, "scmedalre":scMEDALRE,
+    "SAUCIE":SAUCIE, "saucie":SAUCIE,     
 }
 
 named_experiments = {

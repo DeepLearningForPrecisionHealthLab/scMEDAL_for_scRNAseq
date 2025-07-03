@@ -14,7 +14,7 @@ from utils.model_train_utils import generate_run_name, run_all_folds
 
 
 class Model(ABC):
-    valid_models=["ae","aec","scmedalfe","scmedalfec", "scmedalre"]
+    valid_models=["ae","aec","scmedalfe","scmedalfec", "scmedalre", "saucie"]
     valid_named_experiment=["AML","ASD", "HH"]
 
     def __init__(self, model_name:str, **kwargs):
@@ -135,8 +135,8 @@ class Model(ABC):
         shape_color_dict = plotconfigs.get_shape_color_dict(self.expt_design_configs)
 
         if quick:
-            self.training_configs._replace(epochs=3)
-            self.model_params['epochs'] = 3
+            self.training_configs._replace(epochs=10)
+            self.model_params['epochs'] = 10
             self.model_params['fold_list'] = [1]
 
         model_name = self.model_name

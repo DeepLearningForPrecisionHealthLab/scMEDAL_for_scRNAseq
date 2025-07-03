@@ -18,7 +18,8 @@ class PlotConfigs(NamedTuple):
         '#e6beff',  # Lavender
         '#9a6324',  # Brown
         '#d2f53c',  # Lime
-        '#ff69b4',  # Hot pink
+        #'#ff69b4',  # Hot pink
+        "#7fff00",  # Chartreuse
         '#000080',  # Navy
         '#800000',  # Maroon
         '#808000',  # Olive

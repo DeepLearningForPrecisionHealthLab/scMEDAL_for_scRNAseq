@@ -53,7 +53,7 @@ class Model(ABC):
         return self.training_configs
 
     def _init_score_configs(self, kwargs:Optional[Dict[str, Any]]=None):
-        self.score_configs = cfg.ScoreConfigs(self.model_name)        
+        self.score_configs = cfg.ScoreConfigs(self.model_name).configs        
         if kwargs is not None:
             self.score_configs = self.score_configs._replace(**{k:v for k,v in kwargs.items() if k in self.score_configs._fields})
         return self.score_configs
@@ -207,7 +207,7 @@ class Model(ABC):
             folds_list=params.fold_list,
             run_name=params.run_name,
             model_params_dict=self.model_params,
-            build_model_dict={k:v for k, v in self.model_configs.items() if k != "ignore"},
+            build_model_dict={k:v for k, v in self.model_configs._asdict().items() if k != "ignore"},
             compile_dict=self.compile_configs,
             save_model=save_model,
             batch_col=params.batch_col,

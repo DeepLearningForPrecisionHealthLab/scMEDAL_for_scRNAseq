@@ -29,7 +29,7 @@ class PlotConfigs(NamedTuple):
     ]
     showplot:bool=False
     save_fig:bool=True
-    output:Optional[str]=None
+    outpath:Optional[str]=None
     use_bio_bio:bool=True
     use_batch_batch:bool=True
     use_bio_batch:bool=False

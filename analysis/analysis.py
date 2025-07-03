@@ -8,6 +8,10 @@ from .AML.compare_clustering_scores import compare_clustering_scores_AML
 from .AML.genomap_and_plot import genomap_and_plot
 from .AML.compare_results_umap import get_umap
 
+
+from dataclasses import dataclass, field
+import random
+
 def dict_to_named_tuple(d:Dict, name:Optional[str]=None) -> NamedTuple:
     return NamedTuple(f"{name}", [(k,v) for k,v in d.items()])
     
@@ -68,6 +72,45 @@ class Analysis(ABC):
         paths["saved_models_path"] = {k:os.path.join(model_saved_header, k, v) for k,v in model_result_folder_dict.items() }
         
         return AnalysisPaths(**paths)
+
+
+@dataclass
+class GenomapConfig:
+    # core paths
+    compare_models_path: str
+    data_base_path: str
+    scenario_id: str
+    input_base_path: str
+    analysis_name: Optional[str] = None
+
+    # tuning knobs
+    celltype: Optional[List[str]] = None
+    batches:  Optional[List[str]] = None
+    # genomap
+    n_cells_per_batch: int = 300
+    n_batches: int = None
+    n_genes: int = 2916
+    n_col: int = 54
+    n_row: int = 54
+    num_iter: int = 2 #100 
+
+    cell_id_col : str = None
+    gene_index_col: str = None
+    scaling: str = "min_max"
+    add_inputs_fe: bool = True
+    extra_recon: str = "fe"   # "fe", "all", or "none"
+    seed: int = 42
+    n_cells_2_plot: int = 4
+    n_top_genes : int = 10
+    min_val : int = -1
+    max_val : int = 2
+    # derived
+    n_inputs_fe: int = field(init=False)
+
+    def __post_init__(self):
+        self.n_inputs_fe = {"fe": 2, "all": 5}.get(self.extra_recon, 0)
+        random.seed(self.seed)
+
 
 class AMLAnalysis(Analysis):
     def __init__(self, model_result_folder_dict:Optional[Dict[str,str]]=None, analysis_name:Optional[str]=None, experiment_name:str="AML", *args, **kwargs) -> None:
@@ -144,14 +187,59 @@ class AMLAnalysis(Analysis):
             models:Optional[List[str]]=None, # Default is to do all models in model_result_folder_dict.
             types:Optional[List[str]]=None,  # ["train", "test", "val"]
             splits:Optional[List[int]]=None, # i.e. [1, 2] ...
-            add_inputs_fe:bool=False, 
-            extra_recon:str="all", # "fe" or "all" ( Not really sure what this does.)
-            seed:int=42 # random seed
+            add_inputs_fe:bool=True, 
+            extra_recon:str="fe", # "fe" or "all" ( Not really sure what this does.)
+            seed:int=42, # random seed
+            n_cells_2_plot: int = 4,
+            n_top_genes : int = 10,
+            min_val : int = None,
+            max_val : int = None,
+            num_iter: int = 100 ,
+            cell_id_col : str = None,
+
         ):
         # This will update self.paths which is the basis for _genomap_kwargs
         # Not ideal, but workable.
         self._check_update_assertions(model_result_folder_dict)
         
+                # 1. Build GenomapConfig from core paths + tuning knobs
+        core = self._genomap_kwargs()
+        cfg = GenomapConfig(
+            compare_models_path = core["compare_models_path"],
+            data_base_path      = core["data_base_path"],
+            scenario_id         = core["scenario_id"],
+            input_base_path     = core["input_base_path"],
+            analysis_name       = core["analysis_name"],
+            celltype            = celltype,
+            batches             = batches,
+            n_cells_per_batch   = n_cells_per_batch,
+            n_batches           = n_batches,
+            n_genes             = n_genes,
+            n_col               = n_col,
+            n_row               = n_row,
+            num_iter            = num_iter,
+            cell_id_col         = cell_id_col,
+            gene_index_col      = gene_index_col,
+            scaling             = scaling,
+            add_inputs_fe       = add_inputs_fe,
+            extra_recon         = extra_recon,
+            seed                = seed,
+            n_cells_2_plot      = n_cells_2_plot,
+            n_top_genes         = n_top_genes,
+            min_val             = min_val,
+            max_val             = max_val,
+        )
+
+        # 2. Delegate to legacy wrapper that expects (run_names_dict, results_path_dict, cfg, ?)
+        return genomap_and_plot(
+            core["run_names_dict"],
+            core["results_path_dict"],
+            cfg,
+            models=models,
+            types=types,
+            splits=splits,
+        )
+
         if celltype is None:
             celltype = ["Mono", "Mono-like"]
         
@@ -173,7 +261,7 @@ class AMLAnalysis(Analysis):
                 splits=splits,
                 add_inputs_fe=add_inputs_fe,
                 extra_recon=extra_recon,
-                seed=seed
+                seed=rng_seed
                 )
         except Exception as e:
             raise e

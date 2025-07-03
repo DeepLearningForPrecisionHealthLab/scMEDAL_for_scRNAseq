@@ -60,19 +60,19 @@ def compare_clustering_scores_AML(run_names_dict, results_path_dict, compare_mod
     # --------------------------------------------------------------------------------------
     # 4. Filter minimum and maximum silhouette scores for the batch
     # --------------------------------------------------------------------------------------
-    for sample_size in np.unique(df_allscores["sample_size"]):
-        df_min_silhouette, df_max_silhouette = filter_min_max_silhouette_scores(df_allscores, batch_col="batch")
+    # for sample_size in np.unique(df_allscores["sample_size"]):
+    #     df_min_silhouette, df_max_silhouette = filter_min_max_silhouette_scores(df_allscores, batch_col="batch")
         
-        # Save the filtered results to CSV
-        df_min_silhouette.to_csv(os.path.join(out_name, f"{dataset_type}_scores_{sample_size}_min_silhouette_batch.csv"))
-        df_max_silhouette.to_csv(os.path.join(out_name, f"{dataset_type}_scores_{sample_size}_max_silhouette_batch.csv"))
+    #     # Save the filtered results to CSV
+    #     df_min_silhouette.to_csv(os.path.join(out_name, f"{dataset_type}_scores_{sample_size}_min_silhouette_batch.csv"))
+    #     df_max_silhouette.to_csv(os.path.join(out_name, f"{dataset_type}_scores_{sample_size}_max_silhouette_batch.csv"))
 
-        # Print the resulting DataFrames
-        print("DataFrame with minimum silhouette scores:")
-        print(df_min_silhouette)
+    #     # Print the resulting DataFrames
+    #     print("DataFrame with minimum silhouette scores:")
+    #     print(df_min_silhouette)
 
-        print("\nDataFrame with maximum silhouette scores:")
-        print(df_max_silhouette)
+    #     print("\nDataFrame with maximum silhouette scores:")
+    #     print(df_max_silhouette)
 
     # --------------------------------------------------------------------------------------
     # 5. Process results depending on the model configuration
@@ -100,3 +100,4 @@ def compare_clustering_scores_AML(run_names_dict, results_path_dict, compare_mod
         df_mean_ci_results = process_confidence_intervals(df_all, out_name, dataset_type, sample_size)
         print(f"Sample size: {sample_size}\nConfidence interval results:")
         print(df_mean_ci_results)
+    

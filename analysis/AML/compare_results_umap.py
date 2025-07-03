@@ -27,7 +27,7 @@ def get_umap(
         analysis_name,
         n_batches:int=19,
         n_neighbors:int=15,
-        seed:int=5,
+        rng_seed:int=5,
         scaling:str="min_max",
         models:Optional[List[str]]=None,
         types:Optional[List[str]]=None,
@@ -75,7 +75,7 @@ def get_umap(
     if not os.path.exists(out_name):
         os.makedirs(out_name)
 
-    umap_path = os.path.join(out_name, f"umap_{n_batches}batches_seed_{seed}")
+    umap_path = os.path.join(out_name, f"umap_{n_batches}batches_seed_{rng_seed}")
     if not os.path.exists(umap_path):
         os.makedirs(umap_path)
 
@@ -106,12 +106,14 @@ def get_umap(
                 n_batches_sample=n_batches,
                 batch_col=batch_col,
                 plot_tsne=False,
-                n_pca_components=2
+                n_pca_components=2,
+                rng_seed=rng_seed,
+                extra_color_cols=["Patient_group"]
             )
 
             print(f"{df.columns}")
             
             # Generate UMAP plots
-            processor.get_dimensionality_reduction_plots(seed=seed, issparse=issparse)
+            processor.get_dimensionality_reduction_plots(process_allbatches=False, issparse=issparse)
             processors.append(processor)
     return processors

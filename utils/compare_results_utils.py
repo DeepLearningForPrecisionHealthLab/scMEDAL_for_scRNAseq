@@ -976,17 +976,21 @@ class DimensionalityReductionProcessor:
             ad_full = AnnData(X, obs=obs, var=var)
             ad_full.obsm["X_pca"] = self._pca(X)                 # PCA always computed
 
-            # 2A. FULL-data UMAP / plots / CSV  ? only when you ask for them
-            self._embed(ad_full, "X_pca")                    # neighbour graph + UMAP
-            self._plot_all(ad_full, f"input_{ipref}",         "celltype", "celltype")
-            self._plot_all(ad_full, f"input_{ipref}_batch",   self.batch_col, self.batch_col)
-            for c in self.extra_color_cols:
-                if c in obs:
-                    self._plot_all(ad_full, f"input_{ipref}_{c}", c, c)
-            self._save_umap_once(ad_full, f"input_{ipref}")   # CSV once per stem
+            try:
+                # 2A. FULL-data UMAP / plots / CSV  ? only when you ask for them
+                self._embed(ad_full, "X_pca")                    # neighbour graph + UMAP
+                self._plot_all(ad_full, f"input_{ipref}",         "celltype", "celltype")
+                self._plot_all(ad_full, f"input_{ipref}_batch",   self.batch_col, self.batch_col)
+                for c in self.extra_color_cols:
+                    if c in obs:
+                        self._plot_all(ad_full, f"input_{ipref}_{c}", c, c)
+                self._save_umap_once(ad_full, f"input_{ipref}")   # CSV once per stem
 
-            # always save the PCA latent (needed downstream, cheap)
-            self._save_csv(ad_full, f"input_{ipref}_modellatent", "X_pca")
+                # always save the PCA latent (needed downstream, cheap)
+                self._save_csv(ad_full, f"input_{ipref}_modellatent", "X_pca")
+            except:
+                print("I broke")
+                pass
 
             # 2B. SUBSET input (only if n_batches_sample specified)
             if self.n_batches_sample is not None:

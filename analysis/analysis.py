@@ -360,7 +360,16 @@ class ASDAnalysis(Analysis):
             "results_path_dict":self.paths.latent_space_path,
             "compare_models_path":self.paths.outputs_path,
             "input_base_path":self.paths.splits_path,
-            "analysis_name":self.paths.analysis_name
+            "analysis_name":self.paths.analysis_name,
+            "n_batches":31,
+            "n_neighbors":15,
+            "rng_seed":5,
+            "scaling":"min_max",
+            "batch_col":"batch",
+            "shape_col":"celltype",
+            "color_col":"celltype",
+            "use_rep":"X_umap",
+            "extra_color_cols":"Patient_group"
         }
 
 

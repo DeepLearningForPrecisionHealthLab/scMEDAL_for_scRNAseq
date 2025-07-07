@@ -25,6 +25,7 @@ def get_umap(
         compare_models_path,
         input_base_path,
         analysis_name,
+        n_pca_components:int=2,
         n_batches:int=19,
         n_neighbors:int=15,
         rng_seed:int=5,
@@ -38,6 +39,7 @@ def get_umap(
         use_rep:str="X_umap",
         clustering_scores=None, 
         issparse=False,
+        extra_color_cols="Patient_group"
     ):
     
     # Define common plotting parameters
@@ -106,9 +108,9 @@ def get_umap(
                 n_batches_sample=n_batches,
                 batch_col=batch_col,
                 plot_tsne=False,
-                n_pca_components=2,
+                n_pca_components=n_pca_components,
                 rng_seed=rng_seed,
-                extra_color_cols=["Patient_group"]
+                extra_color_cols=[extra_color_cols]
             )
 
             print(f"{df.columns}")

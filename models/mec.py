@@ -136,7 +136,7 @@ class MEC(Model):
                  build_model_dict={k:v for k, v in self.model_configs._asdict().items() if k not in [
                      "ignore", 'latent_keys_config', "return_metrics", "return_adata_dict", "return_trained_model", 
                      "model_type", "seed", "latent_path_dict", "model_params", "base_path", "fold", "models_list", 
-                     "batch_col_categories", "bio_col_categories", "fe_latent"
+                     "batch_col_categories", "bio_col_categories", 
                      ]},
                 **pipeline_LatentClassifier_config,
                 
@@ -156,7 +156,7 @@ class MEC(Model):
         #     load_latent_spaces_dict["model_params"].latent_path_main,
         #     "metrics_allfolds.csv"
         # )
-        all_folds_metrics_df.to_csv(outputs_path)
+        all_folds_metrics_df.to_csv(os.path.join(latent_space_base,params.run_name, "metrics_allfolds.csv"))
         # print("\nall_folds_metrics_df:", all_folds_metrics_df)
 
         # # --------------------------------------------------------------------------------------
@@ -167,7 +167,7 @@ class MEC(Model):
         #     load_latent_spaces_dict["model_params"].latent_path_main,
         #     "metrics_allfolds_95CI.csv"
         # )
-        results_df.to_csv(outputs_path+"metrics_allfolds_95CI.csv")
+        results_df.to_csv(os.path.join(latent_space_base,params.run_name,"metrics_allfolds_95CI.csv"))
         print("\nresults_df:", results_df)
 
         pass

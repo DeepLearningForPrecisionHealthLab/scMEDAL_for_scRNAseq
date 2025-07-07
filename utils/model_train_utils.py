@@ -1,7 +1,7 @@
 import numpy as np
 import anndata as ad
 import sys
-
+from collections import namedtuple
 from typing import Dict, List, Any
 from .utils import create_folder,read_adata,get_OHE,min_max_scaling,plot_rep,calculate_merge_scores,get_split_paths,calculate_zscores,get_clustering_scores_optimized
 # from utils import create_folder,read_adata,get_OHE,min_max_scaling,plot_rep,calculate_merge_scores,get_split_paths,calculate_zscores,get_clustering_scores_optimized
@@ -41,16 +41,19 @@ def generate_run_name(model_params_dict, constant_keys, name='run'):
         except TypeError:
             return value
 
-    def format_value(value):
+    def format_value(key, value):
         if isinstance(value, list):
             return '-'.join(map(str, value))
+        if isinstance(value, dict):
+            tp = namedtuple(key, field_names=value.keys())
+            return tp._make(value)
         return str(safe_round(value))
     
     # If constant_keys is None, set it to an empty list
     if constant_keys is None:
         constant_keys = []
 
-    run_name_parts = [f"{key}-{format_value(value)}" for key, value in model_params_dict.items() if key not in constant_keys]
+    run_name_parts = [f"{key}-{format_value(key, value)}" for key, value in model_params_dict.items() if key not in constant_keys]
     # Format the timestamp to include only date, hours, and minutes
     timestamp = pd.Timestamp.now().strftime('%Y-%m-%d_%H-%M')
     
@@ -1569,12 +1572,12 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
     #            mean_scores = df_all_results.mean()
                 if not (model_params.get_pca or model_params.get_baseline):
                     # calculate mean
-                    mean_scores = df_all_results.mean().to_frame('mean')
+                    mean_scores = df_all_results.mean(numeric_only=True).to_frame('mean')
                     # fill the dict
                     mean_scores_dict[dataset_type] = mean_scores
 
                     # Calculate sample standard deviation scores
-                    std_scores = df_all_results.std(ddof=1).to_frame('std')  # Using sample standard deviation
+                    std_scores = df_all_results.std(numeric_only=True,ddof=1).to_frame('std')  # Using sample standard deviation
 
                     # Calculate standard error of the mean (SEM)
                     se_scores = std_scores / (len(folds_list) ** 0.5)  # SEM calculation
@@ -1984,12 +1987,12 @@ def evaluate_model(trained_model, inputs, adata_dict, model_params,metric_name =
         loss, metric = trained_model.evaluate(inputs_data, outputs_data, batch_size=model_params.batch_size)  # Default batch_size to 32 if not set
 
         currdf = pd.DataFrame().from_dict({
-            'Dataset': dataset_type,
-            'Loss': loss,
-            metric_name: metric
+            'Dataset': [dataset_type],
+            'Loss': [loss],
+            metric_name: [metric]
         })
         # Append the results to the DataFrame
-        metrics_df = pd.concat([metrics_df, currdf])
+        metrics_df = pd.concat([metrics_df, currdf], ignore_index=True)
 
     metrics_df.to_csv(os.path.join(model_params.latent_path, "metrics.csv"))
 
@@ -2090,7 +2093,7 @@ def evaluate_model_v2(trained_model, inputs, adata_dict, model_params, metric_na
         datasets_to_evaluate.append('test')
 
     # Create an empty DataFrame to store the results
-    metrics_df = pd.DataFrame(columns=['Dataset', 'Loss'])
+    metrics_df = pd.DataFrame(columns=['Dataset', 'Loss', f"{metric_name}_dffn", "Balanced_Accuracy_dffn"])
 
     # Evaluate the model on each dataset
     for dataset_type in datasets_to_evaluate:
@@ -2117,13 +2120,13 @@ def evaluate_model_v2(trained_model, inputs, adata_dict, model_params, metric_na
         adata_dict[f'{dataset_type}'].obs.to_csv(os.path.join(model_params.latent_path, f"y_pred_{dataset_type}.csv"))
 
         currdf = pd.DataFrame().from_dict({
-            'Dataset': dataset_type,
-            'Loss': loss,
-            f'{metric_name}_dffn': metric,
-            'Balanced_Accuracy_dffn': balanced_acc  # Add balanced accuracy here
+            'Dataset': [dataset_type],
+            'Loss':[loss],
+            f'{metric_name}_dffn': [metric],
+            'Balanced_Accuracy_dffn': [balanced_acc]  # Add balanced accuracy here
         })
         # Append the results to the DataFrame
-        metrics_df = pd.concat([metrics_df, currdf])
+        metrics_df = pd.concat([metrics_df, currdf], ignore_index=True)
 
     return {
         "metrics": metrics_df,
@@ -2154,6 +2157,9 @@ def build_train_evaluate_model(Model,build_model_dict, compile_dict, inputs, ada
         - "adata_dict": Updated AnnData dictionary with evaluation results.
     """
     # 3. Build and train model
+    print(build_model_dict)
+    print(vars(model_params))
+
     me_model = Model(**build_model_dict)
     me_model.compile(**compile_dict)
     trained_model, history = train_and_save_model(
@@ -2266,9 +2272,9 @@ def svm_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=Fal
         y_test = label_encoder.transform(adata_dict["test_y"].values.argmax(axis=1))
         test_results = process_dataset("test", X_test, y_test)
         test_df = pd.DataFrame().from_dict({
-            "Dataset": "test",
-            "SVMAccuracy": test_results["accuracy"],
-            "SVMBalancedAccuracy": test_results["balanced_accuracy"]
+            "Dataset": ["test"],
+            "SVMAccuracy": [test_results["accuracy"]],
+            "SVMBalancedAccuracy": [test_results["balanced_accuracy"]]
         })
 
         metrics_df = pd.concat([metrics_df, test_df], ignore_index=True)
@@ -2373,12 +2379,12 @@ def random_forest_accuracy_and_predictions(inputs, adata_dict, model_params, eva
         test_results = process_dataset("test", X_test, y_test)
 
         currdf = pd.DataFrame().from_dict({
-            "Dataset": "test",
-            "RFAccuracy": test_results["accuracy"],
-            "RFBalancedAccuracy": test_results["balanced_accuracy"]
+            "Dataset": ["test"],
+            "RFAccuracy": [test_results["accuracy"]],
+            "RFBalancedAccuracy": [test_results["balanced_accuracy"]]
         })
         # Append the results to the DataFrame
-        metrics_df = pd.concat([metrics_df, currdf])
+        metrics_df = pd.concat([metrics_df, currdf], ignore_index=True)
 
         adata_dict["test"] = test_results["adata_dict"]["test"]
 
@@ -2474,8 +2480,8 @@ def dummy_classifier_chance_accuracy(inputs, adata_dict, model_params, eval_test
         test_results = process_dataset("test", X_test, y_test)
 
         currdf = pd.DataFrame().from_dict({
-            "Dataset": "test",
-            "ChanceAccuracy": test_results["chance_accuracy"],
+            "Dataset": ["test"],
+            "ChanceAccuracy": [test_results["chance_accuracy"]],
         })
         # Append the results to the DataFrame
         metrics_df = pd.concat([metrics_df, currdf])
@@ -2584,7 +2590,7 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
                                            batch_col, bio_col, base_path, fold, models_list, latent_keys_config,
                                            batch_col_categories=None, bio_col_categories=None, return_metrics=True, 
                                            return_adata_dict=False, return_trained_model=False, model_type="mec",
-                                           issparse=False, load_dense=False,seed=None, get_pca:bool=True, **kwargs):
+                                           issparse=False, load_dense=False,seed=None, get_pca:bool=True, get_svc:bool=False, **kwargs):
     """
     Runs the complete model pipeline, including data loading, model training, evaluation, and metric collection.
 
@@ -2638,12 +2644,15 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
 
     adata_dict = dffn_results["adata_dict"]
     dffn_metrics = dffn_results["metrics"]
-    print("Training svc classifier")
-
-    svm_results = svm_accuracy_and_predictions(inputs, adata_dict, model_params,eval_test=model_params.eval_test)
-    adata_dict = svm_results["adata_dict"]
-    svm_metrics = svm_results["metrics"]
-    #metrics_df = pd.merge(dffn_metrics,svm_metrics)
+    metrics_df = None
+    if get_svc:
+        print("Training svc classifier")
+        svm_results = svm_accuracy_and_predictions(inputs, adata_dict, model_params,eval_test=model_params.eval_test)
+        adata_dict = svm_results["adata_dict"]
+        svm_metrics = svm_results["metrics"]
+        #metrics_df = pd.merge(dffn_metrics,svm_metrics)
+         # Merge the metrics from DFFN, SVM, and RandomForest
+        metrics_df = pd.merge(dffn_metrics, svm_metrics, on="Dataset")
 
 
     # Evaluate using RandomForest
@@ -2658,8 +2667,8 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
     adata_dict = chance_results["adata_dict"]
     chance_metrics = chance_results["metrics"]
 
-    # Merge the metrics from DFFN, SVM, and RandomForest
-    metrics_df = pd.merge(dffn_metrics, svm_metrics, on="Dataset")
+    if metrics_df is None:
+        metrics_df = dffn_metrics
     metrics_df = pd.merge(metrics_df, rf_metrics, on="Dataset")
     metrics_df = pd.merge(metrics_df, chance_metrics, on="Dataset")
 

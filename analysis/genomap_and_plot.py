@@ -313,7 +313,7 @@ class GenomapPipeline:
             n_top_genes    = cfg.n_top_genes,
             order          = "C",
             path_2_genomap = out_dir,
-            file_name      = cell_id,
+            file_name      = cell_id.replace("/",""),
         )
 
 
@@ -342,7 +342,7 @@ class GenomapPipeline:
             max_val         = cfg.max_val,
             order           = "C",
             path_2_genomap  = out_dir,
-            file_name       = f"{cell_id}_std_{original_ct}",
+            file_name       = f"{cell_id.replace("/","")}_std_{original_ct}",
         )
 
 
@@ -362,7 +362,7 @@ class GenomapPipeline:
         with_labels: bool,
     ):
         cfg = self.cfg
-        file_stub = f"{cell_id}_few_batches_std_{original_ct}"
+        file_stub = f"{cell_id.replace("/","")}_few_batches_std_{original_ct}"
         if with_labels:
             file_stub += "_genelabels"
 

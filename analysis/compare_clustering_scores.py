@@ -15,7 +15,7 @@ It also adds 95% confidence intervals (CI) to the results.
 Environment: run_models_env
 """
 
-def compare_clustering_scores_AML(run_names_dict, results_path_dict, compare_models_path, dataset_type, models2process_dict, analysis_name) -> None:
+def compare_clustering_scores(run_names_dict, results_path_dict, compare_models_path, dataset_type, models2process_dict, analysis_name) -> None:
 
     # --------------------------------------------------------------------------------------
     # 1. Define dataset type and output directory

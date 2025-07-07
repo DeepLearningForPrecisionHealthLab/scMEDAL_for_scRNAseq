@@ -5,16 +5,13 @@ class MECModelConfigs(NamedTuple):
     n_latent_dims:int=2
     layer_units:List[int]=[8,4]
     n_pred:int=21
-    #add_re_2_mec_class:bool = False
-    #last_activation:str="linear"
-    #use_batch_norm:bool=True
     ignore:List[str]=['ignore', 'fold_list', "optimizer_configs", "loss_configs", "metric_configs",
     "n_components", 'batch_col', 'bio_col', 'donor_col', "layer_units_latent_classifier",
     "name", "monitor_metric", "stop_criteria", "get_pca", "get_baseline", 'use_z',
     'encoder_latent_name', 'sigmoid_eval_test', 'last_activation', 'get_pred',
     "eval_test", "optimizer", "loss", "loss_weights", "metrics", "latent_path_dict", "model_params", 
     "base_path", "add_re_2_mec_class", "batch_col_categories", "bio_col_categories",
-    "models_list", "return_metrics", "return_adata_dict", "return_trained_model", "model_type"
+    "models_list", "return_metrics", "return_adata_dict", "return_trained_model", "model_type", "compute_latents_callback"
     ]
 
     # Old LatentClassifier_config

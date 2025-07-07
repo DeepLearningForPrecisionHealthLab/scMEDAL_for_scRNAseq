@@ -2,7 +2,7 @@ from typing import NamedTuple, List
 
 class scMEDALREModelConfigs(NamedTuple):
     name:str="scmedalre"
-    n_latent_dims:int=2
+    n_latent_dims:int=50
     layer_units:List[int]=[512,132]
     layer_units_classifier:List[int]=[5]
     n_pred:int=21

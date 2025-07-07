@@ -331,6 +331,7 @@ class GenomapPipeline:
         original_ct: str,
     ):
         cfg = self.cfg
+        filename = f"{cell_id}_std_{original_ct}"
         plot_cell_recon_genomap(
             genomap,
             idxs,
@@ -342,7 +343,7 @@ class GenomapPipeline:
             max_val         = cfg.max_val,
             order           = "C",
             path_2_genomap  = out_dir,
-            file_name       = f"{cell_id.replace("/","")}_std_{original_ct}",
+            file_name       = filename,
         )
 
 
@@ -361,8 +362,9 @@ class GenomapPipeline:
         n_cols: int,
         with_labels: bool,
     ):
+    
         cfg = self.cfg
-        file_stub = f"{cell_id.replace("/","")}_few_batches_std_{original_ct}"
+        file_stub = f"{cell_id}_few_batches_std_{original_ct}"
         if with_labels:
             file_stub += "_genelabels"
 

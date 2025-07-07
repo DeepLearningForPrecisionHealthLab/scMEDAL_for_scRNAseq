@@ -400,18 +400,11 @@ class HHAnalysis(Analysis):
             "num_iter":100,
             # These changed
             "n_batches":31,
-            "cell_id_col":"cell",
-            "gene_index_col":"gene_ids",
-            "celltype":["L2/3"],
-            "batches": [
-                "donor_5531",
-                "donor_5945",
-                "donor_5419",
-                "donor_6032",
-                "donor_5242",
-                "donor_5976",
-            ],
-            "n_cells_2_plot":6,
+            "cell_id_col":"_index",
+            "gene_index_col":"_index",
+            "celltype":["Ventricular_Cardiomyocyte", "Endothelial", "Fibroblast", "Pericytes"],
+            "batches": ["H0037_Apex", "HCAHeart7836681", "HCAHeart8102861", "H0015_septum"],
+            "n_cells_2_plot":4,
             "min_val":-2, 
             "max_val":8,
         }

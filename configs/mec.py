@@ -2,7 +2,7 @@ from typing import NamedTuple, List, Dict
 
 class MECModelConfigs(NamedTuple):
     name:str="mec"
-    n_latent_dims:int=2
+    n_latent_dims:int=50
     layer_units:List[int]=[8,4]
     n_pred:int=21
     ignore:List[str]=['ignore', 'fold_list', "optimizer_configs", "loss_configs", "metric_configs",

@@ -989,7 +989,7 @@ def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, ori
 
     fig.suptitle(file_name, fontsize=16)
     plt.tight_layout(rect=[0, 0.03, 0.9, 0.97])
-
+    file_name = file_name.replace("/", "")
 
     fig.savefig(os.path.join(path_2_genomap, f"genomap_{n_top_genes}topvariablegenesacrossbatches_{file_name}"))
 

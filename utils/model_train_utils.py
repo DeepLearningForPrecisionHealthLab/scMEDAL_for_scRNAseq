@@ -516,7 +516,7 @@ def plot_clustering_scores_curve(train_output_dir, val_output_dir, label_col, sa
 
 
 
-def train_and_save_model(model, train_in, train_out, val_in, val_out, model_params, save_model=False,metadata_dict=None):
+def train_and_save_model(model, train_in, train_out, val_in, val_out, model_params, save_model=False,metadata_dict=None, **kwargs):
     """
     Trains the provided model with given data and saves the model parameters and best weights.
 
@@ -1996,93 +1996,93 @@ def evaluate_model(trained_model, inputs, adata_dict, model_params,metric_name =
     return metrics_df
 
 
-def run_model_pipeline_LatentClassifier(Model, latent_path_dict, build_model_dict, compile_dict, model_params, save_model, 
-                                        batch_col, bio_col, base_path, fold, models_list, latent_keys_config,
-                                        batch_col_categories=None, bio_col_categories=None, return_scores=False, 
-                                        return_adata_dict=False, return_trained_model=False, model_type="mec",
-                                        issparse=False, load_dense=False):
-    """
-    Runs the complete model pipeline, including loading data, training, evaluation, and obtaining scores.
+# def run_model_pipeline_LatentClassifier(Model, latent_path_dict, build_model_dict, compile_dict, model_params, save_model, 
+#                                         batch_col, bio_col, base_path, fold, models_list, latent_keys_config,
+#                                         batch_col_categories=None, bio_col_categories=None, return_scores=False, 
+#                                         return_adata_dict=False, return_trained_model=False, model_type="mec",
+#                                         issparse=False, load_dense=False):
+#     """
+#     Runs the complete model pipeline, including loading data, training, evaluation, and obtaining scores.
 
-    Parameters:
-    - Model: The model class to be used.
-    - latent_path_dict: Dictionary containing the paths to the latent spaces.
-    - build_model_dict: Dictionary containing the parameters for model building.
-    - compile_dict: Dictionary containing the parameters for model compilation.
-    - model_params: Object containing model parameters and configurations.
-    - save_model: Flag indicating whether to save the trained model.
-    - batch_col: Name of the batch column.
-    - bio_col: Name of the biological column.
-    - base_path: The base path for the dataset and model.
-    - fold: The specific fold of the data being used.
-    - models_list: List of models being used.
-    - latent_keys_config: Configuration for the latent keys.
-    - batch_col_categories: Categories for the batch column.
-    - bio_col_categories: Categories for the biological column.
-    - return_scores: Flag indicating whether to return clustering scores.
-    - return_adata_dict: Flag indicating whether to return the AnnData dictionary.
-    - return_trained_model: Flag indicating whether to return the trained model.
-    - model_type: Type of the model (default "mec").
-    - issparse(bool): True if X is in sparse array, False if its dense
-    - load_dense (bool): If True, forces conversion of sparse arrays to dense format.
+#     Parameters:
+#     - Model: The model class to be used.
+#     - latent_path_dict: Dictionary containing the paths to the latent spaces.
+#     - build_model_dict: Dictionary containing the parameters for model building.
+#     - compile_dict: Dictionary containing the parameters for model compilation.
+#     - model_params: Object containing model parameters and configurations.
+#     - save_model: Flag indicating whether to save the trained model.
+#     - batch_col: Name of the batch column.
+#     - bio_col: Name of the biological column.
+#     - base_path: The base path for the dataset and model.
+#     - fold: The specific fold of the data being used.
+#     - models_list: List of models being used.
+#     - latent_keys_config: Configuration for the latent keys.
+#     - batch_col_categories: Categories for the batch column.
+#     - bio_col_categories: Categories for the biological column.
+#     - return_scores: Flag indicating whether to return clustering scores.
+#     - return_adata_dict: Flag indicating whether to return the AnnData dictionary.
+#     - return_trained_model: Flag indicating whether to return the trained model.
+#     - model_type: Type of the model (default "mec").
+#     - issparse(bool): True if X is in sparse array, False if its dense
+#     - load_dense (bool): If True, forces conversion of sparse arrays to dense format.
 
-    Returns:
-    - results: Dictionary containing the trained model, metrics, scores, and/or adata_dict based on the provided flags.
-    """
-    # 1. Load data latent paths and adata_dict
-    adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse, load_dense)
+#     Returns:
+#     - results: Dictionary containing the trained model, metrics, scores, and/or adata_dict based on the provided flags.
+#     """
+#     # 1. Load data latent paths and adata_dict
+#     adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse, load_dense)
 
-    print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
+#     print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
 
-    # 2. Prepare data for training
-    inputs = prepare_latent_space_inputs(adata_dict, latent_keys_config, eval_test=model_params.eval_test)
+#     # 2. Prepare data for training
+#     inputs = prepare_latent_space_inputs(adata_dict, latent_keys_config, eval_test=model_params.eval_test)
 
-    # 3. Build and train model
-    me_model = Model(**build_model_dict)
-    me_model.compile(**compile_dict)
-    trained_model, history = train_and_save_model(me_model, train_in=inputs['train'], train_out=adata_dict['train_y'], val_in=inputs['val'], val_out=adata_dict['val_y'], model_params=model_params, save_model=save_model)
+#     # 3. Build and train model
+#     me_model = Model(**build_model_dict)
+#     me_model.compile(**compile_dict)
+#     trained_model, history = train_and_save_model(me_model, train_in=inputs['train'], train_out=adata_dict['train_y'], val_in=inputs['val'], val_out=adata_dict['val_y'], model_params=model_params, save_model=save_model)
 
-    # 4. Plot Loss graph
-    plot_params = {"outpath": model_params.plots_path}
-    PlotLoss(history, model_params, save_model=save_model, model_type=model_type)
+#     # 4. Plot Loss graph
+#     plot_params = {"outpath": model_params.plots_path}
+#     PlotLoss(history, model_params, save_model=save_model, model_type=model_type)
 
-    # 5. Evaluate the model and get metrics
-    metrics_df = evaluate_model(trained_model, inputs, adata_dict, model_params)
+#     # 5. Evaluate the model and get metrics
+#     metrics_df = evaluate_model(trained_model, inputs, adata_dict, model_params)
 
-    # 6. Get latent scores using the model's encoder
-    encoder_method = trained_model.encoder
-    adata_dict, df_scores_dict = get_encoder_latentandscores(
-        adata_dict=adata_dict,
-        model_encoder=encoder_method,
-        model_params=model_params,
-        batch_col=batch_col,
-        bio_col=bio_col,
-        plot_params=plot_params,
-        save_model=save_model,
-        return_scores=return_scores,
-        z_ohe_dict=None,
-        model_type=model_type,
-        other_inputs=inputs
-    )
+#     # 6. Get latent scores using the model's encoder
+#     encoder_method = trained_model.encoder
+#     adata_dict, df_scores_dict = get_encoder_latentandscores(
+#         adata_dict=adata_dict,
+#         model_encoder=encoder_method,
+#         model_params=model_params,
+#         batch_col=batch_col,
+#         bio_col=bio_col,
+#         plot_params=plot_params,
+#         save_model=save_model,
+#         return_scores=return_scores,
+#         z_ohe_dict=None,
+#         model_type=model_type,
+#         other_inputs=inputs
+#     )
 
-    # 7. Collect results based on flags
-    results = {}
-    if return_trained_model:
-        results["model"] = trained_model
-    if return_scores:
-        results["metrics"] = metrics_df
-        results["scores"] = df_scores_dict
-    if return_adata_dict:
-        results["adata"] = adata_dict
+#     # 7. Collect results based on flags
+#     results = {}
+#     if return_trained_model:
+#         results["model"] = trained_model
+#     if return_scores:
+#         results["metrics"] = metrics_df
+#         results["scores"] = df_scores_dict
+#     if return_adata_dict:
+#         results["adata"] = adata_dict
 
-    return results
-
-
+#     return results
 
 
 
 
-def evaluate_model_v2(trained_model, inputs, adata_dict, model_params, metric_name="CategoricalAccuracy"):
+
+
+def evaluate_model_v2(trained_model, inputs, adata_dict, model_params, metric_name="CategoricalAccuracy", **kwargs):
     from sklearn.metrics import balanced_accuracy_score
     # Define the datasets to evaluate
     datasets_to_evaluate = ['train', 'val']
@@ -2132,7 +2132,7 @@ def evaluate_model_v2(trained_model, inputs, adata_dict, model_params, metric_na
 
 
 
-def build_train_evaluate_model(Model,build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type):
+def build_train_evaluate_model(Model,build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type, *args,**kwargs):
     """
     Builds, trains, and evaluates a machine learning model, with options to save the model and plot training history.
 
@@ -2489,94 +2489,94 @@ def dummy_classifier_chance_accuracy(inputs, adata_dict, model_params, eval_test
 
 
 
-def run_model_pipeline_LatentClassifier_v2(Model, latent_path_dict, build_model_dict, compile_dict, model_params, save_model, 
-                                           batch_col, bio_col, base_path, fold, models_list, latent_keys_config,
-                                           batch_col_categories=None, bio_col_categories=None, return_metrics=True, 
-                                           return_adata_dict=False, return_trained_model=False, model_type="mec",
-                                           issparse=False, load_dense=False,seed=None):
-    """
-    Runs the complete model pipeline, including data loading, model training, evaluation, and metric collection.
+# def run_model_pipeline_LatentClassifier_v2(Model, latent_path_dict, build_model_dict, compile_dict, model_params, save_model, 
+#                                            batch_col, bio_col, base_path, fold, models_list, latent_keys_config,
+#                                            batch_col_categories=None, bio_col_categories=None, return_metrics=True, 
+#                                            return_adata_dict=False, return_trained_model=False, model_type="mec",
+#                                            issparse=False, load_dense=False,seed=None):
+#     """
+#     Runs the complete model pipeline, including data loading, model training, evaluation, and metric collection.
 
-    Parameters:
-    - Model: The model class to be instantiated and trained.
-    - latent_path_dict: Dictionary containing paths to latent space data for each model.
-    - build_model_dict: Dictionary of parameters for building the model.
-    - compile_dict: Dictionary of parameters for compiling the model.
-    - model_params: Object containing additional model parameters and configurations.
-    - save_model: Boolean flag indicating whether to save the trained model to disk.
-    - batch_col: Name of the column representing batch information in the data.
-    - bio_col: Name of the column representing biological information in the data.
-    - base_path: Base directory path for datasets and model output.
-    - fold: The specific fold identifier for cross-validation or data splitting.
-    - models_list: List of models to be used in the pipeline.
-    - latent_keys_config: Configuration dictionary for the latent keys used in model input.
-    - batch_col_categories: List or array of categories for the batch column (optional).
-    - bio_col_categories: List or array of categories for the biological column (optional).
-    - return_metrics: Boolean flag indicating whether to return performance metrics (default: True).
-    - return_adata_dict: Boolean flag indicating whether to return the AnnData dictionary (default: False).
-    - return_trained_model: Boolean flag indicating whether to return the trained model (default: False).
-    - model_type: String specifying the type of model being used (default: "mec").
-    - issparse(bool): True if X is in sparse array, False if its dense
-    - load_dense (bool): If True, forces conversion of sparse arrays to dense format.
-    - seed (int) : seed set for repreducible results of dummy classifier with strategy: stratified
+#     Parameters:
+#     - Model: The model class to be instantiated and trained.
+#     - latent_path_dict: Dictionary containing paths to latent space data for each model.
+#     - build_model_dict: Dictionary of parameters for building the model.
+#     - compile_dict: Dictionary of parameters for compiling the model.
+#     - model_params: Object containing additional model parameters and configurations.
+#     - save_model: Boolean flag indicating whether to save the trained model to disk.
+#     - batch_col: Name of the column representing batch information in the data.
+#     - bio_col: Name of the column representing biological information in the data.
+#     - base_path: Base directory path for datasets and model output.
+#     - fold: The specific fold identifier for cross-validation or data splitting.
+#     - models_list: List of models to be used in the pipeline.
+#     - latent_keys_config: Configuration dictionary for the latent keys used in model input.
+#     - batch_col_categories: List or array of categories for the batch column (optional).
+#     - bio_col_categories: List or array of categories for the biological column (optional).
+#     - return_metrics: Boolean flag indicating whether to return performance metrics (default: True).
+#     - return_adata_dict: Boolean flag indicating whether to return the AnnData dictionary (default: False).
+#     - return_trained_model: Boolean flag indicating whether to return the trained model (default: False).
+#     - model_type: String specifying the type of model being used (default: "mec").
+#     - issparse(bool): True if X is in sparse array, False if its dense
+#     - load_dense (bool): If True, forces conversion of sparse arrays to dense format.
+#     - seed (int) : seed set for repreducible results of dummy classifier with strategy: stratified
 
-    Returns:
-    - results: Dictionary containing the results based on the specified flags. Possible keys include:
-        - "dffn_model": The trained deep feedforward network model (if return_trained_model is True).
-        - "metrics": DataFrame of performance metrics for the trained model and SVM.
-        - "adata": The AnnData dictionary containing processed data (if return_adata_dict is True). Default: None
-    """
+#     Returns:
+#     - results: Dictionary containing the results based on the specified flags. Possible keys include:
+#         - "dffn_model": The trained deep feedforward network model (if return_trained_model is True).
+#         - "metrics": DataFrame of performance metrics for the trained model and SVM.
+#         - "adata": The AnnData dictionary containing processed data (if return_adata_dict is True). Default: None
+#     """
 
-    # 1. Load data latent paths and adata_dict
-    adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse, load_dense)
+#     # 1. Load data latent paths and adata_dict
+#     adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse, load_dense)
 
-    print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
+#     print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
 
-    # 2. Prepare data for training
-    inputs = prepare_latent_space_inputs(adata_dict, latent_keys_config, eval_test=model_params.eval_test)
+#     # 2. Prepare data for training
+#     inputs = prepare_latent_space_inputs(adata_dict, latent_keys_config, eval_test=model_params.eval_test)
 
-    # 3. Build and train model, plott loss and evaluate dffn model
-    dffn_results = build_train_evaluate_model(Model,build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type)
+#     # 3. Build and train model, plott loss and evaluate dffn model
+#     dffn_results = build_train_evaluate_model(Model,build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type)
 
-    adata_dict = dffn_results["adata_dict"]
-    dffn_metrics = dffn_results["metrics"]
+#     adata_dict = dffn_results["adata_dict"]
+#     dffn_metrics = dffn_results["metrics"]
 
-    svm_results = svm_accuracy_and_predictions(inputs, adata_dict, model_params,eval_test=model_params.eval_test)
-    adata_dict = svm_results["adata_dict"]
-    svm_metrics = svm_results["metrics"]
-    #metrics_df = pd.merge(dffn_metrics,svm_metrics)
+#     svm_results = svm_accuracy_and_predictions(inputs, adata_dict, model_params,eval_test=model_params.eval_test)
+#     adata_dict = svm_results["adata_dict"]
+#     svm_metrics = svm_results["metrics"]
+#     #metrics_df = pd.merge(dffn_metrics,svm_metrics)
 
 
-    # Evaluate using RandomForest
-    rf_results = random_forest_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=model_params.eval_test)
-    adata_dict = rf_results["adata_dict"]
-    rf_metrics = rf_results["metrics"]
+#     # Evaluate using RandomForest
+#     rf_results = random_forest_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=model_params.eval_test)
+#     adata_dict = rf_results["adata_dict"]
+#     rf_metrics = rf_results["metrics"]
 
-    # Calculate chance accuracy
-    chance_results = dummy_classifier_chance_accuracy(inputs, adata_dict, model_params, eval_test=model_params.eval_test,seed = seed)
-    adata_dict = chance_results["adata_dict"]
-    chance_metrics = chance_results["metrics"]
+#     # Calculate chance accuracy
+#     chance_results = dummy_classifier_chance_accuracy(inputs, adata_dict, model_params, eval_test=model_params.eval_test,seed = seed)
+#     adata_dict = chance_results["adata_dict"]
+#     chance_metrics = chance_results["metrics"]
 
-    # Merge the metrics from DFFN, SVM, and RandomForest
-    metrics_df = pd.merge(dffn_metrics, svm_metrics, on="Dataset")
-    metrics_df = pd.merge(metrics_df, rf_metrics, on="Dataset")
-    metrics_df = pd.merge(metrics_df, chance_metrics, on="Dataset")
+#     # Merge the metrics from DFFN, SVM, and RandomForest
+#     metrics_df = pd.merge(dffn_metrics, svm_metrics, on="Dataset")
+#     metrics_df = pd.merge(metrics_df, rf_metrics, on="Dataset")
+#     metrics_df = pd.merge(metrics_df, chance_metrics, on="Dataset")
 
-    metrics_df.to_csv(os.path.join(model_params.latent_path, "metrics.csv"))
+#     metrics_df.to_csv(os.path.join(model_params.latent_path, "metrics.csv"))
 
     
 
 
-    # 7. Collect results based on flags
-    results = {}
-    if return_trained_model:
-        results["dffn_model"] = dffn_results["model"]
-    if return_metrics:
-        results["metrics"] = metrics_df
-    if return_adata_dict:
-        results["adata"] = adata_dict
+#     # 7. Collect results based on flags
+#     results = {}
+#     if return_trained_model:
+#         results["dffn_model"] = dffn_results["model"]
+#     if return_metrics:
+#         results["metrics"] = metrics_df
+#     if return_adata_dict:
+#         results["adata"] = adata_dict
 
-    return results
+#     return results
 
 
 
@@ -2584,7 +2584,7 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
                                            batch_col, bio_col, base_path, fold, models_list, latent_keys_config,
                                            batch_col_categories=None, bio_col_categories=None, return_metrics=True, 
                                            return_adata_dict=False, return_trained_model=False, model_type="mec",
-                                           issparse=False, load_dense=False,seed=None):
+                                           issparse=False, load_dense=False,seed=None, get_pca:bool=True, **kwargs):
     """
     Runs the complete model pipeline, including data loading, model training, evaluation, and metric collection.
 
@@ -2620,16 +2620,21 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
 
     # 1. Load data latent paths and adata_dict
     adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse, load_dense)
+    
     # Calculate PCA
-    adata_dict = get_pca_andplot(adata_dict, plot_params=None, eval_test=model_params.eval_test,n_components=model_params.n_components,shape_color_dict = None)
+    if get_pca:
+        adata_dict = get_pca_andplot(adata_dict, plot_params=None, eval_test=model_params.eval_test,n_components=model_params.n_components,shape_color_dict = None)
+
 
     print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
 
     # 2. Prepare data for training
     inputs = prepare_latent_space_inputs(adata_dict, latent_keys_config, eval_test=model_params.eval_test)
+    print(f"inputs: {inputs}")
+    print(f"model params {model_params}")
 
     # 3. Build and train model, plott loss and evaluate dffn model
-    dffn_results = build_train_evaluate_model(Model,build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type)
+    dffn_results = build_train_evaluate_model(Model, build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type)
 
     adata_dict = dffn_results["adata_dict"]
     dffn_metrics = dffn_results["metrics"]

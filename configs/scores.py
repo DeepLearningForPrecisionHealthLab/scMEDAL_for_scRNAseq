@@ -10,7 +10,7 @@ class BaseScoreConfigs(NamedTuple):
 
 
 class ScoreConfigs:
-    valid_model_names=["ae", "aec","scmedalfe","scmedalfec", "scmedalre"]
+    valid_model_names=["ae", "aec","scmedalfe","scmedalfec", "scmedalre", "mec"]
 
     def __init__(self, model_name:Optional[str]=None):
         self.configs:NamedTuple = None
@@ -32,6 +32,8 @@ class ScoreConfigs:
             self.configs = self._load_scmedalfec_configs(name)
         elif name == "scmedalre":
             self.configs = self._load_scmedalre_configs(name)
+        elif name == "mec":
+            self.configs = self._load_mec_configs(name)
 
     def _load_ae_configs(self, name:str):
         configs = BaseScoreConfigs(name+"_latent")._replace(get_pca=True)
@@ -51,5 +53,9 @@ class ScoreConfigs:
  
     def _load_scmedalre_configs(self, name:str):
         configs = BaseScoreConfigs(name+"_latent")._replace(get_cf_batch=True)
+        return configs
+    
+    def _load_mec_configs(self, name:str):
+        configs = BaseScoreConfigs(name+"_latent")
         return configs
   

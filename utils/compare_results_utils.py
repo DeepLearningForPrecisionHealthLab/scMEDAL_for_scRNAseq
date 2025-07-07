@@ -61,6 +61,7 @@ def get_recon_paths_df(results_path_dict,get_batch_recon_paths = False,k_folds =
 
 def get_latent_paths_df(results_path_dict, k_folds=5):
     data = []
+    print(results_path_dict)
 
     # Simplified patterns to search for
     patterns = [('latent.*train', 'train'), ('latent.*val', 'val'),('latent.*test', 'test')]

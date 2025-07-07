@@ -14,7 +14,7 @@ from utils.model_train_utils import generate_run_name, run_all_folds
 
 
 class Model(ABC):
-    valid_models=["ae","aec","scmedalfe","scmedalfec", "scmedalre", "saucie"]
+    valid_models=["ae","aec","scmedalfe","scmedalfec", "scmedalre", "saucie", "mec"]
     valid_named_experiment=["AML","ASD", "HH"]
 
     def __init__(self, model_name:str, **kwargs):
@@ -27,6 +27,7 @@ class Model(ABC):
         self.scores_configs:cfg.ScoreConfig=self._init_score_configs(kwargs)
         self.expt_design_configs:cfg.ExperimentDesignConfigs=self._init_exp_design_configs(kwargs)
         self.model_params:Dict[str,Any] = self.__init_modelparams()
+        self.latent_key = None
 
     def _init_compile_configs(self, kwargs:Optional[Dict[str, Any]]=None):
         self.compile_configs = cfg.CompileConfigs(self.model_name).configs        
@@ -82,6 +83,9 @@ class Model(ABC):
         }
         ignore = self.model_params.get("ignore", [])
         self.model_params.pop("ignore")
+        # self.latent_key = self.model_params.get("latent_keys_config")
+        # if self.latent_key is not None:
+        #     self.model_params.pop("latent_keys_config")
         self.model_params['run_name'] = generate_run_name(self.model_params, ignore, name="run_crossval") 
         return self.model_params
 

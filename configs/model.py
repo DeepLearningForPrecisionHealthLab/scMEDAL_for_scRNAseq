@@ -4,10 +4,11 @@ from .aec import AECModelConfigs
 from .scmedalfe import scMEDALFEModelConfigs
 from .scmedalfec import scMEDALFECModelConfigs
 from .scmedalre import scMEDALREModelConfigs
+from .mec import MECModelConfigs
 
 
 class ModelConfigs:
-    valid_model_names=["ae", "aec", "scmedalfe", "scmedalfec", "scmedalre"]
+    valid_model_names=["ae", "aec", "scmedalfe", "scmedalfec", "scmedalre", "mec"]
 
     def __init__(self, model_name:Optional[str]=None):
         self.configs:NamedTuple = None
@@ -29,3 +30,5 @@ class ModelConfigs:
             self.configs = scMEDALFECModelConfigs()
         elif name == "scmedalre":
             self.configs = scMEDALREModelConfigs()
+        elif name == "mec":
+            self.configs = MECModelConfigs()

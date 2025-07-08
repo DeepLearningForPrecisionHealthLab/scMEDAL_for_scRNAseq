@@ -198,6 +198,9 @@ class Analysis(ABC):
             max_val             = core["max_val"],
         )
 
+        if models is None:
+            models = list(model_result_folder_dict.keys())
+
         # 2. Delegate to legacy wrapper that expects (run_names_dict, results_path_dict, cfg, ?)
         return genomap_and_plot(
             core["run_names_dict"],
@@ -290,6 +293,11 @@ class AMLAnalysis(Analysis):
             "n_cells_2_plot":4,
             "n_top_genes":10,
             "num_iter":100,
+            "celltype":["Mono", "Mono-like"],
+            "batches":["AML420B", "BM5", "MUTZ3"],
+            "cell_id_col":"Cell",
+            "min_val":-1, 
+            "max_val":2,
         }
 
     
@@ -299,7 +307,8 @@ class AMLAnalysis(Analysis):
             "results_path_dict":self.paths.latent_space_path,
             "compare_models_path":self.paths.outputs_path,
             "input_base_path":self.paths.splits_path,
-            "analysis_name":self.paths.analysis_name
+            "analysis_name":self.paths.analysis_name,
+            "extra_color_cols":"Patient_group"
         }
 
 
@@ -424,5 +433,6 @@ class HHAnalysis(Analysis):
             "results_path_dict":self.paths.latent_space_path,
             "compare_models_path":self.paths.outputs_path,
             "input_base_path":self.paths.splits_path,
-            "analysis_name":self.paths.analysis_name
+            "analysis_name":self.paths.analysis_name,
+            "extra_color_cols":"Patient_group"
         }

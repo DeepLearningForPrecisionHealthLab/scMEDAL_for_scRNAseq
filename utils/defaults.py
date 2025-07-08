@@ -10,6 +10,8 @@ HH_MODEL_KWARGS = {"n_clusters":147, "n_pred":13}
 
 #### AML
 AML_DATA_PATH = f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/AML_data/",
+ASD_OUTPUTS_DIR = os.path.join(OUTPUTS_DIR, "ASD")
+HH_OUTPUTS_DIR = os.path.join(OUTPUTS_DIR, "HH")
 AML_OUTPUTS_DIR = os.path.join(OUTPUTS_DIR, "AML")
 AML_DATA_DIR = os.path.join(DATA_DIR, "AML_data")
 #AML_DATA_PATH = os.path.join(DATA_DIR, "AML", "AML_data.zip")
@@ -18,6 +20,7 @@ AML_EXPERIMENT_NAME = "log_transformed_2916hvggenes"
 
 os.makedirs(OUTPUTS_DIR, exist_ok=True)
 os.makedirs(AML_OUTPUTS_DIR, exist_ok=True)
+<<<<<<< HEAD
 
 
 
@@ -27,3 +30,7 @@ ASD_EXPERIMENT_NAME = "log_transformed_2916hvggenes"
 
 
 os.makedirs(ASD_OUTPUTS_DIR, exist_ok=True)
+=======
+os.makedirs(ASD_OUTPUTS_DIR, exist_ok=True)
+os.makedirs(HH_OUTPUTS_DIR, exist_ok=True)
+>>>>>>> d5716a0... push config updates

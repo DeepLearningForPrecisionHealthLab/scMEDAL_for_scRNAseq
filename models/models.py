@@ -27,7 +27,65 @@ named_experiments = {
     "HH":"Healthy Heart"
 }
 
-def _parse_model_kwargs_for_named_experiment(model_kwargs:Dict[str,Any], experiment_name:str):
+def _parse_model_kwargs_for_named_experiment(model_name:str, model_kwargs:Dict[str,Any], experiment_name:str):
+    def __check_update_specific_model_kwargs_for_named_experiment(model_name:str,experiment_name:str):
+        updated_kwargs = {}
+        #####################################
+        ############## AML ##################
+        #####################################
+        if experiment_name == "AML" and (model_name  == "scmedalfe" or model_name == "scMEDAL-FE"):
+            updated_kwargs['loss_recon_weight'] = 250
+            updated_kwargs["loss_gen_weight"] = 1
+        if experiment_name == "AML" and (model_name  == "scmedalfec" or model_name == "scMEDAL-FEC"):
+            updated_kwargs['loss_recon_weight'] = 2_000
+            updated_kwargs["loss_gen_weight"] = 1
+            updated_kwargs["loss_class_weight"] = 1
+        if experiment_name == "AML" and (model_name  == "aec" or model_name == "AEC"):
+            updated_kwargs['loss_weights'] = {'reconstruction_output': 100,'classification_output': 0.1}
+        if experiment_name == "AML" and (model_name  == "scmedalre" or model_name == "scMEDAL-RE"):
+            updated_kwargs['loss_recon_weight'] = 110
+            updated_kwargs["loss_latent_cluster_weight"] = 0.1
+
+        #####################################
+        ############## ASD ##################
+        #####################################
+        if experiment_name == "ASD" and (model_name  == "aec" or model_name == "AEC"):
+            updated_kwargs['loss_weights'] = {'reconstruction_output': 100,'classification_output': 0.1}
+        if experiment_name == "ASD" and (model_name  == "scmedalfe" or model_name == "scMEDAL-FE"):
+            updated_kwargs['loss_recon_weight'] = 1_000
+            updated_kwargs["loss_gen_weight"] = 1
+        if experiment_name == "ASD" and (model_name  == "scmedalfec" or model_name == "scMEDAL-FEC"):
+            updated_kwargs['loss_recon_weight'] = 2_000
+            updated_kwargs["loss_gen_weight"] = 1
+            updated_kwargs["loss_class_weight"] = 1
+        if experiment_name == "ASD" and (model_name  == "scmedalre" or model_name == "scMEDAL-RE"):
+            updated_kwargs['loss_recon_weight'] = 110
+            updated_kwargs["loss_latent_cluster_weight"] = 0.1
+        
+        #####################################
+        ############## HH ###################
+        #####################################
+        if experiment_name == "HH" and (model_name  == "aec" or model_name == "AEC"):
+            updated_kwargs['loss_weights'] = {'reconstruction_output': 100,'classification_output': 0.1}
+        if experiment_name == "HH" and (model_name  == "scmedalfe" or model_name == "scMEDAL-FE"):
+            updated_kwargs["loss_gen_weight"] = 1
+            updated_kwargs['loss_recon_weight'] = 600
+        if experiment_name == "HH" and (model_name  == "scmedalfec" or model_name == "scMEDAL-FEC"):
+            updated_kwargs['loss_recon_weight'] = 2_000
+            updated_kwargs["loss_gen_weight"] = 1
+            updated_kwargs["loss_class_weight"] = 1
+        if experiment_name == "HH" and (model_name  == "scmedalre" or model_name == "scMEDAL-RE"):
+            updated_kwargs['loss_recon_weight'] = 110
+            updated_kwargs["loss_latent_cluster_weight"] = 0.1
+        
+    
+        return updated_kwargs
+
+    # Jank way of updating the default parameters.
+    _update_kwarg_defaults = __check_update_specific_model_kwargs_for_named_experiment(model_name=model_name, experiment_name=experiment_name)
+    for kwarg, val in _update_kwarg_defaults.items():
+        model_kwargs[kwarg] = model_kwargs.get(kwarg, val) 
+
     if experiment_name == "AML":
         model_kwargs = {**model_kwargs, **AML_MODEL_KWARGS}
     elif experiment_name == "ASD":
@@ -42,7 +100,7 @@ def train_model_on_named_experiment(model_name:str, named_experiment:str, model_
     
     if model_kwargs is None:
         model_kwargs = {}
-    model_kwargs = _parse_model_kwargs_for_named_experiment(model_kwargs=model_kwargs, experiment_name=named_experiment)
+    model_kwargs = _parse_model_kwargs_for_named_experiment(model_name=model_name, model_kwargs=model_kwargs, experiment_name=named_experiment)
 
     mod = model_aliases[model_name](**model_kwargs)
     mod.run_train(named_experiment=named_experiment) if train_kwargs is None else mod.run_train(named_experiment=named_experiment, **train_kwargs)

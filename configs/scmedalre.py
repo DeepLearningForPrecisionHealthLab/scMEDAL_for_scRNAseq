@@ -19,5 +19,5 @@ class scMEDALREModelConfigs(NamedTuple):
     "prior_scale", "post_loc_init_scale", "layer_units_latent_classifier", "n_pred", 
     "n_clusters", "name", "monitor_metric", "stop_criteria", "get_pca", "get_baseline", 
     "use_z", "encoder_latent_name", "sigmoid_eval_test", "last_activation", "get_pred", 
-    "eval_test",
+    "eval_test","use_batch_norm", "get_recon_cluster", "kl_weight", "post_loc_init_scale"
     ]

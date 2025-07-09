@@ -28,6 +28,11 @@ ASD_DATA_DIR = os.path.join(DATA_DIR, "ASD_data")
 ASD_EXPERIMENT_NAME = "log_transformed_2916hvggenes"
 
 
+HH_OUTPUTS_DIR = os.path.join(OUTPUTS_DIR, "HH")
+HH_DATA_DIR = os.path.join(DATA_DIR, "HH_data")
+HH_EXPERIMENT_NAME = "log_transformed_3000hvggenes"
+
+
 
 
 

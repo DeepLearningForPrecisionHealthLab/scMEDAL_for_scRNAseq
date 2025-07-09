@@ -72,6 +72,7 @@ class GenomapConfig:
     n_top_genes : int = 10
     min_val : int = -1
     max_val : int = 2
+    issparse: bool = False
 
 
     # derived
@@ -92,6 +93,7 @@ class GenomapPipeline:
         self.cfg = cfg
         self.df = self._load_and_merge_paths()
         print("\n\nInitialized genomap pipeline")
+        print("sparse",cfg.issparse)
 
     #  internal helpers 
 
@@ -164,9 +166,10 @@ class GenomapPipeline:
         return [], []
 
     def _load_meta(self, inputs_path: str):
+        cfg = self.cfg
         gene_ids_path = os.path.join(self.cfg.data_base_path, self.cfg.scenario_id, "geneids.csv")
         var = pd.read_csv(gene_ids_path, index_col=self.cfg.gene_index_col)
-        _, _, obs = read_adata(inputs_path, issparse=True)
+        _, _, obs = read_adata(inputs_path, issparse=cfg.issparse)
         return var, obs
 
     def _build_multibatch(
@@ -195,7 +198,7 @@ class GenomapPipeline:
             celltype    = cfg.celltype,
             save_data   = True,
             scaling     = cfg.scaling,
-            issparse    = False,
+            issparse    = cfg.issparse,
             seed        = cfg.seed,
             force_batches = batches_to_select_from,
         )

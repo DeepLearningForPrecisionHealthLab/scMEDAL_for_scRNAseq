@@ -40,6 +40,7 @@ class GenomapConfig:
     add_inputs_fe: bool = True
     extra_recon: str = "fe"   # "fe", "all", or "none"
     seed: int = 42
+    issparse: bool = False
     n_cells_2_plot: int = 4
     n_top_genes : int = 10
     min_val : int = -1
@@ -146,6 +147,7 @@ class Analysis(ABC):
         max_val : int = None,
         num_iter: int = None ,
         cell_id_col : str = None,
+        issparse : bool = None,
         ):
         # This will update self.paths which is the basis for _genomap_kwargs
         # Not ideal, but workable.
@@ -171,6 +173,7 @@ class Analysis(ABC):
         core['max_val'] = max_val if max_val is not None else core['max_val']
         core['num_iter'] = num_iter if num_iter is not None else core['num_iter']
         core['cell_id_col'] = cell_id_col if cell_id_col is not None else core['cell_id_col']
+        core['issparse'] = issparse if issparse is not None else core['issparse']
 
         cfg = GenomapConfig(
             compare_models_path = core["compare_models_path"],
@@ -192,6 +195,7 @@ class Analysis(ABC):
             add_inputs_fe       = core["add_inputs_fe"],
             extra_recon         = core["extra_recon"],
             seed                = core["seed"],
+            issparse            = core["issparse"],
             n_cells_2_plot      = core["n_cells_2_plot"],
             n_top_genes         = core["n_top_genes"],
             min_val             = core["min_val"],
@@ -290,6 +294,7 @@ class AMLAnalysis(Analysis):
             "add_inputs_fe":True,
             "extra_recon":"fe",
             "seed":42,
+            "issparse":False,
             "n_cells_2_plot":4,
             "n_top_genes":10,
             "num_iter":100,
@@ -343,6 +348,7 @@ class ASDAnalysis(Analysis):
             "add_inputs_fe":True,
             "extra_recon":"fe",
             "seed":42,
+            "issparse":False,
             "n_top_genes":10,
             "num_iter":100,
             # These changed
@@ -414,6 +420,7 @@ class HHAnalysis(Analysis):
             "add_inputs_fe":True,
             "extra_recon":"fe",
             "seed":42,
+            "issparse":True,
             "n_top_genes":10,
             "num_iter":100,
             # These changed
@@ -434,5 +441,5 @@ class HHAnalysis(Analysis):
             "compare_models_path":self.paths.outputs_path,
             "input_base_path":self.paths.splits_path,
             "analysis_name":self.paths.analysis_name,
-            "extra_color_cols":"Patient_group"
+            "extra_color_cols":"Tissue"
         }

@@ -20,17 +20,14 @@ AML_EXPERIMENT_NAME = "log_transformed_2916hvggenes"
 
 os.makedirs(OUTPUTS_DIR, exist_ok=True)
 os.makedirs(AML_OUTPUTS_DIR, exist_ok=True)
-<<<<<<< HEAD
-
-
+os.makedirs(ASD_OUTPUTS_DIR, exist_ok=True)
+os.makedirs(HH_OUTPUTS_DIR, exist_ok=True)
 
 ASD_OUTPUTS_DIR = os.path.join(OUTPUTS_DIR, "ASD")
 ASD_DATA_DIR = os.path.join(DATA_DIR, "ASD_data")
 ASD_EXPERIMENT_NAME = "log_transformed_2916hvggenes"
 
 
-os.makedirs(ASD_OUTPUTS_DIR, exist_ok=True)
-=======
-os.makedirs(ASD_OUTPUTS_DIR, exist_ok=True)
-os.makedirs(HH_OUTPUTS_DIR, exist_ok=True)
->>>>>>> d5716a0... push config updates
+
+
+

@@ -91,11 +91,12 @@ class GenomapPipeline:
         self.results_path_dict = results_path_dict
         self.cfg = cfg
         self.df = self._load_and_merge_paths()
+        print("\n\nInitialized genomap pipeline")
 
     #  internal helpers 
 
     def _load_and_merge_paths(self) -> pd.DataFrame:
-        print(f"Looking for outputs paths for the following models:{self.results_path_dict.keys()}")
+        print(f"\nLooking for outputs paths for the following models:{self.results_path_dict.keys()}")
         df_recon = get_recon_paths_df(self.results_path_dict, get_batch_recon_paths=True)
         df_inputs = get_input_paths_df(self.cfg.input_base_path)
         df = pd.merge(df_recon, df_inputs, on=["Split", "Type"], how="left")

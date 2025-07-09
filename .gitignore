@@ -1,0 +1,22 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+*.err
+*.out
+*job*
+
+*._.DS_Store
+outputs/*
+*/tmp/*
+tmp/
+
+# Ignore Python bytecode directories
+__pycache__/
+
+# Ignore Jupyter Notebook checkpoint directories
+.ipynb_checkpoints/
+demo/outputs/*
+
+

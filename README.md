@@ -1,0 +1,293 @@
+# **scMEDAL: Mixed Effects Deep Autoencoder Learning Framework**
+
+
+### Reproducing Our Experiments
+
+For details on reproducing our experiments, see **[Experiment Reproducibility Guide](./docs/ExperimentsReproducibility.md#experiment-reproducibility-guide)**.
+
+
+We recommend using the **Acute Myeloid Leukemia** dataset as a **DEMO** to run our model, as it is the smallest dataset used in our paper. See **[Running the AML Demo](./docs/ExperimentsReproducibility.md#running-the-aml-demo)**.
+
+
+Our documentation includes:  
+- **Instructions on setting up experiments:** See **[How to Set Up Your Experiment](./docs/How2SetupYourExpt.md)**.  
+- **Guidance on analyzing and interpreting model outputs:** See **[How to Analyze Your Model Outputs](./docs/How2AnalyzeYourModelOutputs.md)**.  
+- **Step-by-step instructions for running experiments:** See **[How to Run Your Experiment](./docs/How2RunYourExpt.md)**.  
+- **Details on experiment outputs:** See **[Experiment Outputs](./docs/ExperimentOutputs.md)**.  
+
+---
+## **Overview**
+The single-cell Mixed Effects Deep Autoencoder Learning (**scMEDAL**) framework provides a robust approach to analyze single-cell RNA sequencing (scRNA-seq) data. By disentangling batch-invariant from batch-specific signals, scMEDAL offers a more interpretable representation of complex datasets.
+
+
+
+![scMEDAL Diagram](./docs/images/scMEDAL.png)
+
+---
+
+## **1. Framework Overview**
+
+### **Fixed Effects Subnetwork (scMEDAL-FE)**
+- Captures features that remain consistent across batches.
+- Uses adversarial learning to minimize batch label predictability, ensuring batch-invariant latent representations.
+
+### **Random Effects Subnetwork (scMEDAL-RE)**
+- Models batch-specific variability using variational inference.
+- Regularizes the latent space to accurately represent batch-specific patterns without overfitting.
+
+---
+
+## **2. scMEDAL Setup and Installation**
+
+General structure of the repository:
+
+```markdown
+scMEDAL_for_scRNAseq/
+|-- Experiments/               # Scripts and notebooks for experiments
+|-- scMEDAL/                   # Main package
+|   |-- __init__.py
+|   |-- models/                # Model definitions
+|   |    |-- __init__.py
+|   |    |-- scMEDAL/
+|   |    |-- models/
+|   |-- utils/                 # Utilities for preprocessing, training, etc.
+|   |    |-- __init__.py
+|
+|-- scMEDAL_env/               # Environment YAML files
+|-- setup.py                   # Package setup
+```
+
+### **Installing `scMEDAL`**
+1. **Clone repository**
+2. **Setup and activate your environment**  
+   ```bash
+   conda activate your_env_name
+   ```
+
+3. **Install in editable mode**  
+   Navigate to the `scMEDAL_for_scRNAseq` directory and install:
+   ```bash
+   cd /path/to/scMEDAL_for_scRNAseq
+   pip install -e .
+   ```
+
+4. **Verify installation**
+   ```python
+   from scMEDAL.utils import your_function
+   print("scMEDAL is ready to use!")
+   ```
+
+The estimated time for installation is around 30 mins.
+---
+
+## **3. Execution Environments**
+
+To handle dependency conflicts, `scMEDAL` uses three separate Conda environments:
+
+1. **`genomaps_env`**: For generating Genomaps.
+2. **`preprocess_and_plot_umaps_env`**: For data preprocessing and UMAP visualization.
+3. **`run_models_env`**: For data splitting and running models.
+
+### **Setting Up the Environments**
+1. Navigate to the `scMEDAL_env` directory:
+   ```bash
+   cd /path/to/scMEDAL_for_scRNAseq/scMEDAL_env
+   ```
+
+2. Create each environment:
+   ```bash
+   conda env create -f genomaps_env.yaml
+   conda env create -f preprocess_and_plot_umaps_env.yaml
+   conda env create -f run_models_env.yaml
+   ```
+
+3. Activate the desired environment:
+   ```bash
+   conda activate genomaps_env
+
+   ```
+   or 
+   ```bash
+   conda activate preprocess_and_plot_umaps_env
+   ```
+   or
+   ```bash
+   conda activate run_models_env
+   ```
+
+
+### **Switching Environments**
+
+- **Match the Environment to the Task**  
+   Use the Conda environment that corresponds to the specific script or task you need to run.
+
+- **Install Required Packages**  
+   Make sure that all relevant environments have the `scMEDAL` package installed (see Step 2 above for instructions).
+
+- **Configure Your Slurm Scripts**  
+   When submitting jobs via Slurm, load the appropriate Conda environment before executing the script. For example:
+
+   ```bash
+   # For running models
+   source activate /path/to/run_models_env
+
+   # For preprocessing and plotting UMAPs
+   source activate /path/to/preprocess_and_plot_umaps_env
+
+   # For generating genomaps
+   source activate /path/to/genomaps_env
+   ```
+
+By following the steps above, you ensure each script is run in the correct environment, with the necessary dependencies in place.
+## **4. scMEDAL Utilities and Modules**
+
+### **Utilities**
+- **[utils.py](./scMEDAL/utils/utils.py):** Provides data I/O, plotting, and clustering score functions.
+- **[model_train_utils.py](./scMEDAL/utils/model_train_utils.py):** Functions for training and loading models.
+- **[splitter.py](./scMEDAL/utils/splitter.py):** Utility for k-fold cross-validation splitting.
+- **[callbacks.py](./scMEDAL/utils/callbacks.py):** Tracks clustering metrics during training.
+- **[compare_results_utils.py](./scMEDAL/utils/compare_results_utils.py):** Combines clustering results from multiple models.
+- **[genomaps_utils.py](./scMEDAL/utils/genomaps_utils.py):** Custom Genomap generation functions.
+- **[preprocessing_utils.py](./scMEDAL/utils/preprocessing_utils.py):** Preprocessing routines for datasets.
+- **[utils_load_model.py](./scMEDAL/utils/utils_load_model.py):** Utilities for loading trained models.
+
+### **Models**
+- **[scMEDAL.py](./scMEDAL/models/scMEDAL.py):** Implements AEC, DA_AE, and DomainEnhancingAutoencoderClassifier models.
+- **[random_effects.py](./scMEDAL/models/random_effects.py):** Bayesian layers and utilities for random effects modeling.
+
+---
+
+## **5. Experiment Setup**
+This setup will allow you to run our models in the Healthy Heart, ASD and AML datasets.
+**Experiment Folder Structure**: Each dataset-specific experiment follows a standard directory layout:
+
+```markdown
+
+scMEDAL_for_scRNAseq/
+|-- Experiments/ 
+   |--  data/ # Download and Setup your data folders
+   |-- outputs 
+   |--  <dataset_name>/
+      |-- preprocessing/
+      |   |-- 5fold_cross_val/
+      |   |   |-- create_splits.ipynb
+      |   |   |-- check_splits.ipynb
+      |   |   |-- config_split_paths.py
+      |   |-- preprocess_datasetname.py
+      |   |-- batch_preprocess_dataset.sh
+      |   |-- preprocess_datasetname.ipynb
+      |-- run_models/
+      |   |-- AE/
+      |   |-- AEC/
+      |   |-- scMEDAL-FEC/
+      |   |-- scMEDAL-FE/
+      |   |-- scMEDAL-RE/
+      |   |-- compare_results/
+      |   |   |-- clustering_scores/
+      |   |   |-- genomaps/
+      |   |   |-- umap_plots/
+      |   |-- MEC/
+      |       |-- target/
+      |           |-- scMEDAL-FEandscMEDAL-RE_latent/
+      |           |-- scMEDAL-FE/
+      |           |-- PCA_latent/
+      |-- paths_config.py
+   
+```
+
+- **`data/`**  
+   - *(Download and set up your data folders here.)*
+- **`outputs/`**  
+   - *(This folder will be created automatically when running: `import outputs_path` from `paths_config.py`)*
+- **`datasetname/`**  
+   - Folder with scripts to preprocess and run models.
+
+
+For instructions on setting up experiments, see **[How2SetupYourExpt](./docs/How2SetupYourExpt.md)**.
+
+### **Model Configuration**
+Each model directory contains a `model_config.py` file that specifies settings and paths. For example:  
+- [Healthy Heart AE Model Configuration](./Experiments/HealthyHeart/run_models/AE/model_config.py)
+
+
+**Note:** You can update the number of epochs you want to run by modifying the `epochs` parameter in the dictionary:
+
+```python
+train_model_dict = {
+    "epochs": 2,        # For testing; for full experiments, use a larger value (e.g., 500)
+    # "epochs": 500,     # Number of training epochs used in our experiments
+}
+```
+---
+
+## **6. Dataset-Specific Instructions**
+
+To set up the datasets for your experiments, follow these steps:
+
+1. **Download the datasets** from the provided sources.  
+2. **Save them in the appropriate directories** under the main folder: **`/Experiments/data`**.  
+   - If the required subfolders do not exist, create them before saving the datasets.
+
+### **Datasets and Sources**
+
+- **Healthy Human Heart**  
+  - Source: [Figshare from Yu et al. (2023)](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)  
+  - Save the dataset in: `/Experiments/data/HealthyHeart_data`  
+  - *Note: Create the folder `HealthyHeart_data` if it does not already exist.*
+
+- **Autism Spectrum Disorder (ASD)**  
+  - Source: [Autism Cell Atlas (Speir et al., 2021; Velmeshev et al., 2019)](https://autism.cells.ucsc.edu)  
+  - Save the dataset in: `/Experiments/data/ASD_data`  
+  - *Note: Create the folder `ASD_data` if it does not already exist.*
+
+- **Acute Myeloid Leukemia (AML)**  
+  - Source: [GEO: GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE116256)  
+  - Save the dataset in: `/Experiments/data/AML_data`  
+  - *Note: Create the folder `AML_data` if it does not already exist.*
+
+---
+
+## **7. Running Models and Experiments**
+
+You can run AE, AEC, scMEDAL-FE, scMEDAL-FEC, or scMEDAL-RE independently. PCA can be generated simultaneously by setting `"get_pca": True` in `config.py`.
+
+The MEC model requires latent outputs from one of the above models; it cannot run independently.
+
+### **Steps to Run Models**
+1. **Run All Folds Locally:**
+   ```bash
+   python run_modelname_allfolds.py
+   ```
+
+2. **Submit Jobs via Slurm:**
+   ```bash
+   sbatch sbatch_run_modelname.sh
+   ```
+
+For detailed instructions, see **[How2RunYourExpt](./docs/How2RunYourExpt.md)**.
+
+### **Important Notes**
+- Always activate the correct Conda environment before running scripts.
+
+---
+
+## **8. Experiment Outputs**
+
+For more information about output files and their contents, refer to [ExperimentOutputs](./docs/ExperimentOutputs.md).
+
+---
+
+## **9. Analyzing Your Model Outputs**
+
+For guidance on analyzing and interpreting model outputs, see [How2AnalyzeYourModelOutputs](./docs/How2AnalyzeYourModelOutputs.md).
+
+---
+
+## **10. References**
+
+- Litvinukova, M. et al. Cells of the adult human heart. Nature 588, 466-472 (2020).
+- van Galen, P. et al. *Single-Cell RNA-Seq Reveals AML Hierarchies Relevant to Disease Progression and Immunity.* Cell 176, 1265?1281.e24 (2019).
+- Velmeshev, D. et al. *Single-cell genomics identifies cell type-specific molecular changes in autism.* Science 364, 685?689 (2019).
+- Speir, M. L. et al. *UCSC Cell Browser: visualize your single-cell data.* Bioinformatics 37, 4578?4580 (2021).
+- Yu, X., Xu, X., Zhang, J., & Li, X. *Batch alignment of single-cell transcriptomics data using deep metric learning.* Nat Commun 14, 960 (2023).  
+- Yu, X., Xu, X., Zhang, J., & Li, X. *Batch alignment of single-cell transcriptomics data using deep metric learning.* figshare [https://doi.org/10.6084/m9.figshare.20499630.v2](https://doi.org/10.6084/m9.figshare.20499630.v2) (2023).

@@ -39,7 +39,7 @@ def get_umap(
         use_rep:str="X_umap",
         clustering_scores=None, 
         issparse=False,
-        extra_color_cols="Patient_group"
+        extra_color_cols=["Patient_group"]
     ):
     
     # Define common plotting parameters
@@ -112,7 +112,7 @@ def get_umap(
                 plot_tsne=False,
                 n_pca_components=n_pca_components,
                 rng_seed=rng_seed,
-                extra_color_cols=[extra_color_cols]
+                extra_color_cols=extra_color_cols
             )
 
             print(f"{df.columns}")

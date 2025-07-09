@@ -313,7 +313,8 @@ class AMLAnalysis(Analysis):
             "compare_models_path":self.paths.outputs_path,
             "input_base_path":self.paths.splits_path,
             "analysis_name":self.paths.analysis_name,
-            "extra_color_cols":"Patient_group"
+            "extra_color_cols":["Patient_group"],
+            "issparse":False,
         }
 
 
@@ -384,7 +385,8 @@ class ASDAnalysis(Analysis):
             "shape_col":"celltype",
             "color_col":"celltype",
             "use_rep":"X_umap",
-            "extra_color_cols":"diagnosis"
+            "extra_color_cols":["diagnosis"],
+            "issparse":False,
         }
 
 
@@ -441,5 +443,6 @@ class HHAnalysis(Analysis):
             "compare_models_path":self.paths.outputs_path,
             "input_base_path":self.paths.splits_path,
             "analysis_name":self.paths.analysis_name,
-            "extra_color_cols":"Tissue"
+            "extra_color_cols":["DonorID","TissueDetail","protocol"],
+            "issparse":True,
         }

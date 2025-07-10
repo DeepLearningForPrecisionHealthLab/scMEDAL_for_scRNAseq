@@ -19,7 +19,8 @@ class MEC(Model):
         Quick sets epochs to 3.
         """
         print("Training on named_experiment:",named_experiment)
-        
+
+
         if plotconfigs is None:
             plotconfigs = cfg.PlotConfigs() if plot_kwargs is None else cfg.PlotConfigs(**plot_kwargs)
         shape_color_dict = plotconfigs.get_shape_color_dict(self.expt_design_configs)
@@ -68,6 +69,9 @@ class MEC(Model):
         params.issparse, params.load_dense = False, False
         if named_experiment == "HH":
             params.issparse, params.load_dense  = True, True
+        
+        print(f"Predicting {self.model_params['bio_col']} target and calculating {params.n_pred} predictions, please check if this is your desired config")
+        
 
         # --------------------------------------------------------------------------------------
         # 2. Load Metadata and Define Categories

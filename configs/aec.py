@@ -2,7 +2,7 @@ from typing import NamedTuple, List
 
 class AECModelConfigs(NamedTuple):
     name:str="aec"
-    n_latent_dims:int=2
+    n_latent_dims:int=50
     layer_units:List[int]=[512,132]
     layer_units_latent_classifier:List[int]=[2]
     n_pred:int=21

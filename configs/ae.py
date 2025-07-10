@@ -2,7 +2,7 @@ from typing import NamedTuple, List
 
 class AEModelConfigs(NamedTuple):
     name:str="ae"
-    n_latent_dims:int=2
+    n_latent_dims:int=50
     layer_units:List[int]=[512,132]
     last_activation:str="linear"
     use_batch_norm:bool=True

@@ -18,6 +18,7 @@ class MEC(Model):
         """
         Quick sets epochs to 3.
         """
+        print("Training on named_experiment:",named_experiment)
         
         if plotconfigs is None:
             plotconfigs = cfg.PlotConfigs() if plot_kwargs is None else cfg.PlotConfigs(**plot_kwargs)
@@ -40,9 +41,9 @@ class MEC(Model):
             splits_path = os.path.join(data_path, folder_name, paths.get("splits_folder"))
             outputs_path = os.path.join(outputs_path, named_experiment)
         
-        issparse, load_dense = False, False
-        if named_experiment == "HH":
-            issparse, load_dense = True, True
+
+        
+        
 
         print(f"Parent folder: {splits_path}")
 
@@ -63,6 +64,10 @@ class MEC(Model):
 
         mod = {"Model": self.alg}
         params=SimpleNamespace(**self.model_params, **mod)
+        # define the issparse param, it's a sparse matrix for HH
+        params.issparse, params.load_dense = False, False
+        if named_experiment == "HH":
+            params.issparse, params.load_dense  = True, True
 
         # --------------------------------------------------------------------------------------
         # 2. Load Metadata and Define Categories

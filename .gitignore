@@ -11,6 +11,7 @@
 outputs/*
 */tmp/*
 tmp/
+tmp/*
 
 # Ignore Python bytecode directories
 __pycache__/

@@ -1570,15 +1570,17 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
                 df_all_results = pd.concat(scores_list, ignore_index=True)
                 # Calculate the mean across all rows (folds)
     #            mean_scores = df_all_results.mean()
+                print("\n\n mean scores",df_all_results)
                 if not (model_params.get_pca or model_params.get_baseline):
                     # calculate mean
                     mean_scores = df_all_results.mean(numeric_only=True).to_frame('mean')
+                    print("\n\n mean scores",mean_scores)
                     # fill the dict
                     mean_scores_dict[dataset_type] = mean_scores
 
                     # Calculate sample standard deviation scores
                     std_scores = df_all_results.std(numeric_only=True,ddof=1).to_frame('std')  # Using sample standard deviation
-
+                    print("\n\n std scores",std_scores)
                     # Calculate standard error of the mean (SEM)
                     se_scores = std_scores / (len(folds_list) ** 0.5)  # SEM calculation
 

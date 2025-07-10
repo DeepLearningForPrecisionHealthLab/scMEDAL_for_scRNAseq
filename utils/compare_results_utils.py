@@ -329,13 +329,14 @@ def get_hvg(adata, num_genes_to_retain=None):
 # functions to homogenize the results
 
 
-def aggregate_paths(results_path_dict, pattern = f'mean_scores_test_samplesize'):
+def aggregate_paths(results_path_dict, pattern = f'mean_scores_test_samplesize',verbose=False):
     # Initialize a dictionary to store paths
     paths_dict = {}
 
     # Populate paths_dict with model names and corresponding file paths
     for model_name, path in results_path_dict.items():
-        print(model_name, path)
+        if verbose:
+            print(model_name, path)
         paths_dict[model_name] = glob_like(path, pattern)
 
     # Initialize an empty DataFrame to store all the data
@@ -354,7 +355,7 @@ def aggregate_paths(results_path_dict, pattern = f'mean_scores_test_samplesize')
     # Now df_all_paths contains all the data combined from the different files and models
     return df_all_paths
 
-def read_and_aggregate_scores(df_all_paths):
+def read_and_aggregate_scores(df_all_paths,verbose=False):
     """
     Reads CSV files from the paths listed in the provided DataFrame and aggregates the data into a single DataFrame.
 
@@ -369,7 +370,8 @@ def read_and_aggregate_scores(df_all_paths):
 
     # Iterate over each row in the DataFrame
     for index, row in df_all_paths.iterrows():
-        print(row)
+        if verbose:
+            print(row)
         # Read the CSV file
         df = pd.read_csv(row['path'], header=[0, 1],index_col=0)
                 
@@ -424,7 +426,7 @@ def filter_min_max_silhouette_scores(df,batch_col='batch'):
     return df_min_silhouette, df_max_silhouette
 
 
-def process_all_results(df_all_paths, models2process_dict, out_name, dataset_type):
+def process_all_results(df_all_paths, models2process_dict, out_name, dataset_type, verbose=False):
     """
     Process and merge results from different models and sample sizes into a single DataFrame, and save to CSV.
 
@@ -438,10 +440,12 @@ def process_all_results(df_all_paths, models2process_dict, out_name, dataset_typ
     dict: Dictionary with sample sizes as keys and their corresponding processed DataFrames as values.
     """
     df_sample_size = {}
-    print(df_all_paths)
+    if verbose:
+        print(df_all_paths)
     # Loop over each unique sample size
     for sample_size in np.unique(df_all_paths["sample_size"]):
-        print("sample size", sample_size)
+        if verbose:
+            print("sample size", sample_size)
         model_path_dict = {}
         # DataFrames for single model format and PCA format
         df_smf = pd.DataFrame()
@@ -450,21 +454,24 @@ def process_all_results(df_all_paths, models2process_dict, out_name, dataset_typ
 
         for model_name in np.unique(df_all_paths["model_name"]):
             # Get the results file path
-            print(model_name)
+            if verbose:
+                print(model_name)
             file_paths = df_all_paths.loc[(df_all_paths["sample_size"] == sample_size) & (df_all_paths["model_name"] == model_name), "path"].values
             if len(file_paths) > 0:
                 file_path = file_paths[0]
-                print(model_name, "file path", file_path)
+                if verbose:
+                    print(model_name, "file path", file_path)
                 model_path_dict[model_name] = file_path
             
             # Process models without PCA results
             if models2process_dict[model_name] == "process_single_model_format":
-                df_smf = pd.concat([df_smf, process_single_model_format(file_path=model_path_dict[model_name], model_name=model_name) ])
-                print("smf", df_smf)
+                df_smf = pd.concat([df_smf, process_single_model_format(file_path=model_path_dict[model_name], model_name=model_name,verbose=verbose) ])
+                if verbose:
+                    print("smf", df_smf)
             
             # Process models with PCA results
             elif models2process_dict[model_name] == "preprocess_results_model_pca_format":
-                df_pcaf_i = preprocess_results_model_pca_format(model_path_dict[model_name], columns_to_drop=['fold', 'sem_fold'])
+                df_pcaf_i = preprocess_results_model_pca_format(model_path_dict[model_name], columns_to_drop=['fold', 'sem_fold'],verbose=verbose)
                 df_pcaf_i = df_pcaf_i.rename(columns={"X_pca_val": "X_pca_val_" + str(count_i)})
                 df_pcaf = pd.concat([df_pcaf, df_pcaf_i], axis=1)
                 count_i += 1
@@ -476,7 +483,8 @@ def process_all_results(df_all_paths, models2process_dict, out_name, dataset_typ
         df_all = pd.concat([df_pcaf, df_smf.T], axis=1).T
         # Save the DataFrame to CSV
         df_all.to_csv(os.path.join(out_name, f"{dataset_type}_scores_{sample_size}.csv"))
-        print(df_all)
+        if verbose:
+            print(df_all)
         df_sample_size[sample_size] = df_all
 
     return df_sample_size
@@ -527,7 +535,7 @@ def process_confidence_intervals(df_all, out_name, dataset_type, sample_size, do
 
     return df_mean_ci
 
-def preprocess_results_model_pca_format(file_path, columns_to_drop):
+def preprocess_results_model_pca_format(file_path, columns_to_drop, verbose=False):
     """
     Load data from a CSV file, clean and transpose the DataFrame. This is for a experiment results format where get_pca=True
 
@@ -539,7 +547,8 @@ def preprocess_results_model_pca_format(file_path, columns_to_drop):
     Returns:
     - pd.DataFrame, the transposed and cleaned DataFrame.
     """
-    print("reading file:",file_path)
+    if verbose:
+        print("reading file:",file_path)
     # Load the CSV file into a DataFrame with specified MultiIndex for rows and columns
     df = pd.read_csv(file_path, header=[0, 1, 2], index_col=[0])
 
@@ -561,7 +570,7 @@ def preprocess_results_model_pca_format(file_path, columns_to_drop):
 
 
 
-def process_single_model_format(file_path,model_name):
+def process_single_model_format(file_path,model_name,verbose=False):
     """
     Process the dataframe to:
     1. Remove columns where the category level is 'fold'.
@@ -572,11 +581,13 @@ def process_single_model_format(file_path,model_name):
     #df = df.drop(columns=[col for col in df.columns if col[1] == 'fold'], level=1)
     
     # Convert DataFrame to dictionary and back to DataFrame with multi-level columns
-    print("reading file:",file_path)
+    if verbose:
+        print("reading file:",file_path)
 
     df = pd.read_csv(file_path, header=[0],index_col=[0,1]).T
     #df = df1.copy()
-    print(df.columns)
+    if verbose:
+        print(df.columns)
     del df['fold']
     data = df.to_dict()
     

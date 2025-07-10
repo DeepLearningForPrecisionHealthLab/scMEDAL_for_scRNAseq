@@ -97,6 +97,7 @@ class Analysis(ABC):
             model_result_folder_dict:Optional[Dict[str,str]]=None,
             dataset_type:str="test",
         ):
+        import numpy as np
         self._check_update_assertions(model_result_folder_dict)
                 
         model_configs_dict = {}
@@ -120,11 +121,12 @@ class Analysis(ABC):
         #     models2process_dict=model_configs_dict
         # )
         try:
-            compare_clustering_scores(
+            res = compare_clustering_scores(
                 **self._clustering_scores_kwargs(),
                 dataset_type=dataset_type,
                 models2process_dict=model_configs_dict,
             )
+            return np.round(res,2)
         except (KeyError, FileNotFoundError) as exc:
             raise RuntimeError(
                 "Default config strategy failed. "

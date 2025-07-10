@@ -100,22 +100,49 @@ class Analysis(ABC):
         self._check_update_assertions(model_result_folder_dict)
                 
         model_configs_dict = {}
-        for model, model_folder_id in model_result_folder_dict.items():
-            model_configs_dict[model] = self._get_pca_from_configs(self.paths.saved_models_path[model])
+        for model, _folder_id in model_result_folder_dict.items():
+            try:
+                model_configs_dict[model] = self._get_pca_from_configs(
+                    self.paths.saved_models_path[model]
+                )
+            except Exception as exc:
+                print(f"[WARN] {model}: {exc}  using single-model format (AE will default to PCA format if present)")
+                model_configs_dict[model] = "process_single_model_format"
 
-        compare_clustering_scores(
-            **self._clustering_scores_kwargs(),
-            dataset_type=dataset_type,
-            models2process_dict=model_configs_dict
-        )
+                # and, while we are in the fallback block, make sure AE
+                # still gets the PCA version.
+                if "AE" in model_result_folder_dict:
+                    model_configs_dict["AE"] = "preprocess_results_model_pca_format"
+
+        # compare_clustering_scores(
+        #     **self._clustering_scores_kwargs(),
+        #     dataset_type=dataset_type,
+        #     models2process_dict=model_configs_dict
+        # )
+        try:
+            compare_clustering_scores(
+                **self._clustering_scores_kwargs(),
+                dataset_type=dataset_type,
+                models2process_dict=model_configs_dict,
+            )
+        except (KeyError, FileNotFoundError) as exc:
+            raise RuntimeError(
+                "Default config strategy failed. "
+                "Either (i) compute your AE run with `get_pca=True`, or "
+                "(ii) provide a valid `configs.json` next to every trained model."
+            ) from exc
     
 
 
     def load_configs(self, path:str, config_filename:str="configs.json"):
         fp = os.path.join(path, config_filename)
+        
+        if not os.path.isfile(fp):
+            raise FileNotFoundError(f"config.json not found: {fp}")
         with open(fp, "r") as f:
             configs = json.load(f)
         return configs
+
 
     def _get_pca_from_configs(self, configspath:str) -> str:
         configs = self.load_configs(configspath)

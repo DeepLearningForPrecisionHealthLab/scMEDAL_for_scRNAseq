@@ -104,7 +104,7 @@ def train_model_on_named_experiment(model_name:str, named_experiment:str, model_
     model_kwargs = _parse_model_kwargs_for_named_experiment(model_name=model_name, model_kwargs=model_kwargs, experiment_name=named_experiment)
     
     if n_pred is not None: model_kwargs['n_pred'] = n_pred
-    if n_clusters is not None: model_kwargs['n_cluster'] = n_clusters
+    if n_clusters is not None: model_kwargs['n_clusters'] = n_clusters
 
     mod = model_aliases[model_name](**model_kwargs)
     mod.run_train(named_experiment=named_experiment) if train_kwargs is None else mod.run_train(named_experiment=named_experiment, **train_kwargs)

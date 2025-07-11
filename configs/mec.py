@@ -26,7 +26,7 @@ class MECModelConfigs(NamedTuple):
     model_params:Dict[str,str]= None
     base_path:str= None
     models_list:List[str]= ["scmedalre", "scmedalfe", "scmedalfec", "aec", "ae"]
-    batch_col:str=None
+    #batch_col:str=None
     bio_col:str=None
     batch_col_categories:str= None
     bio_col_categories:str=None

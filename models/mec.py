@@ -149,7 +149,7 @@ class MEC(Model):
                  build_model_dict={k:v for k, v in self.model_configs._asdict().items() if k not in [
                      "ignore", 'latent_keys_config', "return_metrics", "return_adata_dict", "return_trained_model", 
                      "model_type", "seed", "latent_path_dict", "model_params", "base_path", "fold", "models_list", 
-                     "batch_col_categories", "bio_col_categories", 
+                     "batch_col_categories", "bio_col_categories", "bio_col", "batch_col"
                      ]},
                 **pipeline_LatentClassifier_config,
                 

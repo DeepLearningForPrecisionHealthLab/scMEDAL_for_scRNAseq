@@ -1,10 +1,10 @@
 
 import sys
 # import paths
-sys.path.append("../../")
-from ...paths_config import data_base_path,scenario_id,outputs_path 
+#sys.path.append("../../")
 import os
-
+os.chdir(os.path.dirname(__file__))
+from ...paths_config import data_base_path,scenario_id,outputs_path 
 from .....utils.model_train_utils import generate_run_name
 # from tensorflow.keras.optimizers import Adam
 # from tensorflow.keras.losses import MeanSquaredError as mse_loss

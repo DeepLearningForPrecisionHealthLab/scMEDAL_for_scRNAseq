@@ -19,5 +19,8 @@ __pycache__/
 # Ignore Jupyter Notebook checkpoint directories
 .ipynb_checkpoints/
 demo/outputs/*
+outputs
+outputs_demo
+outputs_500
 
 

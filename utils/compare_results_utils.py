@@ -1,7 +1,7 @@
 
 import os
 import re
-from .utils import get_split_paths,read_adata,min_max_scaling,plot_rep,calculate_zscores
+from .utils import get_split_paths,read_adata,min_max_scaling,plot_rep,plot_rep_simple,calculate_zscores
 import pandas as pd
 from .utils_load_model import get_latest_checkpoint
 from anndata import AnnData
@@ -14,6 +14,7 @@ import pandas as pd
 import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
+import itertools
 
 # Glob does not work well with strange characters
 
@@ -328,13 +329,14 @@ def get_hvg(adata, num_genes_to_retain=None):
 # functions to homogenize the results
 
 
-def aggregate_paths(results_path_dict, pattern = f'mean_scores_test_samplesize'):
+def aggregate_paths(results_path_dict, pattern = f'mean_scores_test_samplesize',verbose=False):
     # Initialize a dictionary to store paths
     paths_dict = {}
 
     # Populate paths_dict with model names and corresponding file paths
     for model_name, path in results_path_dict.items():
-        print(model_name, path)
+        if verbose:
+            print(model_name, path)
         paths_dict[model_name] = glob_like(path, pattern)
 
     # Initialize an empty DataFrame to store all the data
@@ -353,7 +355,7 @@ def aggregate_paths(results_path_dict, pattern = f'mean_scores_test_samplesize')
     # Now df_all_paths contains all the data combined from the different files and models
     return df_all_paths
 
-def read_and_aggregate_scores(df_all_paths):
+def read_and_aggregate_scores(df_all_paths,verbose=False):
     """
     Reads CSV files from the paths listed in the provided DataFrame and aggregates the data into a single DataFrame.
 
@@ -368,7 +370,8 @@ def read_and_aggregate_scores(df_all_paths):
 
     # Iterate over each row in the DataFrame
     for index, row in df_all_paths.iterrows():
-        print(row)
+        if verbose:
+            print(row)
         # Read the CSV file
         df = pd.read_csv(row['path'], header=[0, 1],index_col=0)
                 
@@ -423,7 +426,7 @@ def filter_min_max_silhouette_scores(df,batch_col='batch'):
     return df_min_silhouette, df_max_silhouette
 
 
-def process_all_results(df_all_paths, models2process_dict, out_name, dataset_type):
+def process_all_results(df_all_paths, models2process_dict, out_name, dataset_type, verbose=False):
     """
     Process and merge results from different models and sample sizes into a single DataFrame, and save to CSV.
 
@@ -437,10 +440,12 @@ def process_all_results(df_all_paths, models2process_dict, out_name, dataset_typ
     dict: Dictionary with sample sizes as keys and their corresponding processed DataFrames as values.
     """
     df_sample_size = {}
-    print(df_all_paths)
+    if verbose:
+        print(df_all_paths)
     # Loop over each unique sample size
     for sample_size in np.unique(df_all_paths["sample_size"]):
-        print("sample size", sample_size)
+        if verbose:
+            print("sample size", sample_size)
         model_path_dict = {}
         # DataFrames for single model format and PCA format
         df_smf = pd.DataFrame()
@@ -449,21 +454,24 @@ def process_all_results(df_all_paths, models2process_dict, out_name, dataset_typ
 
         for model_name in np.unique(df_all_paths["model_name"]):
             # Get the results file path
-            print(model_name)
+            if verbose:
+                print(model_name)
             file_paths = df_all_paths.loc[(df_all_paths["sample_size"] == sample_size) & (df_all_paths["model_name"] == model_name), "path"].values
             if len(file_paths) > 0:
                 file_path = file_paths[0]
-                print(model_name, "file path", file_path)
+                if verbose:
+                    print(model_name, "file path", file_path)
                 model_path_dict[model_name] = file_path
             
             # Process models without PCA results
             if models2process_dict[model_name] == "process_single_model_format":
-                df_smf = pd.concat([df_smf, process_single_model_format(file_path=model_path_dict[model_name], model_name=model_name) ])
-                print("smf", df_smf)
+                df_smf = pd.concat([df_smf, process_single_model_format(file_path=model_path_dict[model_name], model_name=model_name,verbose=verbose) ])
+                if verbose:
+                    print("smf", df_smf)
             
             # Process models with PCA results
             elif models2process_dict[model_name] == "preprocess_results_model_pca_format":
-                df_pcaf_i = preprocess_results_model_pca_format(model_path_dict[model_name], columns_to_drop=['fold', 'sem_fold'])
+                df_pcaf_i = preprocess_results_model_pca_format(model_path_dict[model_name], columns_to_drop=['fold', 'sem_fold'],verbose=verbose)
                 df_pcaf_i = df_pcaf_i.rename(columns={"X_pca_val": "X_pca_val_" + str(count_i)})
                 df_pcaf = pd.concat([df_pcaf, df_pcaf_i], axis=1)
                 count_i += 1
@@ -475,7 +483,8 @@ def process_all_results(df_all_paths, models2process_dict, out_name, dataset_typ
         df_all = pd.concat([df_pcaf, df_smf.T], axis=1).T
         # Save the DataFrame to CSV
         df_all.to_csv(os.path.join(out_name, f"{dataset_type}_scores_{sample_size}.csv"))
-        print(df_all)
+        if verbose:
+            print(df_all)
         df_sample_size[sample_size] = df_all
 
     return df_sample_size
@@ -526,7 +535,7 @@ def process_confidence_intervals(df_all, out_name, dataset_type, sample_size, do
 
     return df_mean_ci
 
-def preprocess_results_model_pca_format(file_path, columns_to_drop):
+def preprocess_results_model_pca_format(file_path, columns_to_drop, verbose=False):
     """
     Load data from a CSV file, clean and transpose the DataFrame. This is for a experiment results format where get_pca=True
 
@@ -538,7 +547,8 @@ def preprocess_results_model_pca_format(file_path, columns_to_drop):
     Returns:
     - pd.DataFrame, the transposed and cleaned DataFrame.
     """
-    print("reading file:",file_path)
+    if verbose:
+        print("reading file:",file_path)
     # Load the CSV file into a DataFrame with specified MultiIndex for rows and columns
     df = pd.read_csv(file_path, header=[0, 1, 2], index_col=[0])
 
@@ -560,7 +570,7 @@ def preprocess_results_model_pca_format(file_path, columns_to_drop):
 
 
 
-def process_single_model_format(file_path,model_name):
+def process_single_model_format(file_path,model_name,verbose=False):
     """
     Process the dataframe to:
     1. Remove columns where the category level is 'fold'.
@@ -571,11 +581,13 @@ def process_single_model_format(file_path,model_name):
     #df = df.drop(columns=[col for col in df.columns if col[1] == 'fold'], level=1)
     
     # Convert DataFrame to dictionary and back to DataFrame with multi-level columns
-    print("reading file:",file_path)
+    if verbose:
+        print("reading file:",file_path)
 
     df = pd.read_csv(file_path, header=[0],index_col=[0,1]).T
     #df = df1.copy()
-    print(df.columns)
+    if verbose:
+        print(df.columns)
     del df['fold']
     data = df.to_dict()
     
@@ -836,13 +848,10 @@ def get_umap_plot(df, umap_path, plot_params, sample_size=10000, n_neighbors=15,
 
             gc.collect()
 class DimensionalityReductionProcessor:
-<<<<<<< HEAD:utils/compare_results_utils.py
-=======
     """Compute UMAPs, save CSV/NPY, and plot latent + UMAP reps"""
     from typing import Optional, Tuple, List
 
     #  INIT 
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
     def __init__(
         self,
         df: pd.DataFrame,
@@ -869,10 +878,6 @@ class DimensionalityReductionProcessor:
         self.n_batches_sample = n_batches_sample
         self.batch_col = batch_col
         self.n_pca_components = n_pca_components
-<<<<<<< HEAD:utils/compare_results_utils.py
-        self.batches_sample = None
-=======
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
         self.extra_color_cols = extra_color_cols or []
         self.rng = np.random.RandomState(rng_seed)
 
@@ -881,10 +886,7 @@ class DimensionalityReductionProcessor:
         self.sampled_indices: Optional[np.ndarray] = None
         self._umap_written: set[str] = set()
 
-<<<<<<< HEAD:utils/compare_results_utils.py
-=======
     #  HELPERS 
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
     def _scale(self, X):
         if self.scaling == "min_max":
             return min_max_scaling(X)
@@ -904,19 +906,35 @@ class DimensionalityReductionProcessor:
         return PCA(self.n_pca_components, random_state=self.rng).fit_transform(X)
 
     def _embed(self, adata, use_rep):
+        print(f"Computing UMAP on {adata.n_obs} cells × {adata.n_vars} features, using '{use_rep}'")
+
         sc.pp.neighbors(adata, n_neighbors=self.n_neighbors, use_rep=use_rep, random_state=self.rng)
         sc.tl.umap(adata, min_dist=self.min_dist, random_state=self.rng)
 
-    #  central plot wrapper 
-    def _plot_all(self, adata, stem, shape_col, color_col):
-        """Generate regular & axis?free plots while avoiding duplicate kwargs."""
+        print("UMAP shape:", adata.obsm["X_umap"].shape)
+
+
+    def _plot_all(self, adata, stem, shape_col, color_col, use_rep="X_umap"):
         pp = self.plot_params.copy()
+        pp.pop("use_rep", None)
         for k in ("shape_col", "color_col", "markers", "outpath", "file_name"):
             pp.pop(k, None)
-        mk = self.plot_params.get("markers", None)
+
+        mk = self.plot_params.get("markers")
+        if isinstance(mk, list):
+            mk = dict(zip(sorted(adata.obs[shape_col].unique()), itertools.cycle(mk)))
+
+        if use_rep == "X":
+            if adata.X.shape[1] < 2:
+                print(f"Cannot plot raw latent: fewer than 2 dims (shape={adata.X.shape}). Skipping.")
+                return
+        elif use_rep not in adata.obsm:
+            print(f"Embedding '{use_rep}' not found. Skipping plot.")
+            return
 
         for suf, axes, box in [("", True, True), ("_noaxis", False, False)]:
-            plot_rep(
+            
+            plot_rep_simple(
                 adata,
                 shape_col=shape_col,
                 color_col=color_col,
@@ -925,16 +943,13 @@ class DimensionalityReductionProcessor:
                 legend_box=box,
                 outpath=self.output_path,
                 file_name=f"{stem}{suf}",
+                use_rep=use_rep,
                 **pp
             )
 
     #   SAVE HELPERS 
     def _save_csv(self, adata, fname, rep_key):
         """Write embedding coords to CSV without mutating original obs.
-<<<<<<< HEAD:utils/compare_results_utils.py
-=======
-
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
         * `X_umap` ? CSV only (UMAP¹/² columns not added to `obs`).
         * `X_pca`  ? CSV + full 50?PC `.npy` dump.
         * others   ? CSV only.
@@ -959,39 +974,42 @@ class DimensionalityReductionProcessor:
         if fname not in self._umap_written:
             self._umap_written.add(fname)
             self._save_csv(adata, fname, "X_umap")
-<<<<<<< HEAD:utils/compare_results_utils.py
-       
-=======
 
     # MAIN DRIVER 
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
     def get_dimensionality_reduction_plots(self, process_allbatches=True, issparse=True):
+        """
+            Main entrypoint: processes INPUT matrices and LATENT matrices in four
+            clearly?separated scenarios and generates the requested plots / CSVs.
 
-        # sanity: you can?t request ?subset only? without a subset size
+            ?? Scenario map ????????????????????????????????????????????????????????????
+            1. INPUT  ? full data        (PCA ? UMAP)         ? plots & CSV
+            2. INPUT  ? subset batches  (PCA ? UMAP)         ? plots & CSV
+            3. LATENT ? full data       (latent ? UMAP)      ? plots & CSV
+            4. LATENT ? subset batches  (raw latent only)    ? plots & CSV
+            ---------------------------------------------------------------------------
+        """
+
+        #  sanity check 
         if self.n_batches_sample is None and not process_allbatches:
             raise ValueError("n_batches_sample=None but process_allbatches=False")
 
+        # iterate over every input?prefix (train_1, val_1, ?)
         for i, ipref in enumerate(np.unique(self.df["input_prefix"])):
+            print("\n\nProcessing prefix:", i, ipref)
 
-            #  1. load & preprocess the INPUT matrix 
+            # ?? 0. LOAD + PRE?PROCESS INPUT MATRIX 
             in_path = self.df.loc[self.df["input_prefix"] == ipref, "InputsPath"].values[0]
             X, var, obs = read_adata(in_path, issparse=issparse)
             X = X.toarray() if issparse else X
-            X, obs = self._subset(self._scale(X), obs)          # optional cell-subsample
+            X, obs = self._subset(self._scale(X), obs)
 
-            # choose the batch subset once and reuse for every prefix / latent
+            # choose / cache the batch subset once per get_dimensionality? call
             if i == 0:
                 all_batches = np.unique(obs[self.batch_col])
                 self.batches_sample = (
                     all_batches if self.n_batches_sample is None else
                     self.rng.choice(all_batches, size=self.n_batches_sample, replace=False)
                 )
-<<<<<<< HEAD:utils/compare_results_utils.py
-            
-            # ?? 2. build an AnnData with PCA on the full matrix (always) 
-            ad_full = AnnData(X, obs=obs, var=var)
-            ad_full.obsm["X_pca"] = self._pca(X)                 # PCA always computed
-=======
 
             # ?? 2. build an AnnData with PCA on the full matrix (always) 
             ad_full = AnnData(X, obs=obs, var=var)
@@ -1054,7 +1072,7 @@ class DimensionalityReductionProcessor:
                     self._save_csv(ad_lat_sub, stub_lat, "X_umap")
 
             gc.collect()
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
+
 
             try:
                 # 2A. FULL-data UMAP / plots / CSV  ? only when you ask for them
@@ -1102,17 +1120,74 @@ class DimensionalityReductionProcessor:
                     self._save_umap_once(ad_lat, lp)
 
             # (b) SUBSET latent outputs when we have a batch subset
+
+            # ?? 1. INPUT   full data  (PCA + UMAP) 
+            ad_full = AnnData(X, obs=obs, var=var)
+            ad_full.obsm["X_pca"] = self._pca(X)
+
+            if process_allbatches:
+                try:
+                    self._embed(ad_full, use_rep="X_pca")
+                    print(f"Plotting input latent space.. for all batches")
+                    self._plot_all(ad_full, f"input_{ipref}", "celltype", "celltype", use_rep="X_umap")
+                    self._plot_all(ad_full, f"input_{ipref}_batch", self.batch_col, self.batch_col, use_rep="X_umap")
+                    for c in self.extra_color_cols:
+                        if c in obs:
+                            self._plot_all(ad_full, f"input_{ipref}_{c}", c, c, use_rep="X_umap")
+                    self._save_umap_once(ad_full, f"input_{ipref}")
+                    self._save_csv(ad_full, f"input_{ipref}_modellatent", "X_pca")
+                except Exception as e:
+                    print("Full input UMAP failed:", e)
+
+            #  2. INPUT   subset batches  (PCA + UMAP) 
+            if self.n_batches_sample is not None:
+                print("Sampling", self.n_batches_sample, "batches out of", len(all_batches))
+                ad_sub = filter_adata_by_batch(ad_full.copy(), self.batches_sample, self.batch_col)
+                ad_sub.obsm["X_pca"] = self._pca(ad_sub.X)
+                self._embed(ad_sub, use_rep="X_pca")
+                stub = f"input_{ipref}_{len(self.batches_sample)}{self.batch_col}"
+                print(f"Plotting input latent space.. for {self.n_batches_sample}")
+                self._plot_all(ad_sub, stub, "celltype", "celltype", use_rep="X_umap")
+                self._plot_all(ad_sub, f"{stub}_batch", self.batch_col, self.batch_col, use_rep="X_umap")
+                for c in self.extra_color_cols:
+                    if c in ad_sub.obs:
+                        self._plot_all(ad_sub, f"{stub}_{c}", c, c, use_rep="X_umap")
+                self._save_csv(ad_sub, stub, "X_umap")
+
+            # prepare latent file list for scenarios 3 & 4 
+            lat_df = self.df.loc[self.df["input_prefix"] == ipref, ["latent_prefix", "LatentPath"]]
+
+            # 3. LATENT full data  (latent  UMAP) 
+            if process_allbatches and self.n_batches_sample is None:
+                for lp, lpath in lat_df.values:
+                    ad_lat = AnnData(np.load(lpath)[self.sampled_indices], obs=obs)
+                    print(f"Plotting {lp} latent space.. for all batches")
+                    self._embed(ad_lat, use_rep="X")          # latent ? UMAP
+                    self._plot_all(ad_lat, lp, "celltype", "celltype", use_rep="X_umap")
+                    self._plot_all(ad_lat, f"{lp}_batch", self.batch_col, self.batch_col, use_rep="X_umap")
+                    for c in self.extra_color_cols:
+                        if c in obs:
+                            self._plot_all(ad_lat, f"{lp}_{c}", c, c, use_rep="X_umap")
+                    self._save_umap_once(ad_lat, lp)
+
+            # 4. LATENT  subset batches  (raw latent) 
+
             if self.n_batches_sample is not None:
                 for lp, lpath in lat_df.values:
                     ad_lat_sub = AnnData(np.load(lpath)[self.sampled_indices], obs=obs)
                     ad_lat_sub = filter_adata_by_batch(ad_lat_sub, self.batches_sample, self.batch_col)
-                    self._embed(ad_lat_sub, "X")
+                    print(f"Plotting {lp} latent space.. for {self.n_batches_sample}")
+                    self._embed(ad_lat_sub, use_rep="X")     # raw latent only
                     stub_lat = f"{lp}_{len(self.batches_sample)}{self.batch_col}"
-                    self._plot_all(ad_lat_sub, stub_lat,          "celltype", "celltype")
-                    self._plot_all(ad_lat_sub, f"{stub_lat}_batch", self.batch_col, self.batch_col)
+                    self._plot_all(ad_lat_sub, stub_lat, "celltype", "celltype", use_rep="X")
+                    self._plot_all(ad_lat_sub, f"{stub_lat}_batch", self.batch_col, self.batch_col, use_rep="X")
+                    self._plot_all(ad_lat_sub, stub_lat, "celltype", "celltype", use_rep="X_umap")
+                    self._plot_all(ad_lat_sub, f"{stub_lat}_batch", self.batch_col, self.batch_col, use_rep="X_umap")
                     for c in self.extra_color_cols:
                         if c in ad_lat_sub.obs:
-                            self._plot_all(ad_lat_sub, f"{stub_lat}_{c}", c, c)
-                    self._save_csv(ad_lat_sub, stub_lat, "X_umap")
+                            self._plot_all(ad_lat_sub, f"{stub_lat}_{c}", c, c, use_rep="X")
+                            self._plot_all(ad_lat_sub, f"{stub_lat}_{c}", c, c, use_rep="X_umap")
+                    self._save_csv(ad_lat_sub, stub_lat, "X")
+                    self._save_umap_once(ad_lat_sub, stub_lat)
 
             gc.collect()

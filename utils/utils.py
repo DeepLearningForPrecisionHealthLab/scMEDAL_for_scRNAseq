@@ -443,8 +443,10 @@ def get_colors_dict(celltype, donor,colors_list=['olive','darkolivegreen','sprin
             
         return colors_dict
 
+<<<<<<< HEAD
 
 
+<<<<<<< HEAD
 <<<<<<< HEAD:utils/utils.py
 =======
 
@@ -622,6 +624,10 @@ def get_colors_dict(celltype, donor,colors_list=['olive','darkolivegreen','sprin
 #     plt.close(fig)
 
 >>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
+=======
+=======
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
+>>>>>>> refactor_Aixa_new_clean
 def plot_rep(
     adata,
     shape_col: str = "celltype",
@@ -745,6 +751,87 @@ def plot_rep(
 
 >>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
 
+<<<<<<< HEAD
+=======
+
+def plot_rep_simple(
+    adata,
+    shape_col: str = "celltype",
+    color_col: str = "donor",
+    use_rep: str = "X_pca",
+    markers=('o', 'v', '^', '<', '*'),       # ignored
+    clustering_scores=None,                  # ignored
+    save_fig: bool = True,
+    outpath: str = "",
+    showplot: bool = False,
+    palette_choice: str = "tab20",
+    file_name: str = "latent",
+    axes: bool = True,
+    legend_box: bool = True,                 # keeps old name
+    *args, **kwargs                          # swallow anything else
+):
+    """
+    Simple scatter of a 2-D latent representation.
+    Points are coloured by `color_col`; `shape_col` and all shape-related
+    options are ignored (kept only for API compatibility).
+    """
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    import numpy as np
+
+    # ---------- palette ----------
+    uniq_color = np.unique(adata.obs[color_col])
+    if isinstance(palette_choice, list):
+        palette = palette_choice
+    elif palette_choice == "hsv":
+        palette = sns.color_palette("hsv", len(uniq_color))
+    elif palette_choice == "tab20":
+        palette = [plt.cm.tab20(i) for i in np.linspace(0, 1, len(uniq_color))]
+    elif palette_choice == "Set2":
+        palette = sns.color_palette("Set2", len(uniq_color))
+    else:
+        raise ValueError("Invalid palette_choice")
+
+    color_map = dict(zip(uniq_color, palette))
+    #print("using color_map:",color_map.items())
+
+    # ---------- coordinates ----------
+    coords = adata.X if use_rep == "X" else adata.obsm[use_rep]
+    x, y = coords[:, 0], coords[:, 1]
+
+    # ---------- plot ----------
+    plt.ioff()
+    fig, ax = plt.subplots(figsize=(7, 7))
+    for grp in uniq_color:
+        m = adata.obs[color_col] == grp
+        #print("plotting ",grp,color_map[grp])
+        #print(len(x[m]),len(y[m]))
+
+
+        ax.scatter(x[m], y[m], s=2, alpha=0.7, color=color_map[grp], label=grp)
+
+    # axis & labels
+    if axes:
+        ax.set_xlabel(f"{use_rep}-1")
+        ax.set_ylabel(f"{use_rep}-2")
+    else:
+        ax.set_axis_off()
+
+    # legend (colour only)
+    if legend_box:
+        ax.legend(title=color_col, loc="upper left", bbox_to_anchor=(1, 1), 
+        scatterpoints=1,   # one marker per label
+        markerscale=8  )
+
+    # save / show
+    if save_fig and outpath:
+        fig.savefig(f"{outpath}/{use_rep}_{file_name}.png",
+                    bbox_inches="tight", dpi=300)
+    if showplot:
+        plt.show()
+    plt.close(fig)
+
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
     
 ######################################## For comparing models
 

@@ -15,7 +15,11 @@ It also adds 95% confidence intervals (CI) to the results.
 Environment: run_models_env
 """
 
+<<<<<<< HEAD
 def compare_clustering_scores(run_names_dict, results_path_dict, compare_models_path, dataset_type, models2process_dict, analysis_name) -> None:
+=======
+def compare_clustering_scores(run_names_dict, results_path_dict, compare_models_path, dataset_type, models2process_dict, analysis_name,verbose=False) -> None:
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
     # --------------------------------------------------------------------------------------
     # 1. Define dataset type and output directory
@@ -35,6 +39,7 @@ def compare_clustering_scores(run_names_dict, results_path_dict, compare_models_
     # 2. Get paths for mean and all scores
     # --------------------------------------------------------------------------------------
     # Aggregate paths for mean scores
+<<<<<<< HEAD
     df_all_paths = aggregate_paths(results_path_dict, pattern=f'mean_scores_{dataset_type}_samplesize')
     print("\n\nMean scores paths:")
     print(df_all_paths.head())
@@ -46,13 +51,36 @@ def compare_clustering_scores(run_names_dict, results_path_dict, compare_models_
 
     print("\nColumns in all scores paths:")
     print(df_all_paths_allscores.columns)
+=======
+    df_all_paths = aggregate_paths(results_path_dict, pattern=f'mean_scores_{dataset_type}_samplesize',verbose=verbose)
+    
+    if verbose:
+        print("\n\nMean scores paths:")
+        print(df_all_paths.head())
+
+    # Aggregate paths for all scores
+    df_all_paths_allscores = aggregate_paths(results_path_dict, pattern=f'all_scores_{dataset_type}_samplesize',verbose=verbose)
+    if verbose:
+        print("\nAll scores paths:")
+        print(df_all_paths_allscores)
+
+        print("\nColumns in all scores paths:")
+        print(df_all_paths_allscores.columns)
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
     # --------------------------------------------------------------------------------------
     # 3. Read all scores and save to a CSV file
     # --------------------------------------------------------------------------------------
+<<<<<<< HEAD
     df_allscores = read_and_aggregate_scores(df_all_paths_allscores)
     print("\nAggregated scores DataFrame:")
     print(df_allscores)
+=======
+    df_allscores = read_and_aggregate_scores(df_all_paths_allscores,verbose=verbose)
+    print("\nComputed aggregated scores DataFrame")
+    if verbose:
+        print(df_allscores)
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
     # Save all scores to CSV
     df_allscores.to_csv(os.path.join(out_name, f"{dataset_type}_allscores.csv"))
@@ -91,13 +119,24 @@ def compare_clustering_scores(run_names_dict, results_path_dict, compare_models_
     # }
 
     # Process all results
+<<<<<<< HEAD
     df_sample_size = process_all_results(df_all_paths, models2process_dict, out_name, dataset_type)
+=======
+    df_sample_size = process_all_results(df_all_paths, models2process_dict, out_name, dataset_type,verbose=verbose)
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
     # --------------------------------------------------------------------------------------
     # 6. Calculate 95% confidence intervals (CI) for results
     # --------------------------------------------------------------------------------------
     for sample_size, df_all in df_sample_size.items():
         df_mean_ci_results = process_confidence_intervals(df_all, out_name, dataset_type, sample_size)
+<<<<<<< HEAD
         print(f"Sample size: {sample_size}\nConfidence interval results:")
         print(df_mean_ci_results)
+=======
+        print(f"Computed Confidence interval results for sample size: {sample_size}, saved to: {out_name}\n ")
+        if verbose:
+            print(df_mean_ci_results)
+    return df_mean_ci_results
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
     

@@ -40,6 +40,10 @@ class GenomapConfig:
     add_inputs_fe: bool = True
     extra_recon: str = "fe"   # "fe", "all", or "none"
     seed: int = 42
+<<<<<<< HEAD
+=======
+    issparse: bool = False
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
     n_cells_2_plot: int = 4
     n_top_genes : int = 10
     min_val : int = -1
@@ -96,6 +100,7 @@ class Analysis(ABC):
             model_result_folder_dict:Optional[Dict[str,str]]=None,
             dataset_type:str="test",
         ):
+<<<<<<< HEAD
         self._check_update_assertions(model_result_folder_dict)
                 
         model_configs_dict = {}
@@ -107,15 +112,63 @@ class Analysis(ABC):
             dataset_type=dataset_type,
             models2process_dict=model_configs_dict
         )
+=======
+        import numpy as np
+        self._check_update_assertions(model_result_folder_dict)
+                
+        model_configs_dict = {}
+        for model, _folder_id in model_result_folder_dict.items():
+            try:
+                model_configs_dict[model] = self._get_pca_from_configs(
+                    self.paths.saved_models_path[model]
+                )
+            except Exception as exc:
+                print(f"[WARN] {model}: {exc}  using single-model format (AE will default to PCA format if present)")
+                model_configs_dict[model] = "process_single_model_format"
+
+                # and, while we are in the fallback block, make sure AE
+                # still gets the PCA version.
+                if "AE" in model_result_folder_dict:
+                    model_configs_dict["AE"] = "preprocess_results_model_pca_format"
+
+        # compare_clustering_scores(
+        #     **self._clustering_scores_kwargs(),
+        #     dataset_type=dataset_type,
+        #     models2process_dict=model_configs_dict
+        # )
+        try:
+            res = compare_clustering_scores(
+                **self._clustering_scores_kwargs(),
+                dataset_type=dataset_type,
+                models2process_dict=model_configs_dict,
+            )
+            return np.round(res,2)
+        except (KeyError, FileNotFoundError) as exc:
+            raise RuntimeError(
+                "Default config strategy failed. "
+                "Either (i) compute your AE run with `get_pca=True`, or "
+                "(ii) provide a valid `configs.json` next to every trained model."
+            ) from exc
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
     
 
 
     def load_configs(self, path:str, config_filename:str="configs.json"):
         fp = os.path.join(path, config_filename)
+<<<<<<< HEAD
+=======
+        
+        if not os.path.isfile(fp):
+            raise FileNotFoundError(f"config.json not found: {fp}")
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         with open(fp, "r") as f:
             configs = json.load(f)
         return configs
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
     def _get_pca_from_configs(self, configspath:str) -> str:
         configs = self.load_configs(configspath)
         pca_val = configs.get("get_pca")
@@ -146,6 +199,10 @@ class Analysis(ABC):
         max_val : int = None,
         num_iter: int = None ,
         cell_id_col : str = None,
+<<<<<<< HEAD
+=======
+        issparse : bool = None,
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         ):
         # This will update self.paths which is the basis for _genomap_kwargs
         # Not ideal, but workable.
@@ -171,6 +228,10 @@ class Analysis(ABC):
         core['max_val'] = max_val if max_val is not None else core['max_val']
         core['num_iter'] = num_iter if num_iter is not None else core['num_iter']
         core['cell_id_col'] = cell_id_col if cell_id_col is not None else core['cell_id_col']
+<<<<<<< HEAD
+=======
+        core['issparse'] = issparse if issparse is not None else core['issparse']
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
         cfg = GenomapConfig(
             compare_models_path = core["compare_models_path"],
@@ -192,6 +253,10 @@ class Analysis(ABC):
             add_inputs_fe       = core["add_inputs_fe"],
             extra_recon         = core["extra_recon"],
             seed                = core["seed"],
+<<<<<<< HEAD
+=======
+            issparse            = core["issparse"],
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             n_cells_2_plot      = core["n_cells_2_plot"],
             n_top_genes         = core["n_top_genes"],
             min_val             = core["min_val"],
@@ -290,6 +355,10 @@ class AMLAnalysis(Analysis):
             "add_inputs_fe":True,
             "extra_recon":"fe",
             "seed":42,
+<<<<<<< HEAD
+=======
+            "issparse":False,
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             "n_cells_2_plot":4,
             "n_top_genes":10,
             "num_iter":100,
@@ -308,7 +377,12 @@ class AMLAnalysis(Analysis):
             "compare_models_path":self.paths.outputs_path,
             "input_base_path":self.paths.splits_path,
             "analysis_name":self.paths.analysis_name,
+<<<<<<< HEAD
             "extra_color_cols":"Patient_group"
+=======
+            "extra_color_cols":["Patient_group"],
+            "issparse":False,
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         }
 
 
@@ -343,6 +417,10 @@ class ASDAnalysis(Analysis):
             "add_inputs_fe":True,
             "extra_recon":"fe",
             "seed":42,
+<<<<<<< HEAD
+=======
+            "issparse":False,
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             "n_top_genes":10,
             "num_iter":100,
             # These changed
@@ -378,7 +456,12 @@ class ASDAnalysis(Analysis):
             "shape_col":"celltype",
             "color_col":"celltype",
             "use_rep":"X_umap",
+<<<<<<< HEAD
             "extra_color_cols":"Patient_group"
+=======
+            "extra_color_cols":["diagnosis"],
+            "issparse":False,
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         }
 
 
@@ -414,6 +497,10 @@ class HHAnalysis(Analysis):
             "add_inputs_fe":True,
             "extra_recon":"fe",
             "seed":42,
+<<<<<<< HEAD
+=======
+            "issparse":True,
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             "n_top_genes":10,
             "num_iter":100,
             # These changed
@@ -434,5 +521,10 @@ class HHAnalysis(Analysis):
             "compare_models_path":self.paths.outputs_path,
             "input_base_path":self.paths.splits_path,
             "analysis_name":self.paths.analysis_name,
+<<<<<<< HEAD
             "extra_color_cols":"Patient_group"
+=======
+            "extra_color_cols":["DonorID","TissueDetail","protocol"],
+            "issparse":True,
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         }

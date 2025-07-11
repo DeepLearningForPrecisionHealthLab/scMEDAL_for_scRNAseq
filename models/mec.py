@@ -18,7 +18,13 @@ class MEC(Model):
         """
         Quick sets epochs to 3.
         """
+<<<<<<< HEAD
         
+=======
+        print("Training on named_experiment:",named_experiment)
+
+
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         if plotconfigs is None:
             plotconfigs = cfg.PlotConfigs() if plot_kwargs is None else cfg.PlotConfigs(**plot_kwargs)
         shape_color_dict = plotconfigs.get_shape_color_dict(self.expt_design_configs)
@@ -40,9 +46,15 @@ class MEC(Model):
             splits_path = os.path.join(data_path, folder_name, paths.get("splits_folder"))
             outputs_path = os.path.join(outputs_path, named_experiment)
         
+<<<<<<< HEAD
         issparse, load_dense = False, False
         if named_experiment == "HH":
             issparse, load_dense = True, True
+=======
+
+        
+        
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
         print(f"Parent folder: {splits_path}")
 
@@ -63,6 +75,16 @@ class MEC(Model):
 
         mod = {"Model": self.alg}
         params=SimpleNamespace(**self.model_params, **mod)
+<<<<<<< HEAD
+=======
+        # define the issparse param, it's a sparse matrix for HH
+        params.issparse, params.load_dense = False, False
+        if named_experiment == "HH":
+            params.issparse, params.load_dense  = True, True
+        
+        print(f"Loading model params.bio_col:{params.bio_col} (target) and calculating model params.n_pred:{params.n_pred} (predictions), please check if this is your desired config")
+        
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
         # --------------------------------------------------------------------------------------
         # 2. Load Metadata and Define Categories
@@ -84,9 +106,17 @@ class MEC(Model):
 
         # Define One Hot Encoded (OHE) order for donor and celltype categories
         params.batch_col_categories = np.unique(metadata_all[params.batch_col]).tolist() ## V2": batch_col_categories
+<<<<<<< HEAD
         print("Ordered batches (donors):", params.batch_col_categories)
 
         params.bio_col_categories = np.unique(metadata_all[params.bio_col]).tolist() ## V2 : bio_col_categories
+=======
+        print("Ordered batches (params.batch_col_categories):", params.batch_col_categories)
+
+        params.bio_col_categories = np.unique(metadata_all[params.bio_col]).tolist() ## V2 : bio_col_categories
+        print("Ordered target classes (bio_col_categories):", params.bio_col_categories)
+        print("n target classes len(bio_col_categories):", len(params.bio_col_categories))
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
 
         # --------------------------------------------------------------------------------------
@@ -95,6 +125,11 @@ class MEC(Model):
         # df_latent = get_latent_paths_df(results_path_dict, k_folds=params.fold_list[-1]) # <---------------- not sure this is the correct path
         # df_inputs = get_input_paths_df(splits_path, k_folds=params.fold_list[-1], eval_test=True)
         df_latent = get_latent_paths_df(results_path_dict) # <---------------- not sure this is the correct path
+<<<<<<< HEAD
+=======
+
+        
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         df_inputs = get_input_paths_df(splits_path, eval_test=True)
 
         # Merge latent and input paths

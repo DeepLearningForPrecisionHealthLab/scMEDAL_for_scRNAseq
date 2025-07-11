@@ -21,4 +21,22 @@ AML_EXPERIMENT_NAME = "log_transformed_2916hvggenes"
 os.makedirs(OUTPUTS_DIR, exist_ok=True)
 os.makedirs(AML_OUTPUTS_DIR, exist_ok=True)
 os.makedirs(ASD_OUTPUTS_DIR, exist_ok=True)
+<<<<<<< HEAD
 os.makedirs(HH_OUTPUTS_DIR, exist_ok=True)
+=======
+os.makedirs(HH_OUTPUTS_DIR, exist_ok=True)
+
+ASD_OUTPUTS_DIR = os.path.join(OUTPUTS_DIR, "ASD")
+ASD_DATA_DIR = os.path.join(DATA_DIR, "ASD_data")
+ASD_EXPERIMENT_NAME = "log_transformed_2916hvggenes"
+
+
+HH_OUTPUTS_DIR = os.path.join(OUTPUTS_DIR, "HH")
+HH_DATA_DIR = os.path.join(DATA_DIR, "HH_data")
+HH_EXPERIMENT_NAME = "log_transformed_3000hvggenes"
+
+
+
+
+
+>>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1

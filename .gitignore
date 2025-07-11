@@ -9,6 +9,7 @@
 
 *._.DS_Store
 outputs/*
+*outputs
 */tmp/*
 tmp/
 <<<<<<< HEAD

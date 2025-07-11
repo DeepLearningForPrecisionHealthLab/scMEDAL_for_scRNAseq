@@ -2625,21 +2625,38 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
         - "metrics": DataFrame of performance metrics for the trained model and SVM.
         - "adata": The AnnData dictionary containing processed data (if return_adata_dict is True).
     """
-
+    def print_nested_keys(d, indent=0):
+        """Pretty-print every key in a nested dict, indented by depth."""
+        if not isinstance(d, dict):
+            return
+        pad = "  " * indent
+        for k, v in d.items():
+            print(f"{pad}{k}")
+            print_nested_keys(v, indent + 1)  # recurse one level deeper
+    print("Latent classifier pipeline started ..")
+    print(f"Target loaded (bio_col): {bio_col}")
+    print(f"Target classes (n_pred):{model_params.n_pred}")
     # 1. Load data latent paths and adata_dict
     adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse, load_dense)
+    
     
     # Calculate PCA
     if get_pca:
         adata_dict = get_pca_andplot(adata_dict, plot_params=None, eval_test=model_params.eval_test,n_components=model_params.n_components,shape_color_dict = None)
 
+    print("\nadata_dict structure")
+    print(print_nested_keys(adata_dict))
 
     print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
 
     # 2. Prepare data for training
     inputs = prepare_latent_space_inputs(adata_dict, latent_keys_config, eval_test=model_params.eval_test)
-    print(f"inputs: {inputs}")
+    print(f"\ninputs: {inputs}")
+    print("\ninputs structure")
+    print(print_nested_keys(inputs))
     print(f"model params {model_params}")
+
+    print("\nTraining random forest classifier ..")
 
     # 3. Build and train model, plott loss and evaluate dffn model
     dffn_results = build_train_evaluate_model(Model, build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type)
@@ -2658,7 +2675,7 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
 
 
     # Evaluate using RandomForest
-    print("Training random forest classifier")
+    print("\nTraining random forest classifier  ..")
 
     rf_results = random_forest_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=model_params.eval_test)
     adata_dict = rf_results["adata_dict"]

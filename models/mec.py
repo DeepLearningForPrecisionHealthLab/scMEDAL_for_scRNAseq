@@ -70,7 +70,7 @@ class MEC(Model):
         if named_experiment == "HH":
             params.issparse, params.load_dense  = True, True
         
-        print(f"Predicting {self.model_params['bio_col']} target and calculating {params.n_pred} predictions, please check if this is your desired config")
+        print(f"Loading model params.bio_col:{params.bio_col} (target) and calculating model params.n_pred:{params.n_pred} (predictions), please check if this is your desired config")
         
 
         # --------------------------------------------------------------------------------------
@@ -93,9 +93,11 @@ class MEC(Model):
 
         # Define One Hot Encoded (OHE) order for donor and celltype categories
         params.batch_col_categories = np.unique(metadata_all[params.batch_col]).tolist() ## V2": batch_col_categories
-        print("Ordered batches (donors):", params.batch_col_categories)
+        print("Ordered batches (params.batch_col_categories):", params.batch_col_categories)
 
         params.bio_col_categories = np.unique(metadata_all[params.bio_col]).tolist() ## V2 : bio_col_categories
+        print("Ordered target classes (bio_col_categories):", params.bio_col_categories)
+        print("n target classes len(bio_col_categories):", len(params.bio_col_categories))
 
 
         # --------------------------------------------------------------------------------------

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
-scVI Training & Cross‑Validation Pipeline
-
+scVI Training & CrossValidation Pipeline
 """
 
 # ======================================================
@@ -14,8 +13,6 @@ import glob
 import gc
 import warnings
 from typing import Dict, Any, List
-
-# --- Third‑party libraries
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt

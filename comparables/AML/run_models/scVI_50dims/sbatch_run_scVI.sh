@@ -12,7 +12,7 @@ module load cuda118
 module load cuda118/toolkit/11.8.0
 module load cudnn/8.6.0.163
 module load parallel
-#module load python/3.7.x-anaconda
+module load python/3.7.x-anaconda
 
 
 # Update the path to the environment you use to run your script

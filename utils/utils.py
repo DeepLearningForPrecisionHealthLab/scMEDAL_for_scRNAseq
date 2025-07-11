@@ -445,6 +445,183 @@ def get_colors_dict(celltype, donor,colors_list=['olive','darkolivegreen','sprin
 
 
 
+<<<<<<< HEAD:utils/utils.py
+=======
+
+# def plot_rep(adata, shape_col="celltype", color_col="donor", use_rep="X_pca", markers=['o', 'v', '^', '<', '*'], clustering_scores=None, save_fig=True, outpath="", showplot=False, palette_choice="tab20",file_name="latent"):
+#     """Plots a dimensionally reduced representation of adata."""
+#     import matplotlib.pyplot as plt
+#     import seaborn as sns
+#     import numpy as np
+#     import itertools
+#     from matplotlib.lines import Line2D
+
+#     print("plotting latent representation:", use_rep)
+#     plt.ioff()
+#     fig, ax = plt.subplots(figsize=(7, 7))
+
+#     unique_shapecol = np.unique(adata.obs[shape_col])
+#     unique_colorcol = np.unique(adata.obs[color_col])
+#     print("unique_colorcol",unique_colorcol)
+
+#     # Choose the color palette based on the palette_choice argument
+#     if isinstance(palette_choice, list):
+#         color_palette = palette_choice
+#     elif palette_choice == "hsv":
+#         color_palette = sns.color_palette("hsv", len(unique_colorcol))
+#     elif palette_choice == "tab20":
+#         # Ensure tab20 has enough colors, otherwise cycle through them
+#         color_palette = [plt.cm.tab20(i) for i in np.linspace(0, 1, len(unique_colorcol))]
+#     elif palette_choice == "Set2":
+#         color_palette = sns.color_palette("Set2", len(unique_colorcol))
+#     else:
+#         raise ValueError("Invalid palette choice. Please choose 'hsv', 'tab20', 'Set2', or provide a list of colors.")
+    
+
+#     color_map = {color: color_palette[i] for i, color in enumerate(unique_colorcol)}
+#     shape_map = {shape: markers[i % len(markers)] for i, shape in enumerate(unique_shapecol)}
+#     if use_rep =='X':
+#         c1 = adata.X[:, 0]
+#         c2 = adata.X[:, 1]
+#     else:
+#         c1 = adata.obsm[use_rep][:, 0]
+#         c2 = adata.obsm[use_rep][:, 1]
+
+
+#     for shape in unique_shapecol:
+#         for color in unique_colorcol:
+#             mask = (adata.obs[color_col] == color) & (adata.obs[shape_col] == shape)
+#             ax.scatter(c1[mask], c2[mask], color=color_map[color], marker=shape_map[shape], alpha=0.7, s=1)
+
+#     # Create legends
+#     color_legend_elements = [Line2D([0], [0], marker='o', color='w', markerfacecolor=color_map[c], markersize=10) for c in unique_colorcol]
+#     shape_legend_elements = [Line2D([0], [0], marker=shape_map[s], color='black', markerfacecolor='black', markersize=10) for s in unique_shapecol]
+
+#     legend1 = ax.legend(handles=color_legend_elements, labels=list(unique_colorcol), loc='upper left', bbox_to_anchor=(1, 1), title=color_col)
+#     plt.gca().add_artist(legend1)
+
+#     legend2 = ax.legend(handles=shape_legend_elements, labels=list(unique_shapecol), loc='lower center', bbox_to_anchor=(0.5, -0.65), ncol=3, title=shape_col)
+#         #add clustering scores to the plot
+#     if clustering_scores is not None:
+#         #calculate scores on the PCA space
+#         #df = get_clustering_scores(adata,use_rep = "X_pca", labels = [color_col,shape_col])
+#         df = clustering_scores
+#         print("Warning: All clustering scores should have been calculated in PCA latent space")
+#         df = np.round(df,2)
+#         #get lists of clustering scores
+#         color_scores_list = [key+":" +str(value) for key, value in df[color_col].items()]
+#         shape_scores_list = [key+":" +str(value) for key, value in df[shape_col].items()]
+#         #get titles with clustering scores
+#         color_title = color_col+" scores - "+' '.join(color_scores_list[1:])
+#         shape_title = shape_col+" scores - "+' '.join(shape_scores_list[1:])
+#         plt.title(color_title+"\n"+shape_title+"\nscores calculated on PCA latent space")
+
+#     #if use_rep is pca -->add variance ratio to the plot
+#     try:
+#         #print("trying pca")
+#         use_rep.index("pca")
+#         #ncomps = int(use_rep.split("X_pca_ncomps")[1])
+#         variance_ratio_pc1 = np.round(adata.uns['pca']["variance_ratio"][0]*100,3)
+#         variance_ratio_pc2 = np.round(adata.uns['pca']["variance_ratio"][1]*100,3)
+#         plt.xlabel("PC 1 ("+str(variance_ratio_pc1)+"%)")
+#         plt.ylabel("PC 2("+str(variance_ratio_pc2)+"%)")
+            
+#     except:
+#         plt.xlabel(use_rep+" 1")
+#         plt.ylabel(use_rep+" 2")
+#     if save_fig and outpath:
+#         fig.savefig(f"{outpath}/{use_rep}_{file_name}.png", bbox_extra_artists=(legend1, legend2), bbox_inches='tight')
+#     if showplot:
+#         plt.show()
+#     else:
+#         plt.close("all")
+# def plot_rep(
+#     adata,
+#     shape_col: str = "celltype",
+#     color_col: str = "donor",
+#     use_rep: str = "X_pca",
+#     markers=('o', 'v', '^', '<', '*'),
+#     clustering_scores=None,
+#     save_fig: bool = True,
+#     outpath: str = "",
+#     showplot: bool = False,
+#     palette_choice="tab20",
+#     file_name: str = "latent",
+#     axes: bool = True,               
+#     legend_box: bool = True,          
+# ):
+#     """
+#     Scatter UMAP/t-SNE/PCA with optional axis-free, border-free view.
+#     """
+#     import matplotlib.pyplot as plt
+#     import seaborn as sns
+#     import numpy as np
+#     from matplotlib.lines import Line2D
+
+#     plt.ioff()
+#     fig, ax = plt.subplots(figsize=(7, 7))
+
+#     #  palette
+#     uniq_color = np.unique(adata.obs[color_col])
+#     if isinstance(palette_choice, list):
+#         palette = palette_choice
+#     elif palette_choice == "hsv":
+#         palette = sns.color_palette("hsv", len(uniq_color))
+#     elif palette_choice == "tab20":
+#         palette = [plt.cm.tab20(i) for i in np.linspace(0, 1, len(uniq_color))]
+#     elif palette_choice == "Set2":
+#         palette = sns.color_palette("Set2", len(uniq_color))
+#     else:
+#         raise ValueError("Invalid palette_choice")
+
+#     color_map = dict(zip(uniq_color, palette))
+#     shape_map = {s: markers[i % len(markers)]
+#                  for i, s in enumerate(np.unique(adata.obs[shape_col]))}
+
+#     # coordinates
+#     c1, c2 = (adata.X.T[:2] if use_rep == "X"
+#               else adata.obsm[use_rep].T[:2])
+
+#     #  scatter 
+#     for s in shape_map:
+#         for c in color_map:
+#             m = (adata.obs[shape_col] == s) & (adata.obs[color_col] == c)
+#             ax.scatter(c1[m], c2[m], s=1, alpha=0.7,
+#                        marker=shape_map[s], color=color_map[c])
+
+#     #  legends 
+#     kw = dict(frameon=legend_box)
+#     leg1 = ax.legend([Line2D([0], [0], marker='o', color='w',
+#                              markerfacecolor=color_map[c], markersize=8)
+#                       for c in uniq_color],
+#                      uniq_color, loc='upper left', bbox_to_anchor=(1, 1),
+#                      title=color_col, **kw)
+#     ax.add_artist(leg1)
+
+#     leg2 = ax.legend([Line2D([0], [0], marker=shape_map[s], color='black',
+#                              markerfacecolor='black', markersize=8)
+#                       for s in shape_map],
+#                      list(shape_map), loc='lower center',
+#                      bbox_to_anchor=(0.5, -0.65), ncol=3,
+#                      title=shape_col, **kw)
+
+#     # axis & box handling 
+#     if not axes:
+#         ax.set_axis_off()                     # remove frame, ticks, labels
+#     else:
+#         ax.set_xlabel(f"{use_rep} 1")
+#         ax.set_ylabel(f"{use_rep} 2")
+
+#     #  save / show 
+#     if save_fig and outpath:
+#         fig.savefig(f"{outpath}/{use_rep}_{file_name}.png",
+#                     bbox_extra_artists=(leg1, leg2),
+#                     bbox_inches='tight', dpi=300)
+#     if showplot:
+#         plt.show()
+#     plt.close(fig)
+
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
 def plot_rep(
     adata,
     shape_col: str = "celltype",
@@ -458,9 +635,13 @@ def plot_rep(
     palette_choice="tab20",
     file_name: str = "latent",
     axes: bool = True,          # show / hide axis & ticks
+<<<<<<< HEAD:utils/utils.py
     legend_box: bool = True,
     *args,
     **kwargs     # True ? legend with box, False ? *no* legend
+=======
+    legend_box: bool = True     # True ? legend with box, False ? *no* legend
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
 ):
     """
     Scatter UMAP/t-SNE/PCA with optional axis-free view and optional legends.
@@ -468,28 +649,38 @@ def plot_rep(
     import matplotlib.pyplot as plt
     import seaborn as sns
     import numpy as np
-    import itertools
     from matplotlib.lines import Line2D
 
-    print("plotting latent representation:", use_rep)
     plt.ioff()
     fig, ax = plt.subplots(figsize=(7, 7))
 
+<<<<<<< HEAD:utils/utils.py
     uniq_color = np.unique(adata.obs[color_col])
 
     # Choose the color palette based on the palette_choice argument
+=======
+    #  palette 
+    uniq_color = np.unique(adata.obs[color_col])
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
     if isinstance(palette_choice, list):
         palette = palette_choice
     elif palette_choice == "hsv":
         palette = sns.color_palette("hsv", len(uniq_color))
     elif palette_choice == "tab20":
+<<<<<<< HEAD:utils/utils.py
         # Ensure tab20 has enough colors, otherwise cycle through them
+=======
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
         palette = [plt.cm.tab20(i) for i in np.linspace(0, 1, len(uniq_color))]
     elif palette_choice == "Set2":
         palette = sns.color_palette("Set2", len(uniq_color))
     else:
+<<<<<<< HEAD:utils/utils.py
         raise ValueError("Invalid palette choice. Please choose 'hsv', 'tab20', 'Set2', or provide a list of colors.")
     
+=======
+        raise ValueError("Invalid palette_choice")
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
 
     color_map = dict(zip(uniq_color, palette))
     shape_map = {s: markers[i % len(markers)]
@@ -531,9 +722,17 @@ def plot_rep(
     #  axis handling 
     if not axes:
         ax.set_axis_off()
+<<<<<<< HEAD:utils/utils.py
         ax.set_xlabel(f"{use_rep} 1")
         ax.set_ylabel(f"{use_rep} 2")
     
+=======
+    else:
+        ax.set_xlabel(f"{use_rep} 1")
+        ax.set_ylabel(f"{use_rep} 2")
+
+    #  save / show 
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
     if save_fig and outpath:
         fig.savefig(f"{outpath}/{use_rep}_{file_name}.png",
                     bbox_extra_artists=extra_artists,
@@ -541,6 +740,10 @@ def plot_rep(
     if showplot:
         plt.show()
     plt.close(fig)
+<<<<<<< HEAD:utils/utils.py
+=======
+
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
 
     
 ######################################## For comparing models

@@ -835,14 +835,14 @@ def get_umap_plot(df, umap_path, plot_params, sample_size=10000, n_neighbors=15,
                 plot_rep(adata, outpath=umap_path, file_name=f"{latent_pref}_{sample_size}cells_{n_batches_sample}{batch_col}_batchcolors", **plot_params_batch_col)
 
             gc.collect()
-
-
-
-
-
-
-
 class DimensionalityReductionProcessor:
+<<<<<<< HEAD:utils/compare_results_utils.py
+=======
+    """Compute UMAPs, save CSV/NPY, and plot latent + UMAP reps"""
+    from typing import Optional, Tuple, List
+
+    #  INIT 
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
     def __init__(
         self,
         df: pd.DataFrame,
@@ -868,9 +868,11 @@ class DimensionalityReductionProcessor:
         self.scaling = scaling
         self.n_batches_sample = n_batches_sample
         self.batch_col = batch_col
-        self.plot_tsne = plot_tsne
         self.n_pca_components = n_pca_components
+<<<<<<< HEAD:utils/compare_results_utils.py
         self.batches_sample = None
+=======
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
         self.extra_color_cols = extra_color_cols or []
         self.rng = np.random.RandomState(rng_seed)
 
@@ -879,10 +881,14 @@ class DimensionalityReductionProcessor:
         self.sampled_indices: Optional[np.ndarray] = None
         self._umap_written: set[str] = set()
 
+<<<<<<< HEAD:utils/compare_results_utils.py
+=======
+    #  HELPERS 
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
     def _scale(self, X):
         if self.scaling == "min_max":
             return min_max_scaling(X)
-        elif self.scaling == "z_scores":
+        if self.scaling == "z_scores":
             return calculate_zscores(X)
         return X
 
@@ -925,6 +931,10 @@ class DimensionalityReductionProcessor:
     #   SAVE HELPERS 
     def _save_csv(self, adata, fname, rep_key):
         """Write embedding coords to CSV without mutating original obs.
+<<<<<<< HEAD:utils/compare_results_utils.py
+=======
+
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
         * `X_umap` ? CSV only (UMAP¹/² columns not added to `obs`).
         * `X_pca`  ? CSV + full 50?PC `.npy` dump.
         * others   ? CSV only.
@@ -949,7 +959,12 @@ class DimensionalityReductionProcessor:
         if fname not in self._umap_written:
             self._umap_written.add(fname)
             self._save_csv(adata, fname, "X_umap")
+<<<<<<< HEAD:utils/compare_results_utils.py
        
+=======
+
+    # MAIN DRIVER 
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
     def get_dimensionality_reduction_plots(self, process_allbatches=True, issparse=True):
 
         # sanity: you can?t request ?subset only? without a subset size
@@ -971,10 +986,75 @@ class DimensionalityReductionProcessor:
                     all_batches if self.n_batches_sample is None else
                     self.rng.choice(all_batches, size=self.n_batches_sample, replace=False)
                 )
+<<<<<<< HEAD:utils/compare_results_utils.py
             
             # ?? 2. build an AnnData with PCA on the full matrix (always) 
             ad_full = AnnData(X, obs=obs, var=var)
             ad_full.obsm["X_pca"] = self._pca(X)                 # PCA always computed
+=======
+
+            # ?? 2. build an AnnData with PCA on the full matrix (always) 
+            ad_full = AnnData(X, obs=obs, var=var)
+            ad_full.obsm["X_pca"] = self._pca(X)                 # PCA always computed
+
+            # 2A. FULL-data UMAP / plots / CSV  ? only when you ask for them
+            if process_allbatches:
+                self._embed(ad_full, "X_pca")                    # neighbour graph + UMAP
+                self._plot_all(ad_full, f"input_{ipref}",         "celltype", "celltype")
+                self._plot_all(ad_full, f"input_{ipref}_batch",   self.batch_col, self.batch_col)
+                for c in self.extra_color_cols:
+                    if c in obs:
+                        self._plot_all(ad_full, f"input_{ipref}_{c}", c, c)
+                self._save_umap_once(ad_full, f"input_{ipref}")   # CSV once per stem
+
+            # always save the PCA latent (needed downstream, cheap)
+            self._save_csv(ad_full, f"input_{ipref}_modellatent", "X_pca")
+
+            # 2B. SUBSET input (only if n_batches_sample specified)
+            if self.n_batches_sample is not None:
+                ad_sub = filter_adata_by_batch(ad_full.copy(), self.batches_sample, self.batch_col)
+                ad_sub.obsm["X_pca"] = self._pca(ad_sub.X)
+                self._embed(ad_sub, "X_pca")
+                stub = f"input_{ipref}_{len(self.batches_sample)}{self.batch_col}"
+                self._plot_all(ad_sub, stub,          "celltype", "celltype")
+                self._plot_all(ad_sub, f"{stub}_batch", self.batch_col, self.batch_col)
+                for c in self.extra_color_cols:
+                    if c in ad_sub.obs:
+                        self._plot_all(ad_sub, f"{stub}_{c}", c, c)
+                self._save_csv(ad_sub, stub, "X_umap")            # subset UMAP CSV
+
+            # ?? 3. LATENT files 
+            lat_df = self.df.loc[self.df["input_prefix"] == ipref, ["latent_prefix", "LatentPath"]]
+
+            # (a) FULL-data latent outputs only when BOTH:
+            #     process_allbatches is True  AND  we did NOT request a subset
+            if process_allbatches and self.n_batches_sample is None:
+                for lp, lpath in lat_df.values:
+                    ad_lat = AnnData(np.load(lpath)[self.sampled_indices], obs=obs)
+                    self._embed(ad_lat, "X")
+                    self._plot_all(ad_lat, lp, "celltype", "celltype")
+                    self._plot_all(ad_lat, f"{lp}_batch", self.batch_col, self.batch_col)
+                    for c in self.extra_color_cols:
+                        if c in obs:
+                            self._plot_all(ad_lat, f"{lp}_{c}", c, c)
+                    self._save_umap_once(ad_lat, lp)
+
+            # (b) SUBSET latent outputs when we have a batch subset
+            if self.n_batches_sample is not None:
+                for lp, lpath in lat_df.values:
+                    ad_lat_sub = AnnData(np.load(lpath)[self.sampled_indices], obs=obs)
+                    ad_lat_sub = filter_adata_by_batch(ad_lat_sub, self.batches_sample, self.batch_col)
+                    self._embed(ad_lat_sub, "X")
+                    stub_lat = f"{lp}_{len(self.batches_sample)}{self.batch_col}"
+                    self._plot_all(ad_lat_sub, stub_lat,          "celltype", "celltype")
+                    self._plot_all(ad_lat_sub, f"{stub_lat}_batch", self.batch_col, self.batch_col)
+                    for c in self.extra_color_cols:
+                        if c in ad_lat_sub.obs:
+                            self._plot_all(ad_lat_sub, f"{stub_lat}_{c}", c, c)
+                    self._save_csv(ad_lat_sub, stub_lat, "X_umap")
+
+            gc.collect()
+>>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/compare_results_utils.py
 
             try:
                 # 2A. FULL-data UMAP / plots / CSV  ? only when you ask for them

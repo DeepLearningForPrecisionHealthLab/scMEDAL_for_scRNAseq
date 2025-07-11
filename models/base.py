@@ -141,11 +141,7 @@ class Model(ABC):
         if quick:
             self.training_configs._replace(epochs=10)
             self.model_params['epochs'] = 10
-<<<<<<< HEAD
-            self.model_params['fold_list'] = [1]
-=======
             self.model_params['fold_list'] = [1]#[1,2]
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
         model_name = self.model_name
 

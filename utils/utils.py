@@ -443,12 +443,7 @@ def get_colors_dict(celltype, donor,colors_list=['olive','darkolivegreen','sprin
             
         return colors_dict
 
-<<<<<<< HEAD
 
-
-<<<<<<< HEAD
-<<<<<<< HEAD:utils/utils.py
-=======
 
 # def plot_rep(adata, shape_col="celltype", color_col="donor", use_rep="X_pca", markers=['o', 'v', '^', '<', '*'], clustering_scores=None, save_fig=True, outpath="", showplot=False, palette_choice="tab20",file_name="latent"):
 #     """Plots a dimensionally reduced representation of adata."""
@@ -623,11 +618,7 @@ def get_colors_dict(celltype, donor,colors_list=['olive','darkolivegreen','sprin
 #         plt.show()
 #     plt.close(fig)
 
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
-=======
-=======
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
->>>>>>> refactor_Aixa_new_clean
+
 def plot_rep(
     adata,
     shape_col: str = "celltype",
@@ -641,13 +632,7 @@ def plot_rep(
     palette_choice="tab20",
     file_name: str = "latent",
     axes: bool = True,          # show / hide axis & ticks
-<<<<<<< HEAD:utils/utils.py
-    legend_box: bool = True,
-    *args,
-    **kwargs     # True ? legend with box, False ? *no* legend
-=======
     legend_box: bool = True     # True ? legend with box, False ? *no* legend
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
 ):
     """
     Scatter UMAP/t-SNE/PCA with optional axis-free view and optional legends.
@@ -660,33 +645,18 @@ def plot_rep(
     plt.ioff()
     fig, ax = plt.subplots(figsize=(7, 7))
 
-<<<<<<< HEAD:utils/utils.py
-    uniq_color = np.unique(adata.obs[color_col])
-
-    # Choose the color palette based on the palette_choice argument
-=======
     #  palette 
     uniq_color = np.unique(adata.obs[color_col])
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
     if isinstance(palette_choice, list):
         palette = palette_choice
     elif palette_choice == "hsv":
         palette = sns.color_palette("hsv", len(uniq_color))
     elif palette_choice == "tab20":
-<<<<<<< HEAD:utils/utils.py
-        # Ensure tab20 has enough colors, otherwise cycle through them
-=======
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
         palette = [plt.cm.tab20(i) for i in np.linspace(0, 1, len(uniq_color))]
     elif palette_choice == "Set2":
         palette = sns.color_palette("Set2", len(uniq_color))
     else:
-<<<<<<< HEAD:utils/utils.py
-        raise ValueError("Invalid palette choice. Please choose 'hsv', 'tab20', 'Set2', or provide a list of colors.")
-    
-=======
         raise ValueError("Invalid palette_choice")
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
 
     color_map = dict(zip(uniq_color, palette))
     shape_map = {s: markers[i % len(markers)]
@@ -728,17 +698,11 @@ def plot_rep(
     #  axis handling 
     if not axes:
         ax.set_axis_off()
-<<<<<<< HEAD:utils/utils.py
-        ax.set_xlabel(f"{use_rep} 1")
-        ax.set_ylabel(f"{use_rep} 2")
-    
-=======
     else:
         ax.set_xlabel(f"{use_rep} 1")
         ax.set_ylabel(f"{use_rep} 2")
 
     #  save / show 
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
     if save_fig and outpath:
         fig.savefig(f"{outpath}/{use_rep}_{file_name}.png",
                     bbox_extra_artists=extra_artists,
@@ -746,13 +710,7 @@ def plot_rep(
     if showplot:
         plt.show()
     plt.close(fig)
-<<<<<<< HEAD:utils/utils.py
-=======
 
->>>>>>> e362fe11d74fc7a997deee93612524376f027bf1:scMEDAL/utils/utils.py
-
-<<<<<<< HEAD
-=======
 
 def plot_rep_simple(
     adata,
@@ -831,7 +789,6 @@ def plot_rep_simple(
         plt.show()
     plt.close(fig)
 
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
     
 ######################################## For comparing models
 

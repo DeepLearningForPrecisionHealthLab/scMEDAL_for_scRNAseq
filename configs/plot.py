@@ -19,20 +19,13 @@ class PlotConfigs(NamedTuple):
         '#9a6324',  # Brown
         '#d2f53c',  # Lime
         #'#ff69b4',  # Hot pink
-<<<<<<< HEAD
-        "#7fff00",  # Chartreuse
-=======
 #        '#00ff7f'  # Spring Green
         '#7fff00',  # Chartreuse
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         '#000080',  # Navy
         '#800000',  # Maroon
         '#808000',  # Olive
         '#800080',  # Dark purple
         '#808080',  # Gray
-<<<<<<< HEAD
-        '#ffd700'   # Gold
-=======
         '#ffd700',  # Gold
         '#ff4500',  # Orange Red
         '#00ff7f',  # Spring Green
@@ -44,7 +37,6 @@ class PlotConfigs(NamedTuple):
         '#4682b4',  # Steel Blue
         '#6b8e23',  # Olive Drab
         '#a52a2a'   # Brick Red
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
     ]
     showplot:bool=False
     save_fig:bool=True

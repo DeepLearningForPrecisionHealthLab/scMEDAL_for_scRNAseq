@@ -1570,27 +1570,17 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
                 df_all_results = pd.concat(scores_list, ignore_index=True)
                 # Calculate the mean across all rows (folds)
     #            mean_scores = df_all_results.mean()
-<<<<<<< HEAD
-                if not (model_params.get_pca or model_params.get_baseline):
-                    # calculate mean
-                    mean_scores = df_all_results.mean(numeric_only=True).to_frame('mean')
-=======
                 print("\n\n mean scores",df_all_results)
                 if not (model_params.get_pca or model_params.get_baseline):
                     # calculate mean
                     mean_scores = df_all_results.mean(numeric_only=True).to_frame('mean')
                     print("\n\n mean scores",mean_scores)
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
                     # fill the dict
                     mean_scores_dict[dataset_type] = mean_scores
 
                     # Calculate sample standard deviation scores
                     std_scores = df_all_results.std(numeric_only=True,ddof=1).to_frame('std')  # Using sample standard deviation
-<<<<<<< HEAD
-
-=======
                     print("\n\n std scores",std_scores)
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
                     # Calculate standard error of the mean (SEM)
                     se_scores = std_scores / (len(folds_list) ** 0.5)  # SEM calculation
 
@@ -2635,12 +2625,6 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
         - "metrics": DataFrame of performance metrics for the trained model and SVM.
         - "adata": The AnnData dictionary containing processed data (if return_adata_dict is True).
     """
-<<<<<<< HEAD
-
-    # 1. Load data latent paths and adata_dict
-    adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse, load_dense)
-    
-=======
     def print_nested_keys(d, indent=0):
         """Pretty-print every key in a nested dict, indented by depth."""
         if not isinstance(d, dict):
@@ -2656,26 +2640,17 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
     adata_dict = load_latent_spaces(base_path, fold, models_list, latent_path_dict, model_params, batch_col, bio_col, batch_col_categories, bio_col_categories,issparse, load_dense)
     
     
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
     # Calculate PCA
     if get_pca:
         adata_dict = get_pca_andplot(adata_dict, plot_params=None, eval_test=model_params.eval_test,n_components=model_params.n_components,shape_color_dict = None)
 
-<<<<<<< HEAD
-=======
     print("\nadata_dict structure")
     print(print_nested_keys(adata_dict))
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
     print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
 
     # 2. Prepare data for training
     inputs = prepare_latent_space_inputs(adata_dict, latent_keys_config, eval_test=model_params.eval_test)
-<<<<<<< HEAD
-    print(f"inputs: {inputs}")
-    print(f"model params {model_params}")
-
-=======
     print(f"\ninputs: {inputs}")
     print("\ninputs structure")
     print(print_nested_keys(inputs))
@@ -2683,7 +2658,6 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
 
     print("\nTraining random forest classifier ..")
 
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
     # 3. Build and train model, plott loss and evaluate dffn model
     dffn_results = build_train_evaluate_model(Model, build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type)
 
@@ -2701,11 +2675,7 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
 
 
     # Evaluate using RandomForest
-<<<<<<< HEAD
-    print("Training random forest classifier")
-=======
     print("\nTraining random forest classifier  ..")
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
     rf_results = random_forest_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=model_params.eval_test)
     adata_dict = rf_results["adata_dict"]

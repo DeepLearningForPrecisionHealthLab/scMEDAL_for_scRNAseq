@@ -5,9 +5,10 @@ import glob
 import shutil
 import os
 
-from scMEDAL.utils.model_train_utils import run_all_folds
+from .....utils.model_train_utils import run_all_folds
 from model_config import *  # Import all model configurations and parameters
-from scMEDAL.models.scMEDAL import AE
+from .....models.scMEDAL.scMEDAL import AE
+
 
 print("TensorFlow version:", tf.__version__)
 

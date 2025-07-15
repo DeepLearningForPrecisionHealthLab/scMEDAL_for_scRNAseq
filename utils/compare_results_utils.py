@@ -60,9 +60,10 @@ def get_recon_paths_df(results_path_dict,get_batch_recon_paths = False,k_folds =
 
 
 
-def get_latent_paths_df(results_path_dict, k_folds=5):
+def get_latent_paths_df(results_path_dict, k_folds=5, verbose=False):
     data = []
-    print(results_path_dict)
+    if verbose:
+        print(results_path_dict)
 
     # Simplified patterns to search for
     patterns = [('latent.*train', 'train'), ('latent.*val', 'val'),('latent.*test', 'test')]
@@ -70,11 +71,15 @@ def get_latent_paths_df(results_path_dict, k_folds=5):
     for key, path in results_path_dict.items():
         for split in range(1, k_folds+1):
             directory = f"{path}/splits_{split}"
-            #print(f"Checking directory: {directory}")
+            if verbose:
+                print ("\nReading latent ouputs.. ")
+                print(f"Checking directory: {directory}")
             if os.path.exists(directory):
                 for pattern, data_type in patterns:
                     files = glob_like(directory, pattern)
-                    #print(f"Pattern: {pattern}, Files: {files}")
+                    if verbose:
+                        if verbose:
+                            print(f"Pattern: {pattern}, Files: {files}")
                     
                     for file in files:
                         data.append({'Key': key, 'Split': split, 'LatentPath': file, 'Type': data_type})
@@ -1191,3 +1196,67 @@ class DimensionalityReductionProcessor:
                     self._save_umap_once(ad_lat_sub, stub_lat)
 
             gc.collect()
+
+
+def get_all_mec_metrics(dataset_outputs_dir: str,dataset_experiment_name: str,Dataset:str="test"):
+    """
+    Collect every `metrics_allfolds_95CI.csv` in the MEC run folders,
+    add its run name, and return a single concatenated DataFrame.
+
+    Parameters
+    ----------
+    dataset_outputs_dir : str
+        Base directory containing the experiment outputs. For example: AML_OUTPUTS_DIR
+    dataset_experiment_name : str
+        The specific experiments folder inside `latent_space/`. For example:AML_EXPERIMENT_NAME
+
+    Returns
+    -------
+    sel: pandas.DataFrame
+        Combined metrics table summary with a `latent` and 'run_name" column for chosen dataset and RF columns
+    df: pandas.DataFrame
+        Combined metrics table summary with a `latent` and 'run_name" column for all datasets (train, val and test) and all columns.
+    """
+    import glob
+    import pandas as pd
+
+    # ---- keep your original variable names and structure ----
+    mec_list = glob.glob(
+        f"{dataset_outputs_dir}/latent_space/{dataset_experiment_name}/mec/*/metrics_allfolds_95CI.csv"
+    )
+
+    for i, mec_metrics_i in enumerate(mec_list):
+        # print(mec_metrics_i)
+        if i == 0:
+            df = pd.read_csv(mec_list[0])
+            df["run_name"] = mec_list[0].split("fe_latent-")[-1].split("/")[0]
+            df["latent"] = mec_list[0].split("fe_latent-")[-1].split("_n_pred")[0]
+        else:
+            df_1 = pd.read_csv(mec_list[i])
+            df_1["run_name"] = mec_list[i].split("fe_latent-")[-1].split("/")[0]
+            df_1["latent"] = mec_list[i].split("fe_latent-")[-1].split("_n_pred")[0]
+            df = pd.concat([df, df_1], axis=0)
+
+    df.reset_index(drop=True)
+    sel = df.loc[
+    df["Dataset"] == Dataset,
+        [
+            "latent",
+            "RFAccuracy_mean", "RFAccuracy_95CI_lower", "RFAccuracy_95CI_upper",
+            "RFBalancedAccuracy_mean", "RFBalancedAccuracy_95CI_lower", "RFBalancedAccuracy_95CI_upper",
+            "ChanceAccuracy_mean", "ChanceAccuracy_95CI_lower", "ChanceAccuracy_95CI_upper","run_name"
+        ]
+    ]
+
+    # round to 4 decimals and convert to percentages
+    # pick just the numeric columns
+    num_cols = sel.select_dtypes(include="number").columns
+
+    # round & scale those columns, leave strings untouched
+    sel[num_cols] = sel[num_cols].round(4) * 100
+
+    # order rows by RFBalancedAccuracy_mean (highest first)
+    sel = sel.sort_values("RFBalancedAccuracy_mean", ascending=True)
+
+    # optional: reset the index for cleanliness
+    return sel,df

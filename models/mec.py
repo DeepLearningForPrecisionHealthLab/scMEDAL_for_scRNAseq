@@ -6,7 +6,7 @@ import configs.configs as cfg
 from types import SimpleNamespace
 from .base import Model
 from .scMEDAL.scMEDAL import MixedEffectsModel as me_alg
-from utils.model_train_utils import run_model_pipeline_LatentClassifier_v2_PCA, ModelManager, calculate_metrics_with_ci
+from utils.model_train_utils import generate_run_name,run_model_pipeline_LatentClassifier_v2_PCA, ModelManager, calculate_metrics_with_ci
 from utils.compare_results_utils import get_latent_paths_df, get_input_paths_df, create_latent_dict_from_df
 
 class MEC(Model):
@@ -14,7 +14,7 @@ class MEC(Model):
         super().__init__(model_name="mec", **kwargs)
         self.alg = me_alg
 
-    def run_train(self, results_path_dict, data_path=None, outputs_path=None, named_experiment=None, save_model=True, quick=False, plotconfigs=None, plot_kwargs=None):
+    def run_train(self, results_path_dict, data_path=None, outputs_path=None, named_experiment=None, save_model=True, quick=False, plotconfigs=None, plot_kwargs=None, verbose=False):
         """
         Quick sets epochs to 3.
         """
@@ -70,7 +70,8 @@ class MEC(Model):
         if named_experiment == "HH":
             params.issparse, params.load_dense  = True, True
         
-        print(f"Loading model params.bio_col:{params.bio_col} (target) and calculating model params.n_pred:{params.n_pred} (predictions), please check if this is your desired config")
+        print(f"Loading model params.bio_col:{params.bio_col} (target), calculating model params.n_pred:{params.n_pred} (predictions) and using latent spaces from params.latent_keys_config:{params.latent_keys_config}, please check if this is your desired config")
+
         
 
         # --------------------------------------------------------------------------------------
@@ -112,12 +113,32 @@ class MEC(Model):
 
         # Merge latent and input paths
         df = pd.merge(df_latent, df_inputs, on=["Split", "Type"], how="left")
-        print("Reading paths,\ndf paths:\n", df.head(5))
+        if verbose:
+            print("Reading paths..\ndf paths:\n", df.head(5))
     
         # Create latent path dictionary
         params.latent_path_dict = create_latent_dict_from_df(df_latent)
+        # Update params
         params.save_model = save_model
         params.base_path = splits_path
+
+        # Update run_name with the important params
+        param_dict = vars(params)                               
+
+        name_dict = {
+                **param_dict['latent_keys_config'],                      # explode the inner dict first
+                "n_pred": param_dict["n_pred"],    # then add the scalar fields
+                "bio_col": param_dict["bio_col"],
+                "epochs": param_dict["epochs"]
+            }
+
+        params.run_name = generate_run_name(
+            model_params_dict=name_dict,
+            constant_keys=[],
+            name="run_crossval")
+
+        print("Outputs will be stored with the following run name:",params.run_name)
+
         # --------------------------------------------------------------------------------------
         # 4. Run the Classifier for All Folds Latent Space
         # --------------------------------------------------------------------------------------
@@ -140,27 +161,30 @@ class MEC(Model):
             # Update LatentClassifier config
             params.model_params = model_manager.params
             pipeline_LatentClassifier_config = vars(params)#{**load_latent_spaces_dict, **LatentClassifier_config}
-            print(params)
+            #print(f"\nfold {fold} params{params}")
+            
             #pipeline_LatentClassifier_config['build_model_dict'] = None
-            # Run pipeline
-            results = run_model_pipeline_LatentClassifier_v2_PCA(
-                 fold = fold, 
-                 compile_dict=self.compile_configs,
-                 build_model_dict={k:v for k, v in self.model_configs._asdict().items() if k not in [
+
+            build_model_dict={k:v for k, v in self.model_configs._asdict().items() if k not in [
                      "ignore", 'latent_keys_config', "return_metrics", "return_adata_dict", "return_trained_model", 
                      "model_type", "seed", "latent_path_dict", "model_params", "base_path", "fold", "models_list", 
                      "batch_col_categories", "bio_col_categories", "bio_col", "batch_col"
-                     ]},
-                **pipeline_LatentClassifier_config,
-                
-                )
+                     ]}
+            
+            cfg_pip = {**pipeline_LatentClassifier_config, "build_model_dict": build_model_dict,"compile_dict":self.compile_configs}
+
+            #print("\n\n\nPipeline input params",pipeline_LatentClassifier_config)
+            #print("\nbuild_model_dict", build_model_dict)
+            #print("\ncompile_dict", self.compile_configs)
+            # Run pipeline
+            results = run_model_pipeline_LatentClassifier_v2_PCA(fold = fold, ** cfg_pip)
             results["metrics"]["fold"] = fold
 
             # Append metrics
             all_folds_metrics_df = pd.concat([all_folds_metrics_df, results["metrics"]], ignore_index=True)
 
             # # Clear memory
-            # gc.collect()
+            #gc.collect()
 
         # --------------------------------------------------------------------------------------
         # 5. Save All Folds Metrics Results

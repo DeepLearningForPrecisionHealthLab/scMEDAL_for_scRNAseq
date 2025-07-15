@@ -72,10 +72,7 @@ class GenomapConfig:
     n_top_genes : int = 10
     min_val : int = -1
     max_val : int = 2
-<<<<<<< HEAD
-=======
     issparse: bool = False
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
 
     # derived
@@ -95,27 +92,18 @@ class GenomapPipeline:
         self.results_path_dict = results_path_dict
         self.cfg = cfg
         self.df = self._load_and_merge_paths()
-<<<<<<< HEAD
-=======
         print("\n\nInitialized genomap pipeline")
         print("sparse",cfg.issparse)
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
     #  internal helpers 
 
     def _load_and_merge_paths(self) -> pd.DataFrame:
-<<<<<<< HEAD
-=======
         print(f"\nLooking for outputs paths for the following models:{self.results_path_dict.keys()}")
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         df_recon = get_recon_paths_df(self.results_path_dict, get_batch_recon_paths=True)
         df_inputs = get_input_paths_df(self.cfg.input_base_path)
         df = pd.merge(df_recon, df_inputs, on=["Split", "Type"], how="left")
         df["recon_prefix"] = df["ReconPath"].apply(lambda p: os.path.basename(p).split(".npy")[0])
-<<<<<<< HEAD
-=======
         print(f"Created df with input and recon paths\n{df}")
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         return df
 
     def _select_recon(self, model: str, split: int, typ: str):
@@ -123,14 +111,6 @@ class GenomapPipeline:
         return self.df.loc[mask, ["ReconPath", "recon_prefix"]].values.T  # 2×N arrays
 
     def _input_path(self, model: str, split: int, typ: str) -> str:
-<<<<<<< HEAD
-        m = (self.df["Key"] == model) & (self.df["Split"] == split) & (self.df["Type"] == typ)
-        return self.df.loc[m, "InputsPath"].values[0]
-
-    def _build_extra(self, split: int, typ: str):
-        cfg = self.cfg
-        if cfg.extra_recon == "fe":
-=======
         print(f"Searching input paths in df\n{self.df}")
         m = (self.df["Key"] == model) & (self.df["Split"] == split) & (self.df["Type"] == typ)
         # Nothing matched, early warning
@@ -152,17 +132,10 @@ class GenomapPipeline:
                 "extra_recon='fe' needs fixed-effects reconstructions "
                 "(model key 'scmedalfe') in results_path_dict.")
 
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             fe_mask = (
                 (self.df["Key"] == "scmedalfe") & (self.df["Split"] == split) & (self.df["Type"] == typ)
             )
             fe_path = self.df.loc[fe_mask, "ReconPath"].values[0]
-<<<<<<< HEAD
-            return [self._input_path("ae", split, typ), fe_path], [f"input_{typ}", f"fe_ae_recon_{typ}"]
-
-        if cfg.extra_recon == "all":
-            mods = ["ae", "aec", "scmedalfe", "scmedalfec"]
-=======
             return [self._input_path("scmedalfe", split, typ), fe_path], [f"input_{typ}", f"fe_ae_recon_{typ}"]
 
         if cfg.extra_recon == "all":
@@ -177,7 +150,6 @@ class GenomapPipeline:
                     f"{', '.join(mods)}, but these are absent: {', '.join(missing)}"
                 )
 
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             extras: List[Tuple[str, str]] = []
             for m in mods:
                 mask = (
@@ -194,16 +166,10 @@ class GenomapPipeline:
         return [], []
 
     def _load_meta(self, inputs_path: str):
-<<<<<<< HEAD
-        gene_ids_path = os.path.join(self.cfg.data_base_path, self.cfg.scenario_id, "geneids.csv")
-        var = pd.read_csv(gene_ids_path, index_col=self.cfg.gene_index_col)
-        _, _, obs = read_adata(inputs_path, issparse=True)
-=======
         cfg = self.cfg
         gene_ids_path = os.path.join(self.cfg.data_base_path, self.cfg.scenario_id, "geneids.csv")
         var = pd.read_csv(gene_ids_path, index_col=self.cfg.gene_index_col)
         _, _, obs = read_adata(inputs_path, issparse=cfg.issparse)
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         return var, obs
 
     def _build_multibatch(
@@ -232,11 +198,7 @@ class GenomapPipeline:
             celltype    = cfg.celltype,
             save_data   = True,
             scaling     = cfg.scaling,
-<<<<<<< HEAD
-            issparse    = False,
-=======
             issparse    = cfg.issparse,
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             seed        = cfg.seed,
             force_batches = batches_to_select_from,
         )
@@ -452,10 +414,7 @@ class GenomapPipeline:
             file_name           = file_stub,
             remove_ticks        = True,
         )
-<<<<<<< HEAD
-=======
         matplotlib.pyplot.close()
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
 
 
@@ -485,16 +444,12 @@ class GenomapPipeline:
         n_inputs_fe  = len(extra_pref)
 
         for cid in cell_ids:
-<<<<<<< HEAD
-            idxs_all = obs_df.loc[obs_df[cfg.cell_id_col] == cid].index.astype(int)
-=======
 
 
             # get the all the indexes of the cm multibatch that have the same cid (belong to the same cell and are recon from diff batches)
             idxs_all = obs_df.loc[obs_df[cfg.cell_id_col] == cid].index.astype(int)
             print("n cell indexes", idxs_all)
 
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             if len(idxs_all) == 0:
                 continue
 
@@ -504,11 +459,7 @@ class GenomapPipeline:
             # -------- statistics CSV -------------------------------------
             coords_work = coords.reset_index(drop=True)
             self._write_cell_stats(genomap, idxs_all, coords_work, out_dir, cid)
-<<<<<<< HEAD
-
-=======
             print(f"\n\nplotting big panel for {cid} with original batch {original_batch} and celltype {original_ct}, n recons: {len(idxs_all)}")
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             # -------- big panel ------------------------------------------
             self._plot_big_panel(
                 genomap, idxs_all, coords_work,
@@ -523,23 +474,14 @@ class GenomapPipeline:
                     lambda x: any(lbl in x for lbl in subset_labels)
                 )
             ].index.astype(int)
-<<<<<<< HEAD
-=======
             print("n cell indexes for batch CF recon", idxs_subset)
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             if len(idxs_subset) == 0:
                 continue
 
             #n_batch_cols  = len(obs_df.loc[idxs_subset, "batch"].unique())
             n_cols_subset = max(1, n_batch_cols2plot + n_inputs_fe)
 
-<<<<<<< HEAD
-
-
-
-=======
             print(f"plotting small panel for {cid} with original batch {original_batch} and celltype {original_ct}, n recons: {len(idxs_subset)}")
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             # (a) without gene labels
             self._plot_subset_panel(
                 genomap, idxs_subset, None,
@@ -547,10 +489,7 @@ class GenomapPipeline:
                 n_cols_subset, with_labels=False
             )
             # (b) with gene labels
-<<<<<<< HEAD
-=======
             print(f"plotting same panel but with no gene labels")
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             self._plot_subset_panel(
                 genomap, idxs_subset, coords_work,
                 obs_df, out_dir, cid, original_batch, original_ct,

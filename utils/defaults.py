@@ -3,6 +3,7 @@ import os
 DEFAULTS_ABS_PATH = os.path.abspath(__file__)
 DATA_DIR = os.path.join(os.getcwd(), "data")
 OUTPUTS_DIR = os.path.join(os.getcwd(), "outputs")
+# OUTPUTS_DIR = os.path.join(os.getcwd(), "outputs_500")
 
 AML_MODEL_KWARGS = {"n_clusters":19, "n_pred":21}
 ASD_MODEL_KWARGS = {"n_clusters":31, "n_pred":17}

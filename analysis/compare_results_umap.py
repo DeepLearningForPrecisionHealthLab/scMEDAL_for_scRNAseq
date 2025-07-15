@@ -25,11 +25,7 @@ def get_umap(
         compare_models_path,
         input_base_path,
         analysis_name,
-<<<<<<< HEAD
-        n_pca_components:int=2,
-=======
         n_pca_components:int=50,
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
         n_batches:int=19,
         n_neighbors:int=15,
         rng_seed:int=5,
@@ -43,11 +39,7 @@ def get_umap(
         use_rep:str="X_umap",
         clustering_scores=None, 
         issparse=False,
-<<<<<<< HEAD
-        extra_color_cols="Patient_group"
-=======
         extra_color_cols=["Patient_group"]
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
     ):
     
     # Define common plotting parameters
@@ -59,11 +51,8 @@ def get_umap(
         **PlotConfigs()._asdict()
     }
 
-<<<<<<< HEAD
-=======
     print("\plot configs",PlotConfigs()._asdict().items())
 
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
     # Load latent and input paths
     df_latent = get_latent_paths_df(results_path_dict)
     df_inputs = get_input_paths_df(input_base_path)
@@ -123,11 +112,7 @@ def get_umap(
                 plot_tsne=False,
                 n_pca_components=n_pca_components,
                 rng_seed=rng_seed,
-<<<<<<< HEAD
-                extra_color_cols=[extra_color_cols]
-=======
                 extra_color_cols=extra_color_cols
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
             )
 
             print(f"{df.columns}")

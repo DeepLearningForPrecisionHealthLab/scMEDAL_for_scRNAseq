@@ -2633,7 +2633,7 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
         for k, v in d.items():
             print(f"{pad}{k}")
             print_nested_keys(v, indent + 1)  # recurse one level deeper
-    print("Latent classifier pipeline started ..")
+    print("\nLatent classifier pipeline started ..")
     print(f"Target loaded (bio_col): {bio_col}")
     print(f"Target classes (n_pred):{model_params.n_pred}")
     # 1. Load data latent paths and adata_dict
@@ -2642,19 +2642,22 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
     
     # Calculate PCA
     if get_pca:
+        print("\nCalculating pca")
         adata_dict = get_pca_andplot(adata_dict, plot_params=None, eval_test=model_params.eval_test,n_components=model_params.n_components,shape_color_dict = None)
 
+    print(f"\nadata_dict:{adata_dict}")
     print("\nadata_dict structure")
     print(print_nested_keys(adata_dict))
 
-    print("Batches available: ", np.unique(adata_dict["train"].obs[batch_col]))
+    print("\nBatches available: ", np.unique(adata_dict["train"].obs[batch_col]))
 
     # 2. Prepare data for training
+    print(f"\n\n\nLoading inputs (latent spaces) from {latent_keys_config}")
     inputs = prepare_latent_space_inputs(adata_dict, latent_keys_config, eval_test=model_params.eval_test)
-    print(f"\ninputs: {inputs}")
-    print("\ninputs structure")
+    print(f"\ninputs (latent spaces): {inputs}")
+    print("\ninputs (latent spaces) structure:")
     print(print_nested_keys(inputs))
-    print(f"model params {model_params}")
+    print(f"\nmodel params {vars(model_params)}")
 
     print("\nTraining random forest classifier ..")
 

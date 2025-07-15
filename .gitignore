@@ -13,22 +13,16 @@ outputs/*
 
 */tmp/*
 tmp/
-<<<<<<< HEAD
-=======
 tmp/*
 
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 # Ignore Python bytecode directories
 __pycache__/
 
 # Ignore Jupyter Notebook checkpoint directories
 .ipynb_checkpoints/
-<<<<<<< HEAD
-=======
 demo/outputs/*
 outputs
 outputs_demo
 outputs_500
->>>>>>> bc7d766fb90c6d45c716908e51471d864b7ebff1
 
 

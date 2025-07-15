@@ -1198,7 +1198,7 @@ class DimensionalityReductionProcessor:
             gc.collect()
 
 
-def get_all_mec_metrics(dataset_outputs_dir: str,dataset_experiment_name: str,Dataset:str="test"):
+def get_all_mec_metrics(dataset_outputs_dir: str,dataset_experiment_name: str,split:str="test"):
     """
     Collect every `metrics_allfolds_95CI.csv` in the MEC run folders,
     add its run name, and return a single concatenated DataFrame.
@@ -1213,9 +1213,9 @@ def get_all_mec_metrics(dataset_outputs_dir: str,dataset_experiment_name: str,Da
     Returns
     -------
     sel: pandas.DataFrame
-        Combined metrics table summary with a `latent` and 'run_name" column for chosen dataset and RF columns
+        Combined metrics table summary with a `latent` and 'run_name" column for chosen split and RF columns
     df: pandas.DataFrame
-        Combined metrics table summary with a `latent` and 'run_name" column for all datasets (train, val and test) and all columns.
+        Combined metrics table summary with a `latent` and 'run_name" column for all splits (train, val and test) and all columns.
     """
     import glob
     import pandas as pd
@@ -1239,7 +1239,7 @@ def get_all_mec_metrics(dataset_outputs_dir: str,dataset_experiment_name: str,Da
 
     df.reset_index(drop=True)
     sel = df.loc[
-    df["Dataset"] == Dataset,
+    df["Dataset"] == split,
         [
             "latent",
             "RFAccuracy_mean", "RFAccuracy_95CI_lower", "RFAccuracy_95CI_upper",
@@ -1255,8 +1255,12 @@ def get_all_mec_metrics(dataset_outputs_dir: str,dataset_experiment_name: str,Da
     # round & scale those columns, leave strings untouched
     sel[num_cols] = sel[num_cols].round(4) * 100
 
-    # order rows by RFBalancedAccuracy_mean (highest first)
+    # order rows by RFBalancedAccuracy_mean (lowest first)
     sel = sel.sort_values("RFBalancedAccuracy_mean", ascending=True)
 
-    # optional: reset the index for cleanliness
+    out_file = f"{dataset_outputs_dir}/latent_space/{dataset_experiment_name}/mec/MEC_RF_summary.csv"
+    
+    sel.to_csv(out_file)
+    print(f"MEC RF summary able saved to {out_file}")
+
     return sel,df

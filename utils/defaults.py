@@ -37,4 +37,20 @@ HH_EXPERIMENT_NAME = "log_transformed_3000hvggenes"
 
 
 
+AML_PATHS_CONFIG = {
+    "data_base_path":AML_DATA_DIR,
+    "scenario_id":AML_EXPERIMENT_NAME,
+    "outputs_path": AML_OUTPUTS_DIR,
+}
 
+ASD_PATHS_CONFIG =  {
+    "data_base_path": ASD_DATA_DIR,
+    "scenario_id":ASD_EXPERIMENT_NAME,
+    "outputs_path": ASD_OUTPUTS_DIR,
+}
+
+HH_PATHS_CONFIG = {
+    "data_base_path": HH_DATA_DIR,
+    "scenario_id":HH_EXPERIMENT_NAME,
+    "outputs_path": HH_OUTPUTS_DIR,
+}

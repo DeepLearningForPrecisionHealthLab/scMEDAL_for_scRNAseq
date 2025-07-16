@@ -1,6 +1,9 @@
-# Make sure you are in scMEDAL_for_scRNAseq dir
-import sys
-sys.path.append("../")
+import sys, os
+os.chdir("/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/dev2/scMEDAL_for_scRNAseq")
+sys.path.insert(0, os.getcwd())          # <-- add this right after the chdir
+
+# The working dir should be scMEDAL_for_scRNAseq dir
+print("working dir:",os.getcwd())
 from models.models import train_model_on_named_experiment
 
 # Run models quick test

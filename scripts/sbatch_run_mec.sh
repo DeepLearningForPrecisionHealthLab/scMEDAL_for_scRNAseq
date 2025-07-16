@@ -18,5 +18,7 @@ module load python/3.7.x-anaconda
 source activate /archive/bioinformatics/DLLab/shared/CondaEnvironments/scMEDAL
 
 
-python mec_aml.py
+#python mec_aml.py
+python mec_asd.py
+#python mec_hh.py
 

@@ -129,7 +129,7 @@ class MEC(Model):
                 **param_dict['latent_keys_config'],                      # explode the inner dict first
                 "n_pred": param_dict["n_pred"],    # then add the scalar fields
                 "bio_col": param_dict["bio_col"],
-                "epochs": param_dict["epochs"]
+                #"epochs": param_dict["epochs"]
             }
 
         params.run_name = generate_run_name(

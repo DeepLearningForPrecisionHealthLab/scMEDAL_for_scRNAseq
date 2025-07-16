@@ -6,10 +6,7 @@ import os
 os.chdir(os.path.dirname(__file__))
 from ...paths_config import data_base_path,scenario_id,outputs_path 
 from .....utils.model_train_utils import generate_run_name
-# from tensorflow.keras.optimizers import Adam
-# from tensorflow.keras.losses import MeanSquaredError as mse_loss
-# from tensorflow.keras.losses import BinaryCrossentropy as bce_loss
-# from tensorflow.keras.metrics import MeanSquaredError as mse_metric
+
 
 # Detect TensorFlow version
 import tensorflow as tf

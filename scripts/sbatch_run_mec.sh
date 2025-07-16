@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH --job-name=demo
-#SBATCH --partition=GPUv100s
+#SBATCH --job-name=mec
+#SBATCH --partition=GPUp4
 #SBATCH --time=4-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1

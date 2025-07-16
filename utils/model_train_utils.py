@@ -2592,7 +2592,7 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
                                            batch_col, bio_col, base_path, fold, models_list, latent_keys_config,
                                            batch_col_categories=None, bio_col_categories=None, return_metrics=True, 
                                            return_adata_dict=False, return_trained_model=False, model_type="mec",
-                                           issparse=False, load_dense=False,seed=None, get_pca:bool=True, get_svc:bool=False, **kwargs):
+                                           issparse=False, load_dense=False,seed=None, get_pca:bool=True, get_svc:bool=False,get_dffn:bool=False, **kwargs):
     """
     Runs the complete model pipeline, including data loading, model training, evaluation, and metric collection.
 
@@ -2661,37 +2661,45 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
 
     print("\nTraining random forest classifier ..")
 
-    # 3. Build and train model, plott loss and evaluate dffn model
-    dffn_results = build_train_evaluate_model(Model, build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type)
 
-    adata_dict = dffn_results["adata_dict"]
-    dffn_metrics = dffn_results["metrics"]
     metrics_df = None
-    if get_svc:
-        print("Training svc classifier")
-        svm_results = svm_accuracy_and_predictions(inputs, adata_dict, model_params,eval_test=model_params.eval_test)
-        adata_dict = svm_results["adata_dict"]
-        svm_metrics = svm_results["metrics"]
-        #metrics_df = pd.merge(dffn_metrics,svm_metrics)
-         # Merge the metrics from DFFN, SVM, and RandomForest
-        metrics_df = pd.merge(dffn_metrics, svm_metrics, on="Dataset")
 
 
-    # Evaluate using RandomForest
+    # 3. Evaluate using RandomForest
     print("\nTraining random forest classifier  ..")
 
     rf_results = random_forest_accuracy_and_predictions(inputs, adata_dict, model_params, eval_test=model_params.eval_test)
     adata_dict = rf_results["adata_dict"]
     rf_metrics = rf_results["metrics"]
+    if metrics_df is None:
+        metrics_df = rf_metrics
+
+    if get_dffn:
+        print("\nTraining dffn classifier  ..")
+        # Build and train model, plott loss and evaluate dffn model
+        dffn_results = build_train_evaluate_model(Model, build_model_dict, compile_dict, inputs, adata_dict, model_params, save_model, model_type)
+
+        adata_dict = dffn_results["adata_dict"]
+        dffn_metrics = dffn_results["metrics"]
+        metrics_df = pd.merge(metrics_df,dffn_metrics, on="Dataset")
+
+
+    if get_svc:
+        print("\nTraining svc classifier")
+        svm_results = svm_accuracy_and_predictions(inputs, adata_dict, model_params,eval_test=model_params.eval_test)
+        adata_dict = svm_results["adata_dict"]
+        svm_metrics = svm_results["metrics"]
+        #metrics_df = pd.merge(dffn_metrics,svm_metrics)
+         # Merge the metrics from DFFN, SVM, and RandomForest
+        metrics_df = pd.merge(metrics_df, svm_metrics, on="Dataset")
+
+
+
 
     # Calculate chance accuracy
     chance_results = dummy_classifier_chance_accuracy(inputs, adata_dict, model_params, eval_test=model_params.eval_test,seed=seed)
     adata_dict = chance_results["adata_dict"]
     chance_metrics = chance_results["metrics"]
-
-    if metrics_df is None:
-        metrics_df = dffn_metrics
-    metrics_df = pd.merge(metrics_df, rf_metrics, on="Dataset")
     metrics_df = pd.merge(metrics_df, chance_metrics, on="Dataset")
 
     metrics_df.to_csv(os.path.join(model_params.latent_path, "metrics.csv"))
@@ -2701,7 +2709,7 @@ def run_model_pipeline_LatentClassifier_v2_PCA(Model, latent_path_dict, build_mo
 
     # 7. Collect results based on flags
     results = {}
-    if return_trained_model:
+    if return_trained_model and get_dffn:
         results["dffn_model"] = dffn_results["model"]
     if return_metrics:
         results["metrics"] = metrics_df

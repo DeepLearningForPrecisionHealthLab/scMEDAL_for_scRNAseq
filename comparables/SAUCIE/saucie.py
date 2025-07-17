@@ -92,6 +92,8 @@ def run_saucie(
     shape_color_dict=None,
     sample_size=None,
     plot_params=None,
+    issparse=False,
+    load_dense=True
 ):
     """Train SAUCIE in *batch?correction* mode (lambda_b > 0).
     Only two label values are used per sample: reference batch = 0, all others = 1.
@@ -109,8 +111,8 @@ def run_saucie(
         input_path_dict,
         eval_test=model_params.eval_test,
         scaling=model_params.scaling,
-        issparse=False,
-        load_dense=True,
+        issparse=issparse,
+        load_dense=load_dense,
     )
 
     # fresh TF graph for every fold

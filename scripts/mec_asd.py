@@ -24,12 +24,19 @@ model_folder_dict = {
     "scmedalfe":"run_crossval_loss_gen_weight-1_loss_recon_weight-1000_loss_class_weight-1_n_latent_dims-50_layer_units-512-132_scaling-min_max_model_type-scmedalfe_batch_size-512_epochs-500_patience-30_sample_size-10000_2025-07-09_22-12",
     "scmedalfec":"run_crossval_loss_gen_weight-1_loss_recon_weight-2000_loss_class_weight-1_n_latent_dims-50_layer_units-512-132_scaling-min_max_model_type-scmedalfec_batch_size-512_epochs-500_patience-30_sample_size-10000_get_cf_batch-False_2025-07-10_00-42",
     "scmedalre":"run_crossval_loss_recon_weight-110_loss_latent_cluster_weight-0.1_n_latent_dims-50_layer_units-512-132_scaling-min_max_batch_size-512_epochs-500_patience-30_sample_size-10000_2025-07-10_07-53",
+    # old runs
     # To collect the comparable outputs (see below), you need to run the comparable models in /comparables. 
-    "scVI":"run_crossval_n_latent_dims-50_n_layers-2_n_hidden-132_gene_likelihood-zinb_dispersion-gene_scaling-min_max_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_model_type-ae_n_components-2_2025-06-01_18-12",
-    "scANVI":"run_crossval_n_latent_dims-50_n_layers-2_n_hidden-132_gene_likelihood-zinb_dispersion-gene_scaling-min_max_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_model_type-ae_2025-06-14_17-48",
-    "scanorama":"run_crossval_n_latent_dims-50_scaling-min_max_sample_size-10000_model_type-ae_2025-06-15_21-02",
-    "harmony":"run_crossval_n_latent_dims-50_scaling-min_max_sample_size-10000_model_type-ae_2025-06-17_13-32",
-    "SAUCIE":"run_crossval_n_latent_dims-50_layers-512-132-50_lambda_b-0.0_lambda_c-0.0_lambda_d-0.0_learning_rate-0.0_scaling-min_max_batch_size-512_epochs-50_patience-30_sample_size-10000_model_type-ae_2025-06-26_12-46",
+    # "scVI":"run_crossval_n_latent_dims-50_n_layers-2_n_hidden-132_gene_likelihood-zinb_dispersion-gene_scaling-min_max_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_model_type-ae_n_components-2_2025-06-01_18-12",
+    # "scANVI":"run_crossval_n_latent_dims-50_n_layers-2_n_hidden-132_gene_likelihood-zinb_dispersion-gene_scaling-min_max_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_model_type-ae_2025-06-14_17-48",
+    # "scanorama":"run_crossval_n_latent_dims-50_scaling-min_max_sample_size-10000_model_type-ae_2025-06-15_21-02",
+    # "harmony":"run_crossval_n_latent_dims-50_scaling-min_max_sample_size-10000_model_type-ae_2025-06-17_13-32",
+    # "SAUCIE":"run_crossval_n_latent_dims-50_layers-512-132-50_lambda_b-0.0_lambda_c-0.0_lambda_d-0.0_learning_rate-0.0_scaling-min_max_batch_size-512_epochs-50_patience-30_sample_size-10000_model_type-ae_2025-06-26_12-46",
+    # new runs
+    "scVI":"run_crossval_n_latent_dims-50_n_layers-2_n_hidden-132_gene_likelihood-zinb_dispersion-gene_scaling-min_max_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_model_type-ae_2025-07-16_23-16",
+    "scANVI":"run_crossval_n_latent_dims-50_n_layers-2_n_hidden-132_gene_likelihood-zinb_dispersion-gene_scaling-min_max_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_model_type-ae_2025-07-16_23-26",
+    "scanorama":"run_crossval_n_latent_dims-50_scaling-min_max_sample_size-10000_model_type-ae_2025-07-16_23-33",
+    "harmony":"run_crossval_n_latent_dims-50_scaling-min_max_sample_size-10000_model_type-ae_2025-07-16_23-39",
+    "SAUCIE":"run_crossval_n_latent_dims-50_layers-512-132-50_lambda_b-0.0_lambda_c-0.0_lambda_d-0.0_learning_rate-0.0_scaling-min_max_batch_size-512_epochs-50_patience-30_sample_size-10000_model_type-ae_2025-07-17_00-36",
         }
 
 model_paths = {k:os.path.join(ASD_OUTPUTS_DIR, "latent_space", ASD_EXPERIMENT_NAME,k, v) for k, v in model_folder_dict.items()}
@@ -40,66 +47,66 @@ model_paths = {k:os.path.join(ASD_OUTPUTS_DIR, "latent_space", ASD_EXPERIMENT_NA
 
 n_pred = 2 #asd vs control
 bio_col = "diagnosis"
-# # Run MEC  on latent spaces: scmedalfe
-# mec_aml = train_model_on_named_experiment("MEC", "ASD", 
-#                                     train_kwargs={#"quick":True,
-#                                                     "results_path_dict":model_paths, },
-#                                     model_kwargs={"n_pred":n_pred,
-#                                                    "bio_col":bio_col,
-#                                                    "models_list":list(model_paths.keys()),
-#                                                    "latent_keys_config":{"fe_latent":"scmedalfe_latent"}})
+# Run MEC  on latent spaces: scmedalfe
+mec_aml = train_model_on_named_experiment("MEC", "ASD", 
+                                    train_kwargs={#"quick":True,
+                                                    "results_path_dict":model_paths, },
+                                    model_kwargs={"n_pred":n_pred,
+                                                   "bio_col":bio_col,
+                                                   "models_list":list(model_paths.keys()),
+                                                   "latent_keys_config":{"fe_latent":"scmedalfe_latent"}})
 
 
-# # # Run MEC  on latent spaces: scmedalfe + scmedalre
-# mec_aml = train_model_on_named_experiment("MEC", "ASD", 
-#                                     train_kwargs={#"quick":True, 
-#                                                     "results_path_dict":model_paths, },
-#                                     model_kwargs={"n_pred":n_pred,
-#                                                    "bio_col":bio_col,
-#                                                    "models_list":list(model_paths.keys()),
-#                                                    "latent_keys_config":{"fe_latent":"scmedalfe_latent", "re_latent":"scmedalre_latent"}})
+# # Run MEC  on latent spaces: scmedalfe + scmedalre
+mec_aml = train_model_on_named_experiment("MEC", "ASD", 
+                                    train_kwargs={#"quick":True, 
+                                                    "results_path_dict":model_paths, },
+                                    model_kwargs={"n_pred":n_pred,
+                                                   "bio_col":bio_col,
+                                                   "models_list":list(model_paths.keys()),
+                                                   "latent_keys_config":{"fe_latent":"scmedalfe_latent", "re_latent":"scmedalre_latent"}})
 
 
-# # Run MEC  on latent spaces:scmedalfec
-# mec_aml = train_model_on_named_experiment("MEC", "ASD", 
-#                                     train_kwargs={#"quick":True, 
-#                                                     "results_path_dict":model_paths, },
-#                                     model_kwargs={"n_pred":n_pred,
-#                                                    "bio_col":bio_col,
-#                                                    "models_list":list(model_paths.keys()),
-#                                                    "latent_keys_config":{"fe_latent":"scmedalfec_latent"}})
+# Run MEC  on latent spaces:scmedalfec
+mec_aml = train_model_on_named_experiment("MEC", "ASD", 
+                                    train_kwargs={#"quick":True, 
+                                                    "results_path_dict":model_paths, },
+                                    model_kwargs={"n_pred":n_pred,
+                                                   "bio_col":bio_col,
+                                                   "models_list":list(model_paths.keys()),
+                                                   "latent_keys_config":{"fe_latent":"scmedalfec_latent"}})
 
 
-# # Run MEC  on latent spaces: scmedalfec + scmedalre
-# mec_aml = train_model_on_named_experiment("MEC", "ASD", 
-#                                     train_kwargs={#"quick":True, 
-#                                                     "results_path_dict":model_paths, },
-#                                     model_kwargs={"n_pred":n_pred,
-#                                                    "bio_col":bio_col,
-#                                                    "models_list":list(model_paths.keys()),
-#                                                    "latent_keys_config":{"fe_latent":"scmedalfec_latent", "re_latent":"scmedalre_latent"}})
+# Run MEC  on latent spaces: scmedalfec + scmedalre
+mec_aml = train_model_on_named_experiment("MEC", "ASD", 
+                                    train_kwargs={#"quick":True, 
+                                                    "results_path_dict":model_paths, },
+                                    model_kwargs={"n_pred":n_pred,
+                                                   "bio_col":bio_col,
+                                                   "models_list":list(model_paths.keys()),
+                                                   "latent_keys_config":{"fe_latent":"scmedalfec_latent", "re_latent":"scmedalre_latent"}})
 
 
-# # Run MEC  on latent spaces: PCA
-# mec_aml = train_model_on_named_experiment("MEC", "ASD", 
-#                                     train_kwargs={#"quick":True, 
-#                                                     "results_path_dict":model_paths, },
-#                                     model_kwargs={"n_pred":n_pred,
-#                                                    "bio_col":bio_col,
-#                                                    "models_list":list(model_paths.keys()),
-#                                                    "get_pca":True, #necessary to calculate pca 
-#                                                    "latent_keys_config":{"fe_latent":"X_pca"}})
+# Run MEC  on latent spaces: PCA
+mec_aml = train_model_on_named_experiment("MEC", "ASD", 
+                                    train_kwargs={#"quick":True, 
+                                                    "results_path_dict":model_paths, },
+                                    model_kwargs={"n_pred":n_pred,
+                                                   "bio_col":bio_col,
+                                                   "models_list":list(model_paths.keys()),
+                                                   "get_pca":True, #necessary to calculate pca 
+                                                   "latent_keys_config":{"fe_latent":"X_pca"}})
 
 
-# # Run MEC  on latent spaces: PCA+scmedalre
-# mec_aml = train_model_on_named_experiment("MEC", "ASD", 
-#                                     train_kwargs={#"quick":True, 
-#                                                     "results_path_dict":model_paths, },
-#                                     model_kwargs={"n_pred":n_pred,
-#                                                    "bio_col":bio_col,
-#                                                    "models_list":["scmedalre"],
-#                                                    "get_pca":True, #necessary to calculate pca 
-#                                                    "latent_keys_config":{"fe_latent":"X_pca","re_latent":"scmedalre_latent"}})
+# Run MEC  on latent spaces: PCA+scmedalre
+mec_aml = train_model_on_named_experiment("MEC", "ASD", 
+                                    train_kwargs={#"quick":True, 
+                                                    "results_path_dict":model_paths, },
+                                    model_kwargs={"n_pred":n_pred,
+                                                   "bio_col":bio_col,
+                                                   "models_list":["scmedalre"],
+                                                   "get_pca":True, #necessary to calculate pca 
+                                                   "latent_keys_config":{"fe_latent":"X_pca","re_latent":"scmedalre_latent"}})
 
 
 # Run MEC  on latent spaces :scvi

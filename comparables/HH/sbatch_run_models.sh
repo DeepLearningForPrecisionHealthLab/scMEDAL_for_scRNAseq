@@ -18,8 +18,8 @@ module load python/3.7.x-anaconda
 # Update the path to the environment you use to run your script
 source activate /archive/bioinformatics/DLLab/shared/CondaEnvironments/Aixa_scvi
 
-#python run_scVI.py
+python run_scVI.py
 #python run_scANVI.py
 #python run_harmony.py
 
-python run_scanorama.py
+#python run_scanorama.py

@@ -20,7 +20,7 @@ import glob
 import shutil
 import pandas as pd
 
-
+import numpy as np
 
 # Detect TensorFlow version
 import tensorflow as tf

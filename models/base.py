@@ -12,6 +12,8 @@ from types import SimpleNamespace
 from utils.model_train_utils import generate_run_name, run_all_folds
 
 
+from utils.defaults import AML_PATHS_CONFIG,ASD_PATHS_CONFIG,HH_PATHS_CONFIG
+
 
 class Model(ABC):
     valid_models=["ae","aec","scmedalfe","scmedalfec", "scmedalre", "saucie", "mec"]
@@ -113,18 +115,18 @@ class Model(ABC):
         paths = None
         if experiment == "AML":
             paths = {}
-            paths["data_path"] = f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/AML_data"
-            paths['scenario_id'] = "log_transformed_2916hvggenes"
+            paths["data_path"] =  AML_PATHS_CONFIG.get("data_base_path")#f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/AML_data"
+            paths['scenario_id'] = AML_PATHS_CONFIG.get("scenario_id")
             paths['splits_folder'] = "splits"
         elif experiment == "ASD":
             paths = {}
-            paths["data_path"] = f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/ASD_data/reverse_norm/"
-            paths['scenario_id'] = "log_transformed_2916hvggenes"
+            paths["data_path"] = ASD_PATHS_CONFIG.get("data_base_path")#f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/ASD_data/reverse_norm/"
+            paths['scenario_id'] = ASD_PATHS_CONFIG.get("scenario_id")#"log_transformed_2916hvggenes"
             paths['splits_folder'] = "splits"
         elif experiment == "HH":
             paths = {}
-            paths["data_path"] = f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/HealthyHeart_data/"
-            paths['scenario_id'] = "log_transformed_3000hvggenes"
+            paths["data_path"] = HH_PATHS_CONFIG.get("data_base_path")#f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/HealthyHeart_data/"
+            paths['scenario_id'] = HH_PATHS_CONFIG.get("scenario_id")#"log_transformed_3000hvggenes"
             paths['splits_folder'] = "splits"
 
         return paths

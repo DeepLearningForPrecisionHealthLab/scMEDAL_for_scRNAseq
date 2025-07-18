@@ -51,14 +51,14 @@ def get_umap(
         **PlotConfigs()._asdict()
     }
 
-    print("\plot configs",PlotConfigs()._asdict().items())
+    #print("plot configs",PlotConfigs()._asdict().items())
 
     # Load latent and input paths
     df_latent = get_latent_paths_df(results_path_dict)
     df_inputs = get_input_paths_df(input_base_path)
 
-    print("\ndf_latent columns:", df_latent.columns, "\ndf_latent:\n", df_latent)
-    print("\ndf_inputs columns:", df_inputs.columns, "\ndf_inputs:\n", df_inputs)
+    # print("\ndf_latent columns:", df_latent.columns, "\ndf_latent:\n", df_latent)
+    # print("\ndf_inputs columns:", df_inputs.columns, "\ndf_inputs:\n", df_inputs)
 
     # Merge latent and input paths by "Split" and "Type"
     df = pd.merge(df_latent, df_inputs, on=["Split", "Type"], how="left")
@@ -72,7 +72,8 @@ def get_umap(
         for Split, Type in zip(df["Split"], df["Type"])
     ]
 
-    print("Reading paths, df head:\n", df.head(5))
+    print("Reading inputs and latent paths ..")
+    #print("df head:\n", df.head(5))
 
     # Define output directories
     out_name = os.path.join(compare_models_path, analysis_name)
@@ -80,6 +81,7 @@ def get_umap(
         os.makedirs(out_name)
 
     umap_path = os.path.join(out_name, f"umap_{n_batches}batches_seed_{rng_seed}")
+    print(f"umap saved to {umap_path}")
     if not os.path.exists(umap_path):
         os.makedirs(umap_path)
 
@@ -96,6 +98,7 @@ def get_umap(
         for split in splits:
             filter_folds = {mod:split for mod in models}
             filtered_df = filter_models_by_type_and_split(df, filter_folds, Type=type)
+            #print(filtered_df)
 
             print("Computing UMAP projections...")
 
@@ -115,7 +118,7 @@ def get_umap(
                 extra_color_cols=extra_color_cols
             )
 
-            print(f"{df.columns}")
+            #print(f"{df.columns}")
             
             # Generate UMAP plots
             processor.get_dimensionality_reduction_plots(process_allbatches=False, issparse=issparse)

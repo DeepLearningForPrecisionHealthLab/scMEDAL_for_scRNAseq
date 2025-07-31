@@ -11,6 +11,7 @@ import sklearn.metrics as mpd
 import gc
 import os
 import glob
+import re
 
 from scipy.spatial.distance import pdist, squareform
 from utils.utils import read_adata, min_max_scaling,save_adata,calculate_zscores
@@ -306,7 +307,7 @@ def process_and_plot_genomaps_singlepath(inputs_path, ncells, ngenes, rowNum, co
         input_batch_labels = result['input']['adata'].obs['batch'].tolist()
         input_labels = [f'{ct}_{b}' for ct, b in zip(input_batch_labels, input_ct_labels)]
         
-        plot_genomaps(genoMaps_input["genomaps"], input_labels, os.path.join(output_folder, f'{genomap_name}.png'))
+        plot_genomaps(genoMaps_input["genomaps"], input_labels, os.path.join(output_folder, f'first50genomaps_from_CMmultibatch_{genomap_name}.png'))
         # Map genes to genomap
         if gene_names is not None:
             gene_to_coordinates = create_gene_coordinates_mapping(projMat, gene_names, ngenes, rowNum, colNum)
@@ -588,6 +589,7 @@ def sample_cells(obs, n_cells, celltype=None, batch_col="batch", force_batches=N
     ValueError: If a specified batch or cell type does not exist in the dataframe.
     """
     # Initialize selected_indices list to keep track of selected cells
+    print("\nSampling cells.. ")
     selected_indices = []
 
     # Ensure at least one cell from each forced batch and specified celltype (if provided) is included
@@ -705,7 +707,7 @@ def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes,
         n_recon_prefix = n_batches
 
     for recon_pref, recon_path in zip(recon_prefix[0:n_recon_prefix], recon_paths[0:n_recon_prefix]):
-        print(recon_pref)
+        print("Creating count matrix multibatch using reconstructions from following batches: ",recon_pref)
         if "input" in recon_pref:
             X, _, _ = read_adata(recon_path, issparse=issparse)
             if issparse:
@@ -757,6 +759,7 @@ def create_count_matrix_multibatch(recon_prefix, recon_paths, obs, var, n_genes,
 
     if save_data:
         save_adata(adata_multibatch, folder_path)
+    print("Completed subsampling of adata_multibatch")
 
     return adata_multibatch
 
@@ -845,7 +848,7 @@ def compute_cell_stats_acrossbatchrecon(genomap, cell_indexes_batch_cf, genomap_
     else:
         raise ValueError("Statistic must be 'std' or 'var'")
 
-    print(f"Shape of {statistic}_across_batches:", stat_across_batches.shape)
+    # print(f"Shape of {statistic}_across_batches:", stat_across_batches.shape)
 
     # Add the standard deviation/variance to the genomap_coordinates DataFrame
     genomap_coordinates[statistic] = np.nan
@@ -860,15 +863,25 @@ def compute_cell_stats_acrossbatchrecon(genomap, cell_indexes_batch_cf, genomap_
     genomap_coordinates['Rank'] = genomap_coordinates[statistic].abs().rank(ascending=False)
 
     # Convert gene_names from bytes to strings
-    genomap_coordinates['gene_names'] = genomap_coordinates['gene_names'].apply(lambda x: x.strip('b').strip("'"))
+    #genomap_coordinates['gene_names'] = genomap_coordinates['gene_names'].apply(lambda x: x.strip('b').strip("'"))
+    genomap_coordinates["gene_names"] = (
+        genomap_coordinates["gene_names"]
+            .apply(lambda x: x.split("|")[-1] if isinstance(x, str) else x)
+            .apply(lambda x: re.sub(r"^b[\"']?", "", x).rstrip("'").strip() if isinstance(x, str) else x)
+            )
 
     # Add a "Top N" column with True/False
     genomap_coordinates['Top_N'] = False
     top_n_indices = genomap_coordinates.nsmallest(n_top_genes, 'Rank').index
     genomap_coordinates.loc[top_n_indices, 'Top_N'] = True
     # Save
-    genomap_coordinates.to_csv(os.path.join(path_2_genomap, f"genomap_{n_top_genes}topvariablegenesacrossbatches_{file_name}_{statistic}.csv"))
 
+    outfile = os.path.join(
+        path_2_genomap,
+        f"genomap_{file_name}_{statistic}_{n_top_genes}topvariablegenesacrossbatches.csv"
+    )
+    genomap_coordinates.to_csv(outfile, index=False)
+    print(f"Saved gene {statistic} across batches  to: {outfile}")
     return genomap_coordinates
 
 
@@ -906,9 +919,15 @@ def adjust_text_positions(x, y, threshold=0.5, offset=0.2):
 
 
 
-def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, original_batch=None, n_top_genes=10, min_val=-5, max_val=10, n_cols = 3,order='C',path_2_genomap='',file_name="cell_id",remove_ticks=False):
+def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, original_batch=None, n_top_genes=10, min_val=-5, max_val=10, n_cols = 3,order='C',path_2_genomap='',file_name="cell_id",remove_ticks=False,extra_label_cols=None):
     """
-    Plot the genomap with the top variable genes highlighted./
+    Plot genomap slices for the given cells and optionally highlight top genes.
+
+    The function displays each selected cell?s 2D genomap (first channel of the
+    4D input array) and, if provided, overlays red markers and labels for genes
+    flagged as `Top_N == True` in `genomap_coordinates`. The number `n_top_genes`
+    is only used in the output filename; actual selection is controlled by the
+    `Top_N` column.
     
     Args:
         genomap: 4D numpy array with genomap data.
@@ -968,14 +987,36 @@ def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, ori
         
         # print("cell_index",cell_index)
         # print("obs_index",obs.index)
+        # recon_prefix = obs.loc[cell_index, "recon_prefix"]
+        # ax.set_title(recon_prefix)
+        # if 'input' in recon_prefix:
+        #     ax.set_title(f'{recon_prefix}\noriginal batch: {original_batch}')
+        # elif original_batch in recon_prefix:
+        #     ax.set_title(f'{recon_prefix}\n(original batch)', color='red')
+        # else:
+        #     ax.set_title(f'{recon_prefix}')
+        
+        # Build the title
         recon_prefix = obs.loc[cell_index, "recon_prefix"]
-        ax.set_title(recon_prefix)
+        title_parts  = [recon_prefix]
+
         if 'input' in recon_prefix:
-            ax.set_title(f'{recon_prefix}\noriginal batch: {original_batch}')
-        elif original_batch in recon_prefix:
-            ax.set_title(f'{recon_prefix}\n(original batch)', color='red')
-        else:
-            ax.set_title(f'{recon_prefix}')
+            title_parts.append(f'original batch: {original_batch}')
+        elif original_batch and original_batch in recon_prefix:
+            title_parts[-1] = f'{recon_prefix} (original batch)'  # red below
+
+        # Extra labels
+        if extra_label_cols:
+            extra_values = [str(obs.loc[cell_index, col])
+                            for col in extra_label_cols]
+            title_parts.append(''.join(extra_values))
+
+        title_text = '\n'.join(title_parts)
+        ax.set_title(title_text,
+                     color='red' if original_batch and
+                                    original_batch in recon_prefix else 'black')
+
+
 
 
 
@@ -990,8 +1031,12 @@ def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, ori
     fig.suptitle(file_name, fontsize=16)
     plt.tight_layout(rect=[0, 0.03, 0.9, 0.97])
     file_name = file_name.replace("/", "")
+    if genomap_coordinates is not None:
+        final_file_name = f"genomap_{file_name}_{n_top_genes}topvariablegenesacrossbatches"
+    else:
+        final_file_name = f"genomap_{file_name}" 
 
-    fig.savefig(os.path.join(path_2_genomap, f"genomap_{n_top_genes}topvariablegenesacrossbatches_{file_name}"))
+    fig.savefig(os.path.join(path_2_genomap, final_file_name))
 
 
 

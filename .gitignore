@@ -24,6 +24,7 @@ demo/outputs/*
 outputs
 outputs_demo
 outputs_500
+scripts/tmp
 
 
 */log/*

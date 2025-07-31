@@ -16,6 +16,8 @@ import random
 from typing import List, Optional, Dict, Tuple
 from scipy.stats import mannwhitneyu
 
+from anndata import AnnData
+
 from inspect import currentframe, getframeinfo
 def error_here(message:Optional[str]=None):
     frameinfo = getframeinfo(currentframe())
@@ -73,6 +75,7 @@ class GenomapConfig:
     min_val : int = -1
     max_val : int = 2
     issparse: bool = False
+    extra_label_cols: Optional[List[str]] = None
 
 
     # derived
@@ -92,8 +95,8 @@ class GenomapPipeline:
         self.results_path_dict = results_path_dict
         self.cfg = cfg
         self.df = self._load_and_merge_paths()
-        print("\n\nInitialized genomap pipeline")
-        print("sparse",cfg.issparse)
+        print("\n\nInitialized genomap pipeline ..")
+        #print("sparse",cfg.issparse)
 
     #  internal helpers 
 
@@ -103,7 +106,8 @@ class GenomapPipeline:
         df_inputs = get_input_paths_df(self.cfg.input_base_path)
         df = pd.merge(df_recon, df_inputs, on=["Split", "Type"], how="left")
         df["recon_prefix"] = df["ReconPath"].apply(lambda p: os.path.basename(p).split(".npy")[0])
-        print(f"Created df with input and recon paths\n{df}")
+        print(f"Created df with input and recon paths")
+        #print("f\{df}")
         return df
 
     def _select_recon(self, model: str, split: int, typ: str):
@@ -111,7 +115,7 @@ class GenomapPipeline:
         return self.df.loc[mask, ["ReconPath", "recon_prefix"]].values.T  # 2×N arrays
 
     def _input_path(self, model: str, split: int, typ: str) -> str:
-        print(f"Searching input paths in df\n{self.df}")
+        #print(f"Searching input paths in df\n{self.df}")
         m = (self.df["Key"] == model) & (self.df["Split"] == split) & (self.df["Type"] == typ)
         # Nothing matched, early warning
         if not m.any():
@@ -218,6 +222,7 @@ class GenomapPipeline:
         Build / load the Genomap for one (type, split, model) combination
         and return it as a NumPy array.
         """
+        print("\nComputing genomap..")
         cfg = self.cfg
         # how many extra reconstructions were appended?
         extra = cfg.n_inputs_fe if cfg.add_inputs_fe else 0          # 0, 2 or 5
@@ -292,7 +297,7 @@ class GenomapPipeline:
 
         # ---- determine batches that contain *all* requested cell-types ----
         if cfg.celltype:
-            print("batches 2 select from",batches_to_select_from)
+            print("cells selected from the following batches",batches_to_select_from)
             inter = find_intersection_batches(obs, cfg.celltype)
 
 
@@ -336,11 +341,12 @@ class GenomapPipeline:
         coords: pd.DataFrame,
         out_dir: str,
         cell_id: str,
+        statistic  = "std"
     ):
         cfg = self.cfg
         compute_cell_stats_acrossbatchrecon(
             genomap, idxs, coords,
-            statistic      = "std",
+            statistic      = statistic,
             n_top_genes    = cfg.n_top_genes,
             order          = "C",
             path_2_genomap = out_dir,
@@ -360,9 +366,10 @@ class GenomapPipeline:
         cell_id: str,
         original_batch: str,
         original_ct: str,
+        statistic = 'std'
     ):
         cfg = self.cfg
-        filename = f"{cell_id}_std_{original_ct}"
+        filename = f"{cell_id}_{original_ct}_{statistic}"
         plot_cell_recon_genomap(
             genomap,
             idxs,
@@ -375,6 +382,7 @@ class GenomapPipeline:
             order           = "C",
             path_2_genomap  = out_dir,
             file_name       = filename,
+            extra_label_cols= cfg.extra_label_cols
         )
 
 
@@ -392,12 +400,16 @@ class GenomapPipeline:
         original_ct: str,
         n_cols: int,
         with_labels: bool,
+        statistic = "std"
     ):
-    
+        
         cfg = self.cfg
-        file_stub = f"{cell_id}_few_batches_std_{original_ct}"
-        if with_labels:
-            file_stub += "_genelabels"
+        if statistic is not None:
+            file_stub = f"screconfewbatches_{cell_id}_{original_ct}_{statistic}"
+        else:
+            file_stub = f"screconfewbatches_{cell_id}_{original_ct}"
+        # if with_labels:
+        #     file_stub += "_genelabels"
 
         plot_cell_recon_genomap(
             genomap,
@@ -413,11 +425,51 @@ class GenomapPipeline:
             path_2_genomap      = out_dir,
             file_name           = file_stub,
             remove_ticks        = True,
+            extra_label_cols    =cfg.extra_label_cols
         )
         matplotlib.pyplot.close()
 
 
+    def _compute_scstats_and_statplots(
+        self,
+        genomap,
+        idxs_all,
+        coords,
+        out_dir,
+        cid,
+        statistic,
+        obs_df,
+        original_batch,
+        original_ct,
+        idxs_subset,
+        n_cols_subset
+    ):
+        """Compute statistics for a single cell across batches. Outputs: CSVs and plot the big panel and the subset panel *with* labels."""
+        # -------- statistics CSV (you need them to select relevant genes to label in the plot) -------------------------------------
+        stats_dir = os.path.join(out_dir, f"singlecell_gene_{statistic}_acrossbatches")
+        os.makedirs(stats_dir, exist_ok=True)
+        coords_work = coords.reset_index(drop=True)
+        self._write_cell_stats(genomap, idxs_all, coords_work, stats_dir, cid, statistic)
 
+        print(f"\n\nplotting big panel for single cell {cid} from original batch {original_batch} and celltype {original_ct}, n recons: {len(idxs_all)}")
+        # -------- big panel  for cell recons with gene labels------------------------------------------
+        plot_dir_labels   = os.path.join(stats_dir, "genomap_plots_scallbatches_genelabels")
+        os.makedirs(plot_dir_labels , exist_ok=True)
+        self._plot_big_panel(
+            genomap, idxs_all, coords_work,
+            obs_df, plot_dir_labels, cid, original_batch, original_ct
+        )
+
+
+        plot_dir_labels   = os.path.join(stats_dir, "genomap_plots_scfewbatches_genelabels")
+        os.makedirs(plot_dir_labels,   exist_ok=True)
+        self._plot_subset_panel(
+            genomap, idxs_subset, coords_work,
+            obs_df, plot_dir_labels , cid, original_batch, original_ct,
+            n_cols_subset, with_labels=True, statistic = statistic
+        )
+
+        return stats_dir, coords_work
 
     def _plot_panels(
         self,
@@ -429,10 +481,10 @@ class GenomapPipeline:
         cell_ids: List[str],
         original_batch_list: List[str],
         n_batch_cols2plot: int,
+        statistic = "std"
     ):
         """Create (i) a big panel with *all* recons and
-           (ii) two small subset panels per cell, exactly like the
-           legacy notebook."""
+           (ii) two small subset panels per cell."""
         # ----------------------------------------------------
         # recon2plot  =   [extra_prefixes]  +  original_batch_list
         # (mirrors the old `recon2plot = recon2plot + original_batch_list`)
@@ -443,30 +495,33 @@ class GenomapPipeline:
         recon2plot   = extra_pref + original_batch_list
         n_inputs_fe  = len(extra_pref)
 
+        out_dir   = os.path.join(out_dir, "genomap_plots")
+        os.makedirs(out_dir,   exist_ok=True)
+        celltypes = np.unique(obs_df["celltype"].values)
+        n_celltypes = len(celltypes)
+
         for cid in cell_ids:
 
 
             # get the all the indexes of the cm multibatch that have the same cid (belong to the same cell and are recon from diff batches)
             idxs_all = obs_df.loc[obs_df[cfg.cell_id_col] == cid].index.astype(int)
-            print("n cell indexes", idxs_all)
+            # print("n cell indexes", idxs_all)
 
             if len(idxs_all) == 0:
                 continue
 
             original_batch = obs_df.loc[idxs_all[0], "batch"]
             original_ct    = obs_df.loc[idxs_all[0], "celltype"]
+            
+            if n_celltypes>1: #create subfolders for celltypes
+                out_dir_ct = os.path.join(out_dir,original_ct.replace("/", ""))
+                os.makedirs(out_dir_ct, exist_ok=True)
+            else:
+                out_dir_ct = out_dir
 
-            # -------- statistics CSV -------------------------------------
-            coords_work = coords.reset_index(drop=True)
-            self._write_cell_stats(genomap, idxs_all, coords_work, out_dir, cid)
-            print(f"\n\nplotting big panel for {cid} with original batch {original_batch} and celltype {original_ct}, n recons: {len(idxs_all)}")
-            # -------- big panel ------------------------------------------
-            self._plot_big_panel(
-                genomap, idxs_all, coords_work,
-                obs_df, out_dir, cid, original_batch, original_ct
-            )
 
-            # -------- subset of reconstructions --------------------------
+
+            # -------- subset of reconstructions (only plot cell recons for few batches) --------------------------
             subset_labels = set(recon2plot)
             idxs_subset = obs_df.loc[
                 (obs_df[cfg.cell_id_col] == cid)
@@ -474,27 +529,79 @@ class GenomapPipeline:
                     lambda x: any(lbl in x for lbl in subset_labels)
                 )
             ].index.astype(int)
-            print("n cell indexes for batch CF recon", idxs_subset)
+            # print("n cell indexes for batch CF recon", idxs_subset)
             if len(idxs_subset) == 0:
                 continue
 
             #n_batch_cols  = len(obs_df.loc[idxs_subset, "batch"].unique())
             n_cols_subset = max(1, n_batch_cols2plot + n_inputs_fe)
 
+
+
             print(f"plotting small panel for {cid} with original batch {original_batch} and celltype {original_ct}, n recons: {len(idxs_subset)}")
-            # (a) without gene labels
+            
+
+
+
+            # -------- statistics of a single cell across batches CSV + big panel + subset (with labels) -------------------------------------
+            stats_dir, coords_work = self._compute_scstats_and_statplots(
+            genomap=genomap,
+            idxs_all=idxs_all,
+            coords=coords,
+            out_dir=out_dir_ct,
+            cid=cid,
+            statistic=statistic,
+            obs_df=obs_df,
+            original_batch=original_batch,
+            original_ct=original_ct,
+            idxs_subset=idxs_subset,
+            n_cols_subset=n_cols_subset)
+
+            # (b) without gene labels
+            print(f"created plot with no gene labels")
+            plot_dir_nolabels = os.path.join(out_dir_ct, "genomap_plots_scfewbatches_nogenelabels")
+            os.makedirs(plot_dir_nolabels, exist_ok=True)
             self._plot_subset_panel(
                 genomap, idxs_subset, None,
-                obs_df, out_dir, cid, original_batch, original_ct,
-                n_cols_subset, with_labels=False
+                obs_df, plot_dir_nolabels, cid, original_batch, original_ct,
+                n_cols_subset, with_labels=False, statistic =None # you only need the stats to choose which  genes to label
             )
-            # (b) with gene labels
-            print(f"plotting same panel but with no gene labels")
-            self._plot_subset_panel(
-                genomap, idxs_subset, coords_work,
-                obs_df, out_dir, cid, original_batch, original_ct,
-                n_cols_subset, with_labels=True
-            )
+
+        # helper: build consistent names 
+    def _make_cm_and_gnames(self,typ: str, split: int, out_dir: str) -> Tuple[str, str, str]:
+        """Return (cm_name, cm_path, gname) exactly like the writer produces."""
+        cfg     = self.cfg
+        # cell-type suffix (if any)
+        if isinstance(cfg.celltype, list):
+            cts = "_".join(ct.replace("/", "") for ct in cfg.celltype)
+        elif isinstance(cfg.celltype, str):
+            cts = cfg.celltype.replace("/", "")
+        else:
+            cts = ""
+
+        # CM folder name
+        cm_name = (
+            f"CMmultibatch_{cfg.n_cells_per_batch}_cells_per_batch_"
+            f"{cfg.n_batches}batches"
+        )
+        if cts:
+            cm_name += f"_{cts}"
+        if cfg.add_inputs_fe:
+            cm_name += f"_with_{cfg.n_inputs_fe}fe_input"
+        cm_path = os.path.join(out_dir, cm_name)
+
+        # Genomap prefix
+        gname = (
+            f"{cfg.n_cells_per_batch}cells_per_batch_{cfg.n_batches}batches_"
+            f"{typ}_{split}"
+        )
+        if cts:
+            gname += f"_{cts}"
+        if cfg.add_inputs_fe:
+            gname += f"_with_{cfg.n_inputs_fe}fe_input"
+
+        return cm_name, cm_path, gname   
+
 
     def run(
         self,
@@ -510,50 +617,21 @@ class GenomapPipeline:
         splits  = splits or list(range(1, 6))
         summaries: List[dict] = []
 
-        # helper: build consistent names 
-        def _make_cm_and_gnames(typ: str, split: int, out_dir: str) -> Tuple[str, str, str]:
-            """Return (cm_name, cm_path, gname) exactly like the writer produces."""
-            # cell-type suffix (if any)
-            if isinstance(cfg.celltype, list):
-                cts = "_".join(ct.replace("/", "") for ct in cfg.celltype)
-            elif isinstance(cfg.celltype, str):
-                cts = cfg.celltype.replace("/", "")
-            else:
-                cts = ""
 
-            # CM folder name
-            cm_name = (
-                f"CMmultibatch_{cfg.n_cells_per_batch}_cells_per_batch_"
-                f"{cfg.n_batches}batches"
-            )
-            if cts:
-                cm_name += f"_{cts}"
-            if cfg.add_inputs_fe:
-                cm_name += f"_with_{cfg.n_inputs_fe}fe_input"
-            cm_path = os.path.join(out_dir, cm_name)
+        # 1. output directory -------------------------------------------------
+        out_dir = os.path.join(cfg.compare_models_path,
+                                        cfg.analysis_name or "analysis","genomap")
+        os.makedirs(out_dir, exist_ok=True)
+        print(f"genomaps saved to {out_dir} ")
 
-            # Genomap prefix
-            gname = (
-                f"{cfg.n_cells_per_batch}cells_per_batch_{cfg.n_batches}batches_"
-                f"{typ}_{split}"
-            )
-            if cts:
-                gname += f"_{cts}"
-            if cfg.add_inputs_fe:
-                gname += f"_with_{cfg.n_inputs_fe}fe_input"
-
-            return cm_name, cm_path, gname
         # calling genomap function
-        print("Computing genomap for",types,splits,models)
+        print("Run genomap pipeline for: ",types,splits,models)
         for typ in types:
             for split in splits:
                 for model in models:
 
                     print(typ,split,model)
-                    # 1. output directory -------------------------------------------------
-                    out_dir = os.path.join(cfg.compare_models_path,
-                                        cfg.analysis_name or "genomap")
-                    os.makedirs(out_dir, exist_ok=True)
+
 
                     # 2. recon paths ------------------------------------------------------
                     paths, prefixes = self._select_recon(model, split, typ)
@@ -573,20 +651,46 @@ class GenomapPipeline:
 
                     # 4. batch selection --------------------------------------------------
                     batches_sel = cfg.batches or list(obs["batch"].unique())
-                    print("batch_sel",batches_sel)
+                    print("Batches selected for plotting:",batches_sel)
 
 
                     # 5. multibatch matrix ----------------------------------------------
-                    adata_mb = self._build_multibatch(
-                        paths, prefixes, obs, var, batches_sel, out_dir
-                    )
-                    adata_mb.var["gene_names"] = adata_mb.var.index 
+                    cm_name, cm_path, gname = self._make_cm_and_gnames(typ, split, out_dir)
+
+
+                    
+
+                    if not os.path.exists(cm_path):
+                        print ("\n\nSampling adata  multibatch from original data and recons..") 
+                        print("Saving to adata multibatch directory:",cm_path)     
+                        adata_mb = self._build_multibatch(
+                            paths, prefixes, obs, var, batches_sel, out_dir
+                        )
+                        print("adata_mb",adata_mb)
+                        adata_mb.var["gene_names"] = adata_mb.var.index 
+                    else:
+                        print ("\n\nReading adata multibatch from",cm_path)  
+                        print (f"Please verify that the count matrix adata multibatch contains cells from the  selected batches: {batches_sel}")
+
+                        X_mb, var_mb, obs_mb = read_adata(cm_path)
+                        adata_mb= AnnData(X=X_mb, obs=obs_mb, var=var_mb)
+                        
+                        adata_mb.var["gene_names"] = adata_mb.var[cfg.gene_index_col].astype(str)#.values
+                        adata_mb.var.index = adata_mb.var["gene_names"]
+                        adata_mb.obs.index = adata_mb.obs.index.astype(int)
+                        print("adata_mb",adata_mb)
+                        # print("adata_mb gene_names",adata_mb.var["gene_names"])
+                        # print("adata_mb gene_names",adata_mb.var["gene_names"])
+                        #print("adata_mb index",adata_mb.obs.index)
+                        
+
+                    
 
                     # choose cells and original batches
                     cell_ids, original_batch_list, n_batch_cols2plot = self._choose_cells_and_batches(adata_mb, typ, batches_to_select_from =batches_sel)
-                    print("original batch list:",original_batch_list)
+                    print("Original batch list:",original_batch_list)
 
-                    cm_name, cm_path, gname = _make_cm_and_gnames(typ, split, out_dir)
+                    
 
                     # adjust ncells 
                     extra = cfg.n_inputs_fe if cfg.add_inputs_fe else 0
@@ -627,520 +731,3 @@ def genomap_and_plot(run_names_dict, results_path_dict, cfg: GenomapConfig, **kw
     pipeline = GenomapPipeline(run_names_dict, results_path_dict, cfg)
     return pipeline.run(**kwargs)
 
-
-# def genomap_and_plot(
-#     run_names_dict,
-#     results_path_dict,
-#     compare_models_path,
-#     data_base_path,
-#     scenario_id,
-#     input_base_path,
-#     analysis_name:Optional[str]=None,
-#     celltype:Optional[List[str]]=None,
-#     batches:Optional[List[str]]=None,
-#     n_cells_per_batch:int=300,
-#     n_batches:int=19,
-#     n_genes:int=2916,
-#     n_col:int=54,
-#     n_row:int=54,
-#     gene_index_col:str="Gene",
-
-#     scaling:str="min_max",
-#     models:Optional[List[str]]=None,
-#     types:Optional[List[str]]=None,
-#     splits:Optional[List[int]]=None,
-#     add_inputs_fe:bool = False,
-#     extra_recon:str = "all", # "fe" or "all"
-#     seed:int=42
-    
-#     ):
-    
-#     # --------------------------------------------------------------------------------------
-#     # I run this script with Aixa_genomap env
-#     # --------------------------------------------------------------------------------------
-#     # 1. Get input paths and recon paths
-#     # --------------------------------------------------------------------------------------
-#     df_recon = get_recon_paths_df(results_path_dict, get_batch_recon_paths=True)
-#     df_inputs = get_input_paths_df(input_base_path)
-#     print(df_recon.columns, df_inputs.columns)
-#     print(f"splits path: {input_base_path}")
-#     df = pd.merge(df_recon, df_inputs, on=["Split", "Type"], how="left")
-#     df["recon_prefix"] = [
-#         recon_path.split("/")[-1].split(".npy")[0] for recon_path in df["ReconPath"]
-#     ]
-#     print("Reading paths,\ndf paths:", df.head(5))
-
-#     # --------------------------------------------------------------------------------------
-#     # 1.2. Base: I will run the genomap for random effects reconstructions: (scMEDAL-RE) outputs
-#     # --------------------------------------------------------------------------------------
-#     # Define lists of models, types, and splits. This script will only run one genomap.
-#     if models is None:
-#         models = list(run_names_dict.keys())  # Add all your models to this list
-#     if types is None:
-#         types = ["train", "test", "val"]
-#     if splits is None:
-#         splits = list(range(1,6))             # Get data from fold 2
-
-#     for Type in types:
-#         for Split in splits:
-#             for model_name in models:
-#                 # Define experiment output directory
-#                 out_name = os.path.join(compare_models_path, analysis_name)
-#                 if not os.path.exists(out_name):
-#                     os.makedirs(out_name)
-#                 print("Saving results to", out_name)
-
-#                 # --------------------------------------------------------------------------------------
-#                 # Get batch reconstruction paths and prefix (to indicate batch)
-#                 # --------------------------------------------------------------------------------------
-#                 print(df.columns)
-#                 print(df["Key"].unique())
-
-#                 ####### IS this Correct ?!?!?!!?####### IS this Correct ?!?!?!!?####### IS this Correct ?!?!?!!?
-#                 ####### IS this Correct ?!?!?!!?
-#                 recon_paths = df.loc[
-#                     (df["Key"] == model_name) & (df["Split"] == Split) & 
-#                     (df["Type"] == Type), # & (df["recon_prefix"] != "recon_train"),
-#                     "ReconPath"
-#                 ].values
-
-#                 recon_prefix = df.loc[
-#                     (df["Key"] == model_name) & (df["Split"] == Split) & 
-#                     (df["Type"] == Type),# & (df["recon_prefix"] != "recon_train"),
-#                     "recon_prefix"
-#                 ].values
-
-#                 print("n recon paths:", len(recon_paths))
-
-#                 # Get inputs path: Same for all models, split and type.
-#                 inputs_path = df.loc[
-#                     (df["Key"] == model_name) & (df["Split"] == Split) & (df["Type"] == Type),
-#                     "InputsPath"
-#                 ].values[0]
-#                 ####### IS this Correct ?!?!?!!?####### IS this Correct ?!?!?!!?####### IS this Correct ?!?!?!!?
-#                 #return df
-
-
-#                 if extra_recon == "fe":
-#                     # n_inputs_fe = 2: One for inputs and another one for fixed effects (fe).
-#                     # You could also add a fe classifier recon and a base autoencoder recon.
-#                     n_inputs_fe = 2
-#                     # Get fixed effects path: unique for "scMEDAL-FE"
-#                     fe_ae_path = df.loc[
-#                         (df["Key"] == model_name) & (df["Split"] == Split) & (df["Type"] == Type),
-#                         "ReconPath"
-#                     ].values[0]
-#                     # Define extra paths and prefix
-#                     extra_paths = [inputs_path, fe_ae_path]
-#                     extra_prefix = [f"input_{Type}", f"fe_ae_recon_{Type}"]
-
-#                 elif extra_recon == "all":
-#                     n_inputs_fe = 5
-                    
-#                     mods = ["ae", "aec", "scmedalfe", "scmedalfec"]
-#                     extra_paths = []
-#                     for mod in mods:
-#                         try:
-#                             curr_path = df.loc[
-#                             (df["Key"] == mod) & (df["Split"] == Split) & (df["Type"] == Type),
-#                             "ReconPath"
-#                             ].values[0]
-#                             extra_paths.append(curr_path)
-#                         except IndexError:
-#                             pass
-                  
-#                     extra_prefix = [
-#                         f"input_{Type}", f"ae_recon_{Type}", f"aec_recon_{Type}",
-#                         f"fe_ae_recon_{Type}", f"fe_aec_recon_{Type}"
-#                     ]
-
-#                 # --------------------------------------------------------------------------------------
-#                 # 2. Get genes and cells metadata
-#                 # --------------------------------------------------------------------------------------
-#                 # The splits did not store the real gene_ids. This changes on every experiment
-
-#                 gene_ids_path = os.path.join(data_base_path, scenario_id, "geneids.csv")
-#                 var = pd.read_csv(gene_ids_path, index_col=gene_index_col)
-
-#                 # Get cell metadata (obs) from inputs_path (same for all models of same Type, split)
-#                 _, _, obs = read_adata(inputs_path, issparse=True)
-
-
-
-#                 if add_inputs_fe:
-#                     recon_prefix = extra_prefix + recon_prefix.tolist()
-#                     recon_paths = extra_paths + recon_paths.tolist()
-#                     n_cells = n_cells_per_batch * (n_batches + n_inputs_fe)
-#                 else:
-#                     n_cells = n_cells_per_batch * n_batches
-
-#                 # --------------------------------------------------------------------------------------
-#                 # 4. Create multibatch count matrix for the genomap
-#                 # --------------------------------------------------------------------------------------
-#                 print("\nCreating count_matrix_multibatch..")
-
-#                 ############ Spliced over from MannU script 221...    
-#                 # Determine patient group by batch
-#                 if batches is None:
-#                     unique_combinations = obs[["Patient_group", "batch"]].drop_duplicates().reset_index(
-#                         drop=True
-#                     )
-#                     unique_dict = dict(zip(unique_combinations["batch"],
-#                                         unique_combinations["Patient_group"]))
-#                     print(unique_dict)
-
-#                     dict_batches = unique_dict
-#                     print("Batch dictionary:", dict_batches)
-#                     batches_to_select_from = list(dict_batches.keys())
-#                 else:
-#                     batches_to_select_from = batches    
-                
-#                 random.seed(seed)
-
-#                 adata_multibatch_n_cells = create_count_matrix_multibatch(
-#                     recon_prefix,
-#                     recon_paths,
-#                     obs,
-#                     var,
-#                     n_genes=n_genes,
-#                     n_cells=n_cells_per_batch,
-#                     n_batches=n_batches,
-#                     out_path=out_name,
-#                     add_inputs_fe=n_inputs_fe if add_inputs_fe else None,
-#                     n_inputs_fe=n_inputs_fe,
-#                     celltype=celltype,
-#                     save_data=True,
-#                     scaling=scaling,
-#                     issparse=False,
-#                     seed=seed,
-#                     force_batches=batches_to_select_from,
-#                 )
-
-#                 adata_multibatch_n_cells.obs.index = adata_multibatch_n_cells.obs.index.astype(int)
-#                 gc.collect()
-
-#                 print("adata_multibatch_n_cells.X", adata_multibatch_n_cells.X.shape)
-#                 print("adata_multibatch_n_cells.obs", adata_multibatch_n_cells.obs)
-#                 print("adata_multibatch_n_cells.var", adata_multibatch_n_cells.var)
-
-#                 if isinstance(celltype, str):
-#                     celltype_name = celltype.replace("/", "")
-#                 elif isinstance(celltype, list):
-#                     celltype_name = "_".join([ct.replace("/", "") for ct in celltype])
-#                 else:
-#                     celltype_name = None
-
-#                 cm_multibatch_name = f"CMmultibatch_{n_cells_per_batch}_cells_per_batch_{n_batches}batches"
-#                 if celltype_name:
-#                     cm_multibatch_name += f"_{celltype_name}"
-#                 if add_inputs_fe:
-#                     cm_multibatch_name += f"_with_{n_inputs_fe}fe_input"
-
-#                 cm_multibatch_path = os.path.join(out_name, cm_multibatch_name)
-#                 print("cm_multibatch_path:", cm_multibatch_path)
-#                 # --------------------------------------------------------------------------------------
-#                 # 5. Get genomaps
-#                 # --------------------------------------------------------------------------------------
-#                 print("\nComputing genomap..")
-
-#                 print("\nComputing genomap..")
-#                 genomap_name = f"{n_cells_per_batch}cells_per_batch_{n_batches}batches_{Type}_{Split}"
-
-#                 if celltype:
-#                     genomap_name += f"_{celltype_name}"
-#                 if add_inputs_fe:
-#                     genomap_name += f"_with_{n_inputs_fe}fe_input"
-
-#                 path_2_genomap = os.path.join(out_name, genomap_name)
-#                 print("genomap stored in", path_2_genomap)
-
-#                 gene_names = var.index[0:n_genes]
-
-                
-#                 try:
-#                     process_and_plot_genomaps_singlepath(
-#                         cm_multibatch_path,
-#                         ncells=n_cells,
-#                         ngenes=n_genes,
-#                         rowNum=n_row,
-#                         colNum=n_col,
-#                         epsilon=0.0,
-#                         num_iter=100,
-#                         output_folder=path_2_genomap,
-#                         genomap_name=genomap_name,
-#                         gene_names=gene_names,
-#                     )
-#                     print("genomap stored in", path_2_genomap)
-#                     gc.collect()
-
-#                     # --------------------------------------------------------------------------------------
-#                     # 6. Plot genomaps
-#                     # --------------------------------------------------------------------------------------
-#                     order = "C"
-#                     statistic = "std"
-#                     if add_inputs_fe:
-#                         recon2plot = extra_prefix
-#                     else:
-#                         recon2plot = []
-
-#                     genomap_path = os.path.join(path_2_genomap, f"genomap_{genomap_name}.npy")
-#                     genomap_coordinates_path = os.path.join(
-#                         path_2_genomap,
-#                         f"gene_coordinates_{genomap_name}.csv"
-#                     )
-#                     print("genomap_path", genomap_path)
-
-#                     genomap = np.load(genomap_path)
-
-#                     genomap_coordinates = pd.read_csv(genomap_coordinates_path)
-#                     genomap_coordinates.rename(columns={"Unnamed: 0": "gene_names"}, inplace=True)
-
-#                     obs_multibatch = adata_multibatch_n_cells.obs
-#                     print("cm_multibatch_path", cm_multibatch_path)
-
-#                     cell_id_col = "Cell"
-#                     print("obs multibatch", obs_multibatch)
-
-#                     cell_ids_all = np.unique(obs_multibatch[cell_id_col].values)
-
-        
-#                     cell_ids_2plot = []
-#                     if isinstance(celltype, list):
-#                         intersection_batches = find_intersection_batches(obs_multibatch, celltype)
-#                         print("Intersection of batches:", intersection_batches)
-#                         if batches_to_select_from is None:
-#                             batches_to_select_from = list(intersection_batches)[0:4]
-
-#                         print("selected celltypes and batches:", celltype, batches_to_select_from)
-#                         cell_ids_2plot = select_cells_from_batches(
-#                             obs_multibatch,
-#                             celltype,
-#                             batches_to_select_from,
-#                             seed=seed,
-#                             cell_id_col=cell_id_col,
-#                         )
-#                         n_batch_cols2plot = len(batches_to_select_from)
-#                     else:
-#                         n_cells_2_plot = 4
-#                         cell_ids_all = obs_multibatch[cell_id_col].values
-#                         cell_ids_2plot = random.sample(list(cell_ids_all), n_cells_2_plot)
-#                         n_batch_cols2plot = n_cells_2_plot
-
-#                     print("Selected cell IDs to plot:", cell_ids_2plot)
-
-#                     original_batch_list = []
-#                     for cell_id in cell_ids_2plot:
-#                         original_batch = obs_multibatch.loc[
-#                             (obs_multibatch[cell_id_col] == cell_id)
-#                             & (obs_multibatch["recon_prefix"] == f"recon_{Type}"),
-#                             "batch",
-#                         ].values[0]
-#                         original_batch_list.append(original_batch)
-
-#                     recon2plot = recon2plot + original_batch_list
-
-#                     plot_min = -1
-#                     plot_max = 2
-
-#                     for cell_id in cell_ids_2plot:
-#                         print("cell_id", cell_id)
-
-#                         original_batch = obs_multibatch.loc[
-#                             (obs_multibatch[cell_id_col] == cell_id)
-#                            & (obs_multibatch["recon_prefix"] == f"recon_{Type}"),
-#                             "batch",
-#                         ].values[0]
-#                         print("original batch:", original_batch)
-
-#                         original_celltype = obs_multibatch.loc[
-#                             (obs_multibatch[cell_id_col] == cell_id)
-#                            & (obs_multibatch["recon_prefix"] == f"recon_{Type}"),
-#                             "celltype",
-#                         ].values[0]
-#                         print("original batch:", original_celltype)
-
-#                         cell_indexes = obs_multibatch.loc[
-#                             obs_multibatch[cell_id_col] == cell_id
-#                         ].index.values
-#                         cell_indexes = cell_indexes.astype(int)
-#                         print("n cell indexes", cell_indexes)
-
-#                         cell_indexes_batch_cf = obs_multibatch.loc[
-#                             (obs_multibatch[cell_id_col] == cell_id)
-#                             & (obs_multibatch["batch"])#.str.contains("batch"))
-#                             #& (obs_multibatch["recon_prefix"].str.contains("batch"))
-#                         ].index.values
-#                         cell_indexes_batch_cf = cell_indexes_batch_cf.astype(int)
-#                         print("n cell indexes for batch CF recon", cell_indexes_batch_cf)
-#                         print("obs_multibatch['recon_prefix']", obs_multibatch["recon_prefix"].values)
-
-#                         ###### Maybe there is also an error here??
-#                         genomap_coordinates = compute_cell_stats_acrossbatchrecon(
-#                             genomap,
-#                             cell_indexes_batch_cf,
-#                             genomap_coordinates,
-#                             statistic=statistic,
-#                             n_top_genes=10,
-#                             order="C",
-#                             path_2_genomap=path_2_genomap,
-#                             file_name=cell_id,
-#                         )
-
-#                         print(genomap_coordinates[genomap_coordinates["Top_N"]])
-#                         plot_cell_recon_genomap(
-#                             genomap,
-#                             cell_indexes,
-#                             genomap_coordinates,
-#                             obs=obs_multibatch,
-#                             original_batch=original_batch,
-#                             n_top_genes=10,
-#                             min_val=plot_min,
-#                             max_val=plot_max,
-#                             order="C",
-#                             path_2_genomap=path_2_genomap,
-#                             file_name=f"{cell_id}_{statistic}_{original_celltype}",
-#                         )
-
-#                         # This is A bug. This is giving an empty array.
-#                         cell_indexes_few_batches = obs_multibatch.loc[
-#                             (obs_multibatch[cell_id_col] == cell_id)
-#                             & obs_multibatch["recon_prefix"].apply(
-#                                 lambda x: any(recon in x for recon in recon2plot)
-#                             )
-#                         ].index.values
-#                         # No gene labels
-#                         try:
-#                             plot_cell_recon_genomap(
-#                                 genomap,
-#                                 cell_indexes=cell_indexes_few_batches,
-#                                 genomap_coordinates=None,
-#                                 obs=obs_multibatch,
-#                                 original_batch=original_batch,
-#                                 n_top_genes=10,
-#                                 min_val=plot_min,
-#                                 max_val=plot_max,
-#                                 n_cols=n_batch_cols2plot + n_inputs_fe,
-#                                 order="C",
-#                                 path_2_genomap=path_2_genomap,
-#                                 file_name=f"{cell_id}_few_batches_{statistic}_{original_celltype}",
-#                                 remove_ticks=True,
-#                             )
-#                         except Exception as e: 
-#                             error_here()
-#                             raise e
-#                         finally:
-#                             return genomap, cell_indexes_few_batches, obs_multibatch, original_batch, plot_min, plot_max, n_batch_cols2plot + n_inputs_fe, path_2_genomap
-                        
-#                         try:
-#                             plot_cell_recon_genomap(
-#                                 genomap,
-#                                 cell_indexes=cell_indexes_few_batches,
-#                                 genomap_coordinates=genomap_coordinates,
-#                                 obs=obs_multibatch,
-#                                 original_batch=original_batch,
-#                                 n_top_genes=10,
-#                                 min_val=plot_min,
-#                                 max_val=plot_max,
-#                                 n_cols=n_batch_cols2plot + n_inputs_fe,
-#                                 order="C",
-#                                 path_2_genomap=path_2_genomap,
-#                                 file_name=(
-#                                     f"{cell_id}_few_batches_{statistic}_{original_celltype}_genelabels"
-#                                 ),
-#                                 remove_ticks=True,
-#                             )
-#                         except Exception as e: 
-#                             error_here()
-#                             raise e   
-
-#                         # Obtain AML and control keys (and similarly for cell lines if needed)
-#                         aml_keys = [key for key, value in dict_batches.items() if value == "AML"]
-#                         aml_recon_batch_list = [f'recon_batch_{Type}_{b}' for b in aml_keys]
-#                         aml = obs_multibatch.loc[
-#                             (obs_multibatch["recon_prefix"].str.contains('batch'))
-#                             & (obs_multibatch["recon_prefix"].isin(aml_recon_batch_list))
-#                         ]
-
-#                         control_keys = [key for key, value in dict_batches.items() if value == "control"]
-#                         control_recon_batch_list = [f'recon_batch_{Type}_{b}' for b in control_keys]
-#                         control = obs_multibatch.loc[
-#                             (obs_multibatch["recon_prefix"].str.contains('batch'))
-#                             & (obs_multibatch["recon_prefix"].isin(control_recon_batch_list))
-#                         ]
-
-#                         cl_keys = [key for key, value in dict_batches.items() if value == "celline"]
-#                         cl_recon_batch_list = [f'recon_batch_{Type}_{b}' for b in cl_keys]
-#                         cl = obs_multibatch.loc[
-#                             (obs_multibatch["recon_prefix"].str.contains('batch'))
-#                             & (obs_multibatch["recon_prefix"].isin(cl_recon_batch_list))
-#                         ]
-
-#                         # Matching indexes for AML and Control
-#                         idx_aml = aml.index
-#                         idx_control = control.index
-
-#                         # ----------------------------------------------------------------------------
-#                         # 11. Aggregate Genomaps per Batch
-#                         # ----------------------------------------------------------------------------
-#                         print("Aggregating Genomaps per Batch")
-#                         aml_avg_maps = []
-#                         for b in aml_recon_batch_list:
-#                             row_inds = obs_multibatch.index[obs_multibatch['recon_prefix'] == b]
-#                             batch_genomaps = genomap[row_inds, :, :, :]
-#                             avg_map = batch_genomaps.mean(axis=0)
-#                             aml_avg_maps.append(avg_map)
-
-#                         ctrl_avg_maps = []
-#                         for b in control_recon_batch_list:
-#                             row_inds = obs_multibatch.index[obs_multibatch['recon_prefix'] == b]
-#                             batch_genomaps = genomap[row_inds, :, :, :]
-#                             avg_map = batch_genomaps.mean(axis=0)
-#                             ctrl_avg_maps.append(avg_map)
-
-#                         aml_avg_maps = np.stack(aml_avg_maps, axis=0)    # shape (n_asd, 54, 54, 1)
-#                         ctrl_avg_maps = np.stack(ctrl_avg_maps, axis=0)  # shape (n_ctrl, 54, 54, 1)
-
-#                         print("ASD average maps shape:", aml_avg_maps.shape)
-#                         print("Control average maps shape:", ctrl_avg_maps.shape)
-
-#                         # ----------------------------------------------------------------------------
-#                         # 12. Perform Pixel-wise Mann-Whitney U Test
-#                         # ----------------------------------------------------------------------------
-#                         print("Perform Pixel-wise Mann-Whitney U Test")
-
-#                         _, height, width, _ = aml_avg_maps.shape
-#                         uvals = np.zeros((height, width))
-#                         pvals = np.zeros((height, width))
-
-#                         for i in range(height):
-#                             for j in range(width):
-#                                 u_stat, p_value = mannwhitneyu(
-#                                     aml_avg_maps[:, i, j, 0],
-#                                     ctrl_avg_maps[:, i, j, 0],
-#                                     alternative="two-sided"
-#                                 )
-#                                 uvals[i, j] = u_stat
-#                                 pvals[i, j] = p_value
-
-#                         # Process gene coordinates for significance
-#                         i_coords = genomap_coordinates["pixel_i"].values
-#                         j_coords = genomap_coordinates["pixel_j"].values
-#                         genomap_coordinates["pval"] = pvals[i_coords, j_coords]
-#                         genomap_coordinates = genomap_coordinates.sort_values(by="pval")
-
-#                         p_threshold = 0.05
-#                         genomap_coordinates["significant"] = (
-#                             genomap_coordinates["pval"] < p_threshold
-#                         )
-#                         print("\n# significant genes:",
-#                             len(genomap_coordinates[genomap_coordinates["significant"]]))
-#                         print(genomap_coordinates[genomap_coordinates["significant"]])
-
-
-#                         # Save final dataframe with p-values and gene annotations
-#                         genomap_coordinates.to_csv(
-#                             os.path.join(out_name, "pvals_300cellsavg_mwutest.csv")
-#                         )
-#                 except Exception as e: 
-#                     raise e
-#                     print("\n".join(["#"*50,"#"*50, "it broke", "#"*50,"#"*50]))

@@ -12,6 +12,7 @@ from .compare_results_umap import get_umap
 from dataclasses import dataclass, field
 import random
 import inspect 
+from utils.defaults import AML_PATHS_CONFIG,ASD_PATHS_CONFIG,HH_PATHS_CONFIG
 
 
 @dataclass
@@ -39,12 +40,13 @@ class GenomapConfig:
     scaling: str = "min_max"
     add_inputs_fe: bool = True
     extra_recon: str = "fe"   # "fe", "all", or "none"
-    seed: int = 42
-    issparse: bool = False
+    seed: int = 42   
     n_cells_2_plot: int = 4
     n_top_genes : int = 10
     min_val : int = -1
-    max_val : int = 2
+    max_val : int = 2  
+    issparse: bool = False
+    extra_label_cols: Optional[List[str]] = None
     # derived
     n_inputs_fe: int = field(init=False)
 
@@ -176,6 +178,7 @@ class Analysis(ABC):
         num_iter: int = None ,
         cell_id_col : str = None,
         issparse : bool = None,
+        extra_label_cols: Optional[List[str]] = None,
         ):
         # This will update self.paths which is the basis for _genomap_kwargs
         # Not ideal, but workable.
@@ -202,6 +205,7 @@ class Analysis(ABC):
         core['num_iter'] = num_iter if num_iter is not None else core['num_iter']
         core['cell_id_col'] = cell_id_col if cell_id_col is not None else core['cell_id_col']
         core['issparse'] = issparse if issparse is not None else core['issparse']
+        core['extra_label_cols'] = extra_label_cols if extra_label_cols is not None else core['extra_label_cols']
 
         cfg = GenomapConfig(
             compare_models_path = core["compare_models_path"],
@@ -223,11 +227,12 @@ class Analysis(ABC):
             add_inputs_fe       = core["add_inputs_fe"],
             extra_recon         = core["extra_recon"],
             seed                = core["seed"],
-            issparse            = core["issparse"],
             n_cells_2_plot      = core["n_cells_2_plot"],
             n_top_genes         = core["n_top_genes"],
             min_val             = core["min_val"],
             max_val             = core["max_val"],
+            issparse            = core["issparse"],
+            extra_label_cols    = core["extra_label_cols"],
         )
 
         if models is None:
@@ -268,14 +273,14 @@ class Analysis(ABC):
             "analysis_name":analysis_name if analysis_name is not None else ""
         }
         if experiment_name == "AML":
-            paths["data_path"] = f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/AML_data"
-            paths['data_folder_name'] = "log_transformed_2916hvggenes"
+            paths["data_path"] = AML_PATHS_CONFIG.get("data_base_path")#f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/AML_data"
+            paths['data_folder_name'] = AML_PATHS_CONFIG.get("scenario_id")#"log_transformed_2916hvggenes"
         elif experiment_name == "ASD":
-            paths["data_path"] = f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/ASD_data/reverse_norm/"
-            paths['data_folder_name'] = "log_transformed_2916hvggenes"
+            paths["data_path"] = ASD_PATHS_CONFIG.get("data_base_path")#f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/ASD_data/reverse_norm/"
+            paths['data_folder_name'] = ASD_PATHS_CONFIG.get("scenario_id")#"log_transformed_2916hvggenes"
         elif experiment_name == "HH":
-            paths["data_path"] = f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/HealthyHeart_data/"
-            paths['data_folder_name'] = "log_transformed_3000hvggenes"
+            paths["data_path"] = HH_PATHS_CONFIG.get("data_base_path")#f"/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/scMEDAL_for_scRNAseq/Experiments/data/HealthyHeart_data/"
+            paths['data_folder_name'] = HH_PATHS_CONFIG.get("scenario_id")#"log_transformed_3000hvggenes"
         paths['splits_path'] = os.path.join( paths["data_path"],  paths['data_folder_name'], "splits")
         paths["outputs_path"] = os.path.join(OUTPUTS_DIR, experiment_name, "compare_models", paths["data_folder_name"])
         paths["model_results_folder_dict"] = model_result_folder_dict
@@ -283,11 +288,9 @@ class Analysis(ABC):
         model_saved_header = os.path.join(OUTPUTS_DIR, experiment_name, "saved_models", paths["data_folder_name"])
         paths["latent_space_path"] = {k:os.path.join(latent_space_header, k, v) for k,v in model_result_folder_dict.items() }
         paths["saved_models_path"] = {k:os.path.join(model_saved_header, k, v) for k,v in model_result_folder_dict.items() }
+        #print("Analysis paths:",paths)
         
         return AnalysisPaths(**paths)
-
-
-
 
 class AMLAnalysis(Analysis):
     def __init__(self, model_result_folder_dict:Optional[Dict[str,str]]=None, analysis_name:Optional[str]=None,
@@ -331,6 +334,7 @@ class AMLAnalysis(Analysis):
             "cell_id_col":"Cell",
             "min_val":-1, 
             "max_val":2,
+            "extra_label_cols":["Patient_group"],
         }
 
     
@@ -396,6 +400,7 @@ class ASDAnalysis(Analysis):
             "n_cells_2_plot":6,
             "min_val":-2, 
             "max_val":6,
+            "extra_label_cols":["diagnosis"],
         }
 
     def _umap_kwargs(self):
@@ -462,6 +467,7 @@ class HHAnalysis(Analysis):
             "n_cells_2_plot":4,
             "min_val":-2, 
             "max_val":8,
+            "extra_label_cols":["DonorID","TissueDetail","protocol"],
         }
 
     def _umap_kwargs(self):

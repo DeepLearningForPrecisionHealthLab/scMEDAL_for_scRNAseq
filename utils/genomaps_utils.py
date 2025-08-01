@@ -1002,14 +1002,16 @@ def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, ori
 
         if 'input' in recon_prefix:
             title_parts.append(f'original batch: {original_batch}')
-        elif original_batch and original_batch in recon_prefix:
+        elif original_batch in recon_prefix:
             title_parts[-1] = f'{recon_prefix} (original batch)'  # red below
+        else:
+            title_parts[-1] = f'cf batch: {recon_prefix}' 
+
 
         # Extra labels
         if extra_label_cols:
-            extra_values = [str(obs.loc[cell_index, col])
-                            for col in extra_label_cols]
-            title_parts.append('sc origin:'.join(extra_values))
+            extra_values = [str(obs.loc[cell_index, col]) for col in extra_label_cols]
+            title_parts.append('sc origin:' + ''.join(extra_values)) 
 
         title_text = '\n'.join(title_parts)
         ax.set_title(title_text,

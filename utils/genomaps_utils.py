@@ -1009,7 +1009,7 @@ def plot_cell_recon_genomap(genomap, cell_indexes, genomap_coordinates, obs, ori
         if extra_label_cols:
             extra_values = [str(obs.loc[cell_index, col])
                             for col in extra_label_cols]
-            title_parts.append(''.join(extra_values))
+            title_parts.append('sc origin:'.join(extra_values))
 
         title_text = '\n'.join(title_parts)
         ax.set_title(title_text,

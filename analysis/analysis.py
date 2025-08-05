@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from utils.defaults import OUTPUTS_DIR, DEFAULTS_ABS_PATH, AML_DATA_DIR, AML_EXPERIMENT_NAME
 
 from .compare_clustering_scores import compare_clustering_scores
-from .genomap_and_plot import genomap_and_plot
+from .genomap_and_plot import genomap_and_plot, GenomapPipeline
 from .compare_results_umap import get_umap
 
 
@@ -156,9 +156,9 @@ class Analysis(ABC):
 
     def genomap(self,
         model_result_folder_dict:Optional[Dict[str,str]]=None,
-        models:Optional[List[str]]=None, # Default is to do all models in model_result_folder_dict.
-        types:Optional[List[str]]=None,  # ["train", "test", "val"]
-        splits:Optional[List[int]]=None, # i.e. [1, 2] ...
+        model: Optional[str] = None, # models:Optional[List[str]]=None, # Default is to do all models in model_result_folder_dict.
+        typ: Optional[str] = None, # types:Optional[List[str]]=None,  # ["train", "test", "val"]
+        split: Optional[int] = None, #splits:Optional[List[int]]=None, # i.e. [1, 2] ...
         celltype:Optional[List[str]]=None,
         batches:Optional[List[str]]=None,
         n_cells_per_batch:int=None,
@@ -235,18 +235,26 @@ class Analysis(ABC):
             extra_label_cols    = core["extra_label_cols"],
         )
 
-        if models is None:
-            models = list(model_result_folder_dict.keys())
+        # if models is None:
+        #     models = list(model_result_folder_dict.keys())
 
         # 2. Delegate to legacy wrapper that expects (run_names_dict, results_path_dict, cfg, ?)
-        return genomap_and_plot(
+        # return genomap_and_plot(
+        #     core["run_names_dict"],
+        #     core["results_path_dict"],
+        #     cfg,
+        #     models=model,
+        #     types=typ,
+        #     splits=split,
+        # )
+        pipeline = GenomapPipeline(
             core["run_names_dict"],
             core["results_path_dict"],
             cfg,
-            models=models,
-            types=types,
-            splits=splits,
         )
+
+        summary = pipeline.run(model=model, typ=typ, split=split)
+        return pipeline, summary
 
     def umap(self, model_result_folder_dict:Optional[Dict[str,str]]=None, **kwargs):
         # Not ideal, but workable.

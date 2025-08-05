@@ -605,17 +605,16 @@ class GenomapPipeline:
 
     def run(
         self,
-        models: Optional[List[str]] = None,
-        types:  Optional[List[str]] = None,
-        splits: Optional[List[int]] = None,
-    ) -> List[dict]:
-        """Execute full pipeline and return a summary for every model/type/split."""
+        model: Optional[str] = None, # models: Optional[List[str]] = None,
+        typ: Optional[str] = None, # types:  Optional[List[str]] = None,
+        split: Optional[int] = None, # splits: Optional[List[int]] = None,
+    ) -> dict:
+        """Execute full pipeline that creates adata multibatch, genomaps and plots and return a summary for a model/type/split."""
 
         cfg     = self.cfg
-        models  = models 
-        types   = types  or ["train", "test", "val"]
-        splits  = splits or list(range(1, 6))
-        summaries: List[dict] = []
+        typ   = typ  or "train" #test and val also possible
+        split  = split or 1
+        summary: dict = {}
 
 
         # 1. output directory -------------------------------------------------
@@ -625,109 +624,390 @@ class GenomapPipeline:
         print(f"genomaps saved to {out_dir} ")
 
         # calling genomap function
-        print("Run genomap pipeline for: ",types,splits,models)
-        for typ in types:
-            for split in splits:
-                for model in models:
+        print("Run genomap pipeline for: ",typ,split,model)
+        # 2. recon paths ------------------------------------------------------
+        paths, prefixes = self._select_recon(model, split, typ)
+        paths, prefixes = list(paths), list(prefixes)
+        extra_paths, extra_pref = self._build_extra(split, typ)
+        if cfg.add_inputs_fe:
+            paths    = extra_paths    + paths
+            prefixes = extra_pref     + prefixes
+        # 3. metadata ---------------------------------------------------------
+        inputs_path   = self._input_path(model, split, typ)
+        var, obs      = self._load_meta(inputs_path)
+        # ensure the column exists *before* we hand `var` to the matrix builder
+        if "gene_names" not in var.columns:        # <- safe if you rerun
+            var = var.copy()                       #   (avoid SettingWithCopy)
+            var["gene_names"] = var.index
+        # 4. batch selection --------------------------------------------------
+        batches_sel = cfg.batches or list(obs["batch"].unique())
+        print("Batches selected for plotting:",batches_sel)
+        # 5. multibatch matrix ----------------------------------------------
+        cm_name, cm_path, gname = self._make_cm_and_gnames(typ, split, out_dir)
+        if not os.path.exists(cm_path):
+            print ("\n\nSampling adata  multibatch from original data and recons..") 
+            print("Saving to adata multibatch directory:",cm_path)     
+            adata_mb = self._build_multibatch(
+                paths, prefixes, obs, var, batches_sel, out_dir
+            )
+            print("adata_mb",adata_mb)
+            adata_mb.var["gene_names"] = adata_mb.var.index 
+        else:
+            print ("\n\nReading adata multibatch from",cm_path)  
+            print (f"Please verify that the count matrix adata multibatch contains cells from the  selected batches: {batches_sel}")
+            X_mb, var_mb, obs_mb = read_adata(cm_path)
+            adata_mb= AnnData(X=X_mb, obs=obs_mb, var=var_mb)                       
+            adata_mb.var["gene_names"] = adata_mb.var[cfg.gene_index_col].astype(str)#.values
+            adata_mb.var.index = adata_mb.var["gene_names"]
+            adata_mb.obs.index = adata_mb.obs.index.astype(int)
+            print("adata_mb",adata_mb)
+            # print("adata_mb gene_names",adata_mb.var["gene_names"])
+            # print("adata_mb gene_names",adata_mb.var["gene_names"])
+            #print("adata_mb index",adata_mb.obs.index)
+        # choose cells and original batches
+        cell_ids, original_batch_list, n_batch_cols2plot = self._choose_cells_and_batches(adata_mb, typ, batches_to_select_from =batches_sel)
+        print("Original batch list:",original_batch_list)
 
-                    print(typ,split,model)
+        # adjust ncells 
+        extra = cfg.n_inputs_fe if cfg.add_inputs_fe else 0
+        ncells_for_genomap = cfg.n_cells_per_batch * (cfg.n_batches + extra)
+
+        genomap = self._compute_genomap(
+            cm_path, gname, out_dir, gene_names=var.index[:cfg.n_genes]
+        )
+        coords = self._load_gene_coordinates(out_dir, gname)
+        # 8. plot panels ------------------------------------------------------
+        self._plot_panels(genomap, adata_mb.obs, coords, out_dir, typ, cell_ids, original_batch_list,n_batch_cols2plot)
+        # 9. summarise --------------------------------------------------------
+        summary = {
+                "model":   model,
+                "typ":    typ,
+                "split":   split,
+                "genomap": genomap,
+                "adata_mb": adata_mb,
+                "inputs_path": inputs_path,
+                "batches_to_select_from": batches_sel,
+                "cell_ids_to_plot": cell_ids,
+                "original_batch_list":original_batch_list,
+                "out_dir": out_dir,
+                "gname":gname,
+            }
+        del adata_mb, genomap
+        gc.collect()
+
+        return summary
+
+    def compute_asd_me_stats(self,
+                        genomap: np.ndarray,
+                        obs_multibatch: pd.DataFrame,
+                        genomap_coordinates: pd.DataFrame,
+                        asd_recon_batch_list: List[str],
+                        control_recon_batch_list: List[str],
+                        p_threshold: float = 0.05) -> pd.DataFrame:
+        """
+        Compute mixed-effects model statistics for all pixels comparing ASD and Control groups.
+
+        Args:
+            genomap: Genomap data array.
+            obs_multibatch: Observations DataFrame.
+            genomap_coordinates: DataFrame with pixel coordinates.
+            asd_recon_batch_list: List of batch prefixes for ASD group.
+            control_recon_batch_list: List of batch prefixes for Control group.
+            p_threshold: Significance threshold for identifying significant pixels.
+
+        Returns:
+            Updated genomap_coordinates DataFrame with mixed-effects model results.
+        """
+        import statsmodels.formula.api as smf
+
+        all_pixel_results = []
+
+        # Iterate over all pixels
+        for i in range(genomap.shape[1]):
+            for j in range(genomap.shape[2]):
+                data_rows = []
+
+                # ASD group
+                for b in asd_recon_batch_list:
+                    row_inds = obs_multibatch.index[obs_multibatch['recon_prefix'] == b]
+                    pixel_vals = genomap[row_inds, i, j, 0]
+                    for val in pixel_vals:
+                        data_rows.append({"batch": b, "group": "ASD", "value": val})
+
+                # Control group
+                for b in control_recon_batch_list:
+                    row_inds = obs_multibatch.index[obs_multibatch['recon_prefix'] == b]
+                    pixel_vals = genomap[row_inds, i, j, 0]
+                    for val in pixel_vals:
+                        data_rows.append({"batch": b, "group": "Control", "value": val})
+
+                # Create DataFrame for mixed-effects model
+                df_ij = pd.DataFrame(data_rows)
+
+                # Fit model: value ~ group + (1|batch)
+                model_ij = smf.mixedlm("value ~ group", data=df_ij, groups=df_ij["batch"])
+                fit_res_ij = model_ij.fit()
+
+                # Extract estimates and statistics
+                intercept = fit_res_ij.params["Intercept"]
+                slope_control = fit_res_ij.params["group[T.Control]"]
+                pval_intercept = fit_res_ij.pvalues["Intercept"]
+                pval_control = fit_res_ij.pvalues["group[T.Control]"]
+                ci = fit_res_ij.conf_int(alpha=0.05)
+                intercept_lower_95CI, intercept_upper_95CI = ci.loc["Intercept"]
+                slope_control_lower_95CI, slope_control_upper_95CI = ci.loc["group[T.Control]"]
+
+                all_pixel_results.append({
+                    "pixel_i": i,
+                    "pixel_j": j,
+                    "intercept": intercept,
+                    "slope_control": slope_control,
+                    "pval_intercept": pval_intercept,
+                    "pval_control": pval_control,
+                    "intercept_lower_95CI": intercept_lower_95CI,
+                    "intercept_upper_95CI": intercept_upper_95CI,
+                    "slope_control_lower_95CI": slope_control_lower_95CI,
+                    "slope_control_upper_95CI": slope_control_upper_95CI
+                })
+
+        # Compile results
+        df_results_lmm = pd.DataFrame(all_pixel_results).sort_values("pval_control")
+
+        # Merge with genomap_coordinates
+        genomap_coordinates = genomap_coordinates.merge(
+            df_results_lmm,
+            on=["pixel_i", "pixel_j"],
+            how="left"
+        )
+
+        genomap_coordinates.rename(columns={'pval_control': 'pval'}, inplace=True)
+        genomap_coordinates["significant"] = genomap_coordinates["pval"] < p_threshold
+
+        print(f"Total significant pixels identified: {genomap_coordinates['significant'].sum()}")
+
+        return genomap_coordinates
+
+    def computeandsave_asd_me_stats(self, summary, p_threshold: float = 0.05):
+        """Internal helper that computes ME stats for the first summary and appends
+        the results (path + DataFrame) to that summary dict.
+
+        Parameters
+        ----------
+        summary : dict
+            returned by ``pipeline.run``.
+        p_threshold : float, optional
+            Significance cut off; forwarded to ``compute_me_stats``.
+
+        """
+        import os, pandas as pd
+ 
+
+        if not summary:
+            raise RuntimeError("Empty summary passed to _save_asd_me_stats")
+
+        genomap = summary["genomap"]
+        obs_mb = summary["adata_mb"].obs
+        typ = summary["typ"]
+        split = summary["split"]
+
+        # Diagnosis  batch mapping
+        dict_batches = (
+            obs_mb[["diagnosis", "batch"]]
+            .drop_duplicates()
+            .set_index("batch")["diagnosis"].to_dict()
+        )
+        asd_keys     = [k for k, v in dict_batches.items() if v == "ASD"]
+        control_keys = [k for k, v in dict_batches.items() if v == "Control"]
+
+        asd_recon_batch_list     = [f"recon_batch_{typ}_{b}" for b in asd_keys]
+        control_recon_batch_list = [f"recon_batch_{typ}_{b}" for b in control_keys]
+
+        # Gene coordinate table
+        #_, _, gname = self._make_cm_and_gnames(typ, split, summary["out_dir"])
+        # coords_path = os.path.join(summary["out_dir"], f"gene_coordinates_{gname}.csv")
+        # coords      = pd.read_csv(coords_path).rename(columns={"Unnamed: 0": "gene_names"})
+        coords = self._load_gene_coordinates(summary["out_dir"],summary["gname"])
+
+        updated_coords = self.compute_asd_me_stats(
+            genomap                  = genomap,
+            obs_multibatch           = obs_mb,
+            genomap_coordinates      = coords,
+            asd_recon_batch_list     = asd_recon_batch_list,
+            control_recon_batch_list = control_recon_batch_list,
+            p_threshold              = p_threshold,
+        )
+
+        me_path = os.path.join(summary["out_dir"], "asd_pvals_me.csv")
+        updated_coords.to_csv(me_path, index=False)
+        print("Saved mixed effects statistics ", me_path)
+
+        summary["me_stats_path"] = me_path
+        summary["me_dataframe"]  = updated_coords
+
+        return summary
 
 
-                    # 2. recon paths ------------------------------------------------------
-                    paths, prefixes = self._select_recon(model, split, typ)
-                    paths, prefixes = list(paths), list(prefixes)
-                    extra_paths, extra_pref = self._build_extra(split, typ)
-                    if cfg.add_inputs_fe:
-                        paths    = extra_paths    + paths
-                        prefixes = extra_pref     + prefixes
+    # ------------------------------------------------------------------
+    #  Mann-Whitney-U statistics: AML vs Control
+    # ------------------------------------------------------------------
 
-                    # 3. metadata ---------------------------------------------------------
-                    inputs_path   = self._input_path(model, split, typ)
-                    var, obs      = self._load_meta(inputs_path)
-                    # ensure the column exists *before* we hand `var` to the matrix builder
-                    if "gene_names" not in var.columns:        # <- safe if you rerun
-                        var = var.copy()                       #   (avoid SettingWithCopy)
-                        var["gene_names"] = var.index
+    def compute_aml_mwu_stats(
+        self,
+        genomap: np.ndarray,
+        obs_multibatch: pd.DataFrame,
+        genomap_coordinates: pd.DataFrame,
+        aml_recon_batch_list: List[str],
+        control_recon_batch_list: List[str],
+        p_threshold: float = 0.05,
+    ) -> pd.DataFrame:
+        """
+        Compute pixel-wise Mann-Whitney U statistics comparing AML and Control
+        groups.  Returns an updated ``genomap_coordinates`` dataframe that
+        contains U-values, p-values and a boolean ``significant`` column.
 
-                    # 4. batch selection --------------------------------------------------
-                    batches_sel = cfg.batches or list(obs["batch"].unique())
-                    print("Batches selected for plotting:",batches_sel)
+        Parameters
+        ----------
+        genomap : np.ndarray
+            4-D array returned by ``_compute_genomap``  
+            (shape = [n_recons, 54, 54, 1]).
+        obs_multibatch : pd.DataFrame
+            ``adata_multibatch.obs`` holding metadata for every reconstruction.
+        genomap_coordinates : pd.DataFrame
+            Output of ``_load_gene_coordinates`` (must contain ``pixel_i`` and
+            ``pixel_j``).
+        aml_recon_batch_list, control_recon_batch_list : List[str]
+            Lists with the *recon_prefix* values that correspond to each group,
+            e.g. ``['recon_batch_train_B01', ...]``.
+        p_threshold : float, default 0.05
+            Significance threshold used to label pixels.
+
+        Returns
+        -------
+        pd.DataFrame
+            ``genomap_coordinates`` augmented with the U- and p-values plus a
+            ``significant`` boolean column.
+        """
+        from scipy.stats import mannwhitneyu    # already imported at top of file
+        # ------------------------------------------------------------------
+        # 1 | aggregate one mean-map per *batch*
+        # ------------------------------------------------------------------
+        def _avg_maps(prefixes: List[str]) -> np.ndarray:
+            maps = []
+            for p in prefixes:
+                idx = obs_multibatch.index[obs_multibatch["recon_prefix"] == p]
+                if len(idx) == 0:
+                    continue           # skip if batch not present
+                maps.append(genomap[idx, :, :, :].mean(axis=0))
+            if not maps:
+                raise RuntimeError(f"No genomaps found for prefixes: {prefixes}")
+            return np.stack(maps, axis=0)      # (n_batches, 54, 54, 1)
+
+        aml_avg_maps   = _avg_maps(aml_recon_batch_list)
+        ctrl_avg_maps  = _avg_maps(control_recon_batch_list)
+
+        # ------------------------------------------------------------------
+        # 2 | pixel-wise Mann-Whitney U
+        # ------------------------------------------------------------------
+        _, H, W, _ = aml_avg_maps.shape
+        uvals  = np.zeros((H, W))
+        pvals  = np.zeros((H, W))
+
+        for i in range(H):
+            for j in range(W):
+                u, p = mannwhitneyu(
+                    aml_avg_maps[:, i, j, 0],
+                    ctrl_avg_maps[:, i, j, 0],
+                    alternative="two-sided",
+                )
+                uvals[i, j] = u
+                pvals[i, j] = p
+
+        # ------------------------------------------------------------------
+        # 3 | attach stats to genomap_coordinates
+        # ------------------------------------------------------------------
+        i_coords = genomap_coordinates["pixel_i"].values
+        j_coords = genomap_coordinates["pixel_j"].values
+        genomap_coordinates["uval"] = uvals[i_coords, j_coords]
+        genomap_coordinates["pval"] = pvals[i_coords, j_coords]
+        genomap_coordinates.sort_values("pval", inplace=True)
+        genomap_coordinates["significant"] = genomap_coordinates["pval"] < p_threshold
+
+        print(f"Total significant pixels identified (MWU): "
+              f"{genomap_coordinates['significant'].sum()}")
+
+        return genomap_coordinates
 
 
-                    # 5. multibatch matrix ----------------------------------------------
-                    cm_name, cm_path, gname = self._make_cm_and_gnames(typ, split, out_dir)
 
+    def computeandsave_aml_mwu_stats(self, summary: dict, p_threshold: float = 0.05):
+        """
+        Convenience wrapper that  extracts inputs from *summary*,
+        runs ``compute_aml_mwu_stats``, ? writes the CSV, and
+        injects the results back into *summary*.
 
-                    
+        Adds two keys to *summary*:
+          * ``'mwu_stats_path'`` CSV file with all pixels
+          * ``'mwu_dataframe'``  the dataframe itself
+        """
+        if not summary:
+            raise RuntimeError("Empty summary passed to computeandsave_aml_mwu_stats")
 
-                    if not os.path.exists(cm_path):
-                        print ("\n\nSampling adata  multibatch from original data and recons..") 
-                        print("Saving to adata multibatch directory:",cm_path)     
-                        adata_mb = self._build_multibatch(
-                            paths, prefixes, obs, var, batches_sel, out_dir
-                        )
-                        print("adata_mb",adata_mb)
-                        adata_mb.var["gene_names"] = adata_mb.var.index 
-                    else:
-                        print ("\n\nReading adata multibatch from",cm_path)  
-                        print (f"Please verify that the count matrix adata multibatch contains cells from the  selected batches: {batches_sel}")
+        genomap   = summary["genomap"]
+        obs_mb    = summary["adata_mb"].obs
+        typ       = summary["typ"]
+        split     = summary["split"]
 
-                        X_mb, var_mb, obs_mb = read_adata(cm_path)
-                        adata_mb= AnnData(X=X_mb, obs=obs_mb, var=var_mb)
-                        
-                        adata_mb.var["gene_names"] = adata_mb.var[cfg.gene_index_col].astype(str)#.values
-                        adata_mb.var.index = adata_mb.var["gene_names"]
-                        adata_mb.obs.index = adata_mb.obs.index.astype(int)
-                        print("adata_mb",adata_mb)
-                        # print("adata_mb gene_names",adata_mb.var["gene_names"])
-                        # print("adata_mb gene_names",adata_mb.var["gene_names"])
-                        #print("adata_mb index",adata_mb.obs.index)
-                        
+        # --------------------------------------------------------------
+        # build batch->group map from Patient_group
+        # --------------------------------------------------------------
+        dict_batches = (
+            obs_mb[["Patient_group", "batch"]]
+            .drop_duplicates()
+            .set_index("batch")["Patient_group"]
+            .str.lower()            # case-insensitive match
+            .to_dict()
+        )
+        aml_keys     = [k for k, v in dict_batches.items() if v == "aml"]
+        control_keys = [k for k, v in dict_batches.items() if v == "control"]
 
-                    
+        aml_recon_batch_list     = [f"recon_batch_{typ}_{b}" for b in aml_keys]
+        control_recon_batch_list = [f"recon_batch_{typ}_{b}" for b in control_keys]
 
-                    # choose cells and original batches
-                    cell_ids, original_batch_list, n_batch_cols2plot = self._choose_cells_and_batches(adata_mb, typ, batches_to_select_from =batches_sel)
-                    print("Original batch list:",original_batch_list)
+        # --------------------------------------------------------------
+        # load gene-coordinate table
+        # --------------------------------------------------------------
+        # _, _, gname = self._make_cm_and_gnames(typ, split, summary["out_dir"])
+        # coords_path = os.path.join(summary["out_dir"], f"gene_coordinates_{gname}.csv")
+        # coords      = pd.read_csv(coords_path).rename(columns={"Unnamed: 0": "gene_names"})
+        coords = self._load_gene_coordinates(summary["out_dir"],summary["gname"])
 
-                    
+        # --------------------------------------------------------------
+        # run stats + save
+        # --------------------------------------------------------------
+        updated_coords = self.compute_aml_mwu_stats(
+            genomap                  = genomap,
+            obs_multibatch           = obs_mb,
+            genomap_coordinates      = coords,
+            aml_recon_batch_list     = aml_recon_batch_list,
+            control_recon_batch_list = control_recon_batch_list,
+            p_threshold              = p_threshold,
+        )
 
-                    # adjust ncells 
-                    extra = cfg.n_inputs_fe if cfg.add_inputs_fe else 0
-                    ncells_for_genomap = cfg.n_cells_per_batch * (cfg.n_batches + extra)
+        mwu_path = os.path.join(summary["out_dir"], "aml_pvals_mwu.csv")
+        updated_coords.to_csv(mwu_path, index=False)
+        print("Saved Mann-Whitney-U statistics:", mwu_path)
 
-                    genomap = self._compute_genomap(
-                        cm_path, gname, out_dir, gene_names=var.index[:cfg.n_genes]
-                    )
-                    coords = self._load_gene_coordinates(out_dir, gname)
-
-
-
-                    # 8. plot panels ------------------------------------------------------
-                    self._plot_panels(genomap, adata_mb.obs, coords, out_dir, typ, cell_ids, original_batch_list,n_batch_cols2plot)
-
-                    # 9. summarise --------------------------------------------------------
-                    summaries.append(
-                        {
-                            "model":   model,
-                            "type":    typ,
-                            "split":   split,
-                            "genomap": genomap,
-                            "adata_mb": adata_mb,
-                            "inputs_path": inputs_path,
-                            "batches_to_select_from": batches_sel,
-                            "cell_ids_to_plot": cell_ids,
-                            "original_batch_list":original_batch_list,
-                            "out_dir": out_dir,
-                        }
-                    )
-
-                    del adata_mb, genomap
-                    gc.collect()
-
-        return summaries
+        # attach to caller?s summary dict
+        summary["mwu_stats_path"] = mwu_path
+        summary["mwu_dataframe"]  = updated_coords
+        return summary
     
 def genomap_and_plot(run_names_dict, results_path_dict, cfg: GenomapConfig, **kwargs):
     pipeline = GenomapPipeline(run_names_dict, results_path_dict, cfg)
-    return pipeline.run(**kwargs)
+    # return pipeline.run(**kwargs)
+    summary  = pipeline.run(**kwargs)
+    return summary
+    # pipeline.computeandsave_asd_me_stats(summary)
 
+
+    

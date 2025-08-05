@@ -719,6 +719,15 @@ class GenomapPipeline:
             Updated genomap_coordinates DataFrame with mixed-effects model results.
         """
         import statsmodels.formula.api as smf
+        import warnings
+        from statsmodels.tools.sm_exceptions import ConvergenceWarning
+
+        # Silence all ConvergenceWarning messages globally
+        warnings.filterwarnings("ignore", category=ConvergenceWarning)
+        warnings.filterwarnings(
+            "ignore",
+            category=UserWarning)
+
 
         all_pixel_results = []
 

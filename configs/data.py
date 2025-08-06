@@ -40,7 +40,7 @@ class DataConfigs:
         return configs
 
     def _load_scmedalfec_configs(self):
-        configs = BaseDataConfigs()._replace(use_z=True)
+        configs = BaseDataConfigs()._replace(use_z=True, get_pred=True)
         return configs
  
     def _load_scmedalre_configs(self):

@@ -6,6 +6,7 @@ class scMEDALFECModelConfigs(NamedTuple):
     layer_units:List[int]=[512,132]
     layer_units_latent_classifier:List[int]=[2]
     n_pred:int=21
+    get_pred:bool=True
     n_clusters:int=19
     last_activation:str="linear"
     use_batch_norm:bool=True
@@ -14,5 +15,5 @@ class scMEDALFECModelConfigs(NamedTuple):
     "loss_recon", "loss_multiclass", "metric_multiclass", "opt_autoencoder", "opt_adversary",
     "layer_units_latent_classifier", "n_pred", "n_clusters", "name", "monitor_metric",
     "stop_criteria", "get_pca", "get_baseline", "use_z", "encoder_latent_name",
-    "sigmoid_eval_test", "last_activation", "get_pred", "eval_test","use_batch_norm", "layer_units_latent_classifier"
+    "sigmoid_eval_test", "last_activation", "eval_test","use_batch_norm", "layer_units_latent_classifier"
     ]

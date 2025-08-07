@@ -22,7 +22,8 @@ model_folder_dict = {
     "ae":"run_crossval_n_latent_dims-50_layer_units-512-132_use_batch_norm-True_scaling-min_max_model_type-ae_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_n_components-50_get_cf_batch-False_2025-07-10_07-59",
     "aec":"run_crossval_n_latent_dims-50_layer_units-512-132_n_pred-13_use_batch_norm-True_scaling-min_max_model_type-aec_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_get_cf_batch-False_2025-07-10_11-04",
     "scmedalfe":"run_crossval_loss_gen_weight-1_loss_recon_weight-600_loss_class_weight-1_n_latent_dims-50_layer_units-512-132_scaling-min_max_model_type-scmedalfe_batch_size-512_epochs-500_patience-30_sample_size-10000_2025-07-10_02-47",
-    "scmedalfec":"run_crossval_loss_gen_weight-1_loss_recon_weight-2000_loss_class_weight-1_n_latent_dims-50_layer_units-512-132_scaling-min_max_model_type-scmedalfec_batch_size-512_epochs-500_patience-30_sample_size-10000_get_cf_batch-False_2025-07-10_14-36",
+    #"scmedalfec":"run_crossval_loss_gen_weight-1_loss_recon_weight-2000_loss_class_weight-1_n_latent_dims-50_layer_units-512-132_scaling-min_max_model_type-scmedalfec_batch_size-512_epochs-500_patience-30_sample_size-10000_get_cf_batch-False_2025-07-10_14-36",
+    "scmedalfec":"run_crossval_loss_gen_weight-1_loss_recon_weight-2000_loss_class_weight-1_n_latent_dims-50_layer_units-512-132_get_pred-True_scaling-min_max_model_type-scmedalfec_batch_size-512_epochs-500_patience-30_sample_size-10000_get_cf_batch-False_2025-08-06_12-49",
     "scmedalre":"run_crossval_loss_recon_weight-110_loss_latent_cluster_weight-0.1_n_latent_dims-50_layer_units-512-132_scaling-min_max_batch_size-512_epochs-500_patience-30_sample_size-10000_2025-07-09_22-05",
     # To collect the comparable outputs (see below), you need to run the comparable models in /comparables. 
     "scVI":"run_crossval_n_latent_dims-50_n_layers-2_n_hidden-132_gene_likelihood-zinb_dispersion-gene_scaling-min_max_batch_size-512_epochs-500_patience-30_compute_latents_callback-False_sample_size-10000_model_type-ae_tissue_col-TissueDetail_2025-07-17_10-42",
@@ -47,7 +48,7 @@ bio_col = "TissueDetail"
 
 
 # Run MEC  on latent spaces :scvi
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -56,7 +57,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
                                                    "latent_keys_config":{"fe_latent":'scVI_latent'}})
 
 # Run MEC  on latent spaces :scvi+scmedalre
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -65,7 +66,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
                                                    "latent_keys_config":{"fe_latent":'scVI_latent', "re_latent":"scmedalre_latent"}})
 
 # Run MEC on latent spaces :scANVI
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -74,7 +75,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
                                                    "latent_keys_config":{"fe_latent":'scANVI_latent'}})
 
 # Run MEC on latent spaces :scANVI+"scmedalre"
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -85,7 +86,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
 
 
 # Run MEC on latent spaces :scanorama+scmedalre
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -95,7 +96,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
 
 
 # Run MEC  on latent spaces :scanorama
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -104,7 +105,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
                                                    "latent_keys_config":{"fe_latent":'scanorama_latent',"re_latent":"scmedalre_latent"}})
 
 # Run MEC  on latent spaces :harmony
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -113,7 +114,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
                                                    "latent_keys_config":{"fe_latent":'harmony_latent'}})
 
 # Run MEC  on latent spaces :harmony +"scmedalre_latent"
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -122,7 +123,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
                                                    "latent_keys_config":{"fe_latent":'harmony_latent',"re_latent":"scmedalre_latent"}})
 
 # Run MEC on latent spaces :"SAUCIE"
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -131,7 +132,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
                                                    "latent_keys_config":{"fe_latent":"SAUCIE_latent"}})
 
 # Run MEC  on latent spaces :"SAUCIE"+"scmedalre"
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -144,7 +145,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
 ##########################################################################################
 
 # # Run MEC  on latent spaces: scmedalfe
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True,
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -154,7 +155,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
 
 
 # # Run MEC  on latent spaces: scmedalfe + scmedalre
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -164,7 +165,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
 
 
 # Run MEC  on latent spaces:scmedalfec
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -174,7 +175,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
 
 
 # Run MEC  on latent spaces: scmedalfec + scmedalre
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -184,7 +185,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
 
 
 # Run MEC  on latent spaces: PCA
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,
@@ -195,7 +196,7 @@ mec_aml = train_model_on_named_experiment("MEC", "HH",
 
 
 # Run MEC  on latent spaces: PCA+scmedalre
-mec_aml = train_model_on_named_experiment("MEC", "HH", 
+mec_hh = train_model_on_named_experiment("MEC", "HH", 
                                     train_kwargs={#"quick":True, 
                                                     "results_path_dict":model_paths, },
                                     model_kwargs={"n_pred":n_pred,

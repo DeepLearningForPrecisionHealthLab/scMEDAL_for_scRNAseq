@@ -254,10 +254,11 @@ class AMLDataReader:
                 new_dir = os.path.join(os.path.dirname(self.parent_path), new_dir_name)
                 os.makedirs(new_dir, exist_ok=True)
                 zipfile.ZipFile(file=self.parent_path).extractall(path=os.path.dirname(self.parent_path))
+                # Update parent path:
+                self.parent_path = new_dir
             except Exception as e:
                 raise e
-        # Update parent path:
-        self.parent_path = new_dir
+        
 
 
     def extract_accession(self,annotation):

@@ -3,7 +3,7 @@ from .aec import AEC
 from .scmedalfe import scMEDALFE
 from .scmedalfec import scMEDALFEC
 from .scmedalre import scMEDALRE
-from .saucie import SAUCIE
+# from .saucie import SAUCIE
 from .mec import MEC
 from .base import Model
 
@@ -17,7 +17,7 @@ model_aliases = {
     "scMEDAL-FE":scMEDALFE, "scmedalfe":scMEDALFE, 
     "scMEDAL-FEC":scMEDALFEC, "scmedalfec":scMEDALFEC, 
     "scMEDAL-RE":scMEDALRE, "scmedalre":scMEDALRE,
-    "SAUCIE":SAUCIE, "saucie":SAUCIE,     
+    # "SAUCIE":SAUCIE, "saucie":SAUCIE,     
     "MEC":MEC, "mec":MEC,
 }
 
@@ -34,14 +34,26 @@ def _parse_model_kwargs_for_named_experiment(model_name:str, model_kwargs:Dict[s
         ############## AML ##################
         #####################################
         if experiment_name == "AML" and (model_name  == "scmedalfe" or model_name == "scMEDAL-FE"):
-            updated_kwargs['loss_recon_weight'] = 250
+            updated_kwargs['loss_recon_weight'] = 1000 #test 1.4-5
+            #updated_kwargs['loss_recon_weight'] = 500 #test 1.4-4
+            #updated_kwargs['loss_recon_weight'] = 250 #v1.3
+            #updated_kwargs['loss_recon_weight'] = 100 #test 1.4-1
+            #updated_kwargs['loss_recon_weight'] = 50 #test 1.4-2
+            #updated_kwargs['loss_recon_weight'] = 10 #test 1.4-3
             updated_kwargs["loss_gen_weight"] = 1
         if experiment_name == "AML" and (model_name  == "scmedalfec" or model_name == "scMEDAL-FEC"):
             updated_kwargs['loss_recon_weight'] = 2_000
-            updated_kwargs["loss_gen_weight"] = 1
-            updated_kwargs["loss_class_weight"] = 1
+            #updated_kwargs["loss_gen_weight"] = 1 #v1.3
+            updated_kwargs["loss_gen_weight"] = 0.5 ##test v1.4-2
+            #updated_kwargs["loss_class_weight"] = 1 #v1.3
+            #updated_kwargs["loss_class_weight"] = 2 #test v1.4-1
+            updated_kwargs["loss_class_weight"] = 3 #test v1.4-3
         if experiment_name == "AML" and (model_name  == "aec" or model_name == "AEC"):
-            updated_kwargs['loss_weights'] = {'reconstruction_output': 100,'classification_output': 0.1}
+            #updated_kwargs['loss_weights'] = {'reconstruction_output': 100,'classification_output': 0.1} # v1.3
+            #updated_kwargs['loss_weights'] = {'reconstruction_output': 100,'classification_output': 0.3} # v1.4
+            #updated_kwargs['loss_weights'] = {'reconstruction_output': 100,'classification_output': 0.2} # test v1.4
+            #updated_kwargs['loss_weights'] = {'reconstruction_output': 100,'classification_output': 0.5} #test v1.4
+            updated_kwargs['loss_weights'] = {'reconstruction_output': 100,'classification_output': 0.6}#test v1.4
         if experiment_name == "AML" and (model_name  == "scmedalre" or model_name == "scMEDAL-RE"):
             updated_kwargs['loss_recon_weight'] = 110
             updated_kwargs["loss_latent_cluster_weight"] = 0.1
@@ -52,7 +64,16 @@ def _parse_model_kwargs_for_named_experiment(model_name:str, model_kwargs:Dict[s
         if experiment_name == "ASD" and (model_name  == "aec" or model_name == "AEC"):
             updated_kwargs['loss_weights'] = {'reconstruction_output': 100,'classification_output': 0.1}
         if experiment_name == "ASD" and (model_name  == "scmedalfe" or model_name == "scMEDAL-FE"):
-            updated_kwargs['loss_recon_weight'] = 1_000
+            #updated_kwargs['loss_recon_weight'] = 1_000 #v1.3
+            #updated_kwargs['loss_recon_weight'] = 500 #test 1
+            #updated_kwargs['loss_recon_weight'] = 100 #test 2
+            #updated_kwargs['loss_recon_weight'] = 1_500 #test 3
+            updated_kwargs['loss_recon_weight'] = 2000 #test 4
+            #updated_kwargs['loss_recon_weight'] = 1_700 #test 5
+            #updated_kwargs['loss_recon_weight'] = 1_400 #test 6
+            #updated_kwargs['loss_recon_weight'] = 1_600 #test 7
+            #updated_kwargs['loss_recon_weight'] = 2_250 #test 8
+            #updated_kwargs["loss_gen_weight"] = 2 #adv weight test
             updated_kwargs["loss_gen_weight"] = 1
         if experiment_name == "ASD" and (model_name  == "scmedalfec" or model_name == "scMEDAL-FEC"):
             updated_kwargs['loss_recon_weight'] = 2_000
@@ -60,7 +81,10 @@ def _parse_model_kwargs_for_named_experiment(model_name:str, model_kwargs:Dict[s
             updated_kwargs["loss_class_weight"] = 1
         if experiment_name == "ASD" and (model_name  == "scmedalre" or model_name == "scMEDAL-RE"):
             updated_kwargs['loss_recon_weight'] = 110
-            updated_kwargs["loss_latent_cluster_weight"] = 0.1
+            #updated_kwargs["loss_latent_cluster_weight"] = 0.1 #v1.3
+            #updated_kwargs["loss_latent_cluster_weight"] = 0.2#test 1
+            #updated_kwargs["loss_latent_cluster_weight"] = 0.3 #test 2
+            updated_kwargs["loss_latent_cluster_weight"] = 0.4 #test 3
         
         #####################################
         ############## HH ###################

@@ -14,23 +14,30 @@ Environment:
     This script should be run in the `Aixa_scDML` environment.
 """
 
-import os                     
+                    
 import pandas as pd                                                    
 import numpy as np                                                      
 import scanpy as sc                                                                                                                                      
 import copy
-import sys
 
-# ---- Importing Required Modules and Configurations ----
-# Add the parent directory to the Python path to import data_base_path from paths_config
-sys.path.append("../")
-from paths_config import data_base_path, scenario_id
-from scMEDAL.utils.utils import save_adata
-from scMEDAL.utils.preprocessing_utils import scRNAseq_pipeline_loghvg
+
+import os
+import sys
+from pathlib import Path
+
+ROOT_PATH  = Path.cwd().resolve().parents[2]  # two levels up from AML dir (scMEDAL_for_scRNAseq)
+sys.path.insert(0, str(ROOT_PATH ))
+print(ROOT_PATH )
+
+# Now you can import from the parent directory
+from utils.defaults import ASD_DATA_DIR,ASD_EXPERIMENT_NAME 
+from utils.preprocessing import scRNAseq_pipeline_loghvg
+from utils.utils import save_adata
+
 
 # ---- Define Paths ----
 # Path to the directory containing normalized data
-parent_path = os.path.join(data_base_path, "norm")
+parent_path = os.path.join(ASD_DATA_DIR, "norm")
 
 # File name for the dataset
 healthy_heart_file = "Healthy_human_heart_adata.h5ad"
@@ -81,10 +88,10 @@ print("adata:", adata)
 
 # ---- Step 3: Save Processed Data (Optional) ----
 save_data = False
-expt = scenario_id  # Scenario ID determines predefined preprocessing steps
+expt = ASD_EXPERIMENT_NAME   # Scenario ID determines predefined preprocessing steps
 
 if save_data:
-    out_path = os.path.join(data_base_path, expt)
+    out_path = os.path.join(ASD_DATA_DIR, expt)
     print(out_path)
     # Create directory if it does not exist
     if not os.path.exists(out_path):

@@ -16,7 +16,7 @@ from utils.defaults import AML_PATHS_CONFIG,ASD_PATHS_CONFIG,HH_PATHS_CONFIG
 
 
 class Model(ABC):
-    valid_models=["ae","aec","scmedalfe","scmedalfec", "scmedalre", "saucie", "mec"]
+    valid_models=["ae","aec","scmedalfe","scmedalfec", "scmedalre", "mec"]#"saucie"
     valid_named_experiment=["AML","ASD", "HH"]
 
     def __init__(self, model_name:str, **kwargs):

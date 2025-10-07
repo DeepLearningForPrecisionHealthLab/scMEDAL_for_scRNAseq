@@ -14,6 +14,9 @@ We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smalle
 2. We have run it on an NVIDIA **Tesla V100** GPU; expected runtime is **~30 minutes**.
 3. The demo uses **quick mode** (see below), so results won't match the full-training manuscript runs.
 
+**Also available:** **[`demo/demo_hh.ipynb`](./demo/demo_hh.ipynb)** and **[`demo/demo_asd.ipynb`](./demo/demo_asd.ipynb)** for larger datasets.
+Before running, set up your data as described in the **[Datasets](#datasets)** section.
+
 ---
 
 ## Installation
@@ -137,7 +140,7 @@ You have two options:
 
 #### Healthy Human Heart (HH)
 
-* **Original source:** [Figshare ? Yu et al., 2023](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)
+* **Original source:** [Figshare  Yu et al., 2023](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)
 * **Save to** `data/HealthyHeart_data/raw/`
 * **Preprocessed (Figshare; link after resubmission) ** `data/HealthyHeart_data/log_transformed_3000hvggenes/` *(preprocessed + splits)*
 

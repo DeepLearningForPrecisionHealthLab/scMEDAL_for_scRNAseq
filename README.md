@@ -326,11 +326,12 @@ For a complete description of outputs, see **[Experiment Outputs](./docs/Experim
 
 ## References
 
-* Litvinukova, M. *et al.* Cells of the adult human heart. **Nature** 588, 466?472 (2020).
-* van Galen, P. *et al.* Single-cell RNA-seq reveals AML hierarchies relevant to disease progression and immunity. **Cell** 176, 1265?1281.e24 (2019).
-* Velmeshev, D. *et al.* Single-cell genomics identifies cell type-specific molecular changes in autism. **Science** 364, 685?689 (2019).
-* Speir, M. L. *et al.* UCSC Cell Browser: visualize your single-cell data. **Bioinformatics** 37, 4578?4580 (2021).
-* Yu, X., Xu, X., Zhang, J., & Li, X. Batch alignment of single-cell transcriptomics data using deep metric learning. **Nat. Commun.** 14, 960 (2023).
-* Yu, X., Xu, X., Zhang, J., & Li, X. *Batch alignment of single-cell transcriptomics data using deep metric learning.* **figshare** (2023). [https://doi.org/10.6084/m9.figshare.20499630.v2](https://doi.org/10.6084/m9.figshare.20499630.v2)
+
+- Litvinukova, M. et al. Cells of the adult human heart. Nature 588, 466-472 (2020).
+- van Galen, P. et al. *Single-Cell RNA-Seq Reveals AML Hierarchies Relevant to Disease Progression and Immunity.* Cell 176, 1265?1281.e24 (2019).
+- Velmeshev, D. et al. *Single-cell genomics identifies cell type-specific molecular changes in autism.* Science 364, 685?689 (2019).
+- Speir, M. L. et al. *UCSC Cell Browser: visualize your single-cell data.* Bioinformatics 37, 4578?4580 (2021).
+- Yu, X., Xu, X., Zhang, J., & Li, X. *Batch alignment of single-cell transcriptomics data using deep metric learning.* Nat Commun 14, 960 (2023).  
+- Yu, X., Xu, X., Zhang, J., & Li, X. *Batch alignment of single-cell transcriptomics data using deep metric learning.* figshare [https://doi.org/10.6084/m9.figshare.20499630.v2](https://doi.org/10.6084/m9.figshare.20499630.v2) (2023).
 
 ---

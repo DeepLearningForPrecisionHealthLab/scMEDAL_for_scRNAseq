@@ -6,13 +6,13 @@ scMEDAL disentangles **batch-invariant** (fixed effects) from **batch-specific**
 
 ---
 
-## ? Quick Start (AML Demo)
+## Quick Start (AML Demo)
 
 We recommend starting with the **Acute Myeloid Leukemia (AML)** demo?the smallest dataset used in the paper.
 
 1. Open **[`demo/demo_aml.ipynb`](./demo/demo_aml.ipynb)** in Jupyter.
-2. We?ve run it on an NVIDIA **Tesla V100** GPU; expected runtime is **~30 minutes**.
-3. The demo uses **quick mode** (see below), so results won?t match the full-training manuscript runs.
+2. We have run it on an NVIDIA **Tesla V100** GPU; expected runtime is **~30 minutes**.
+3. The demo uses **quick mode** (see below), so results won't match the full-training manuscript runs.
 
 ---
 
@@ -20,7 +20,7 @@ We recommend starting with the **Acute Myeloid Leukemia (AML)** demo?the smalles
 
 ```bash
 # 1) Clone
-git clone https://github.com/<your-org>/scMEDAL_for_scRNAseq.git
+git clone https://github.com/DeepLearningForPrecisionHealthLab/scMEDAL_for_scRNAseq.git
 cd scMEDAL_for_scRNAseq
 
 # 2) Create Conda environment
@@ -70,7 +70,7 @@ scMEDAL_for_scRNAseq/
 |   |-- scmedalfec.py
 |   |-- scmedalre.py
 |
-|-- data/                             # Place datasets here (see ?Datasets? below)
+|-- data/                             # Place datasets here (see Datasets below)
 |
 |-- demo/                             # Minimal runnable demos (AML, ASD, Healthy Heart)
 |
@@ -86,11 +86,11 @@ scMEDAL_for_scRNAseq/
 |   |-- scmedalfe.py                  # scMEDAL-FE wrapper
 |   |-- scmedalfec.py                 # scMEDAL-FEC wrapper
 |   |-- scmedalre.py                  # scMEDAL-RE wrapper
-|   |-- scMEDAL/                      # Core model implementations (AE, AEC, FE, FEC, RE)
+|   |-- scMEDAL/                      # Core model implementations (AE, AEC, scMEDAL-FE, scMEDAL-FEC, scMEDAL-RE)
 |
 |-- preprocessing/                    # Preprocessing + 5-fold cross-validation scripts
 |
-|-- scripts/                          # Reproducibility helpers
+|-- scripts/                          # Original scripts for reproducibility 
 |
 |-- scMEDAL_env/                      # Conda environment YAML
 |
@@ -103,54 +103,77 @@ scMEDAL_for_scRNAseq/
 |   |-- model_train_utils.py          # Train/load helpers
 |   |-- preprocessing.py              # Dataset preprocessing routines
 |   |-- splitter.py                   # K-fold split utilities
-|   |-- utils.py                      # I/O, plotting, clustering score fns
+|   |-- utils.py                      # Diverse utils: plotting, clustering score fns
 |   |-- utils_load_model.py           # Load trained models
 |
 |-- outputs/                          # Created automatically (figures, latents, models)
 ```
 
 ---
-
 ## Datasets
 
-Place your data under **`data/`** (or, if you maintain an outer project structure, under `/Experiments/data`). Create subfolders if they don?t exist.
+Place datasets under **`data/`** (or, if you use a higher-level project, under **`/Experiments/data`**). Create any missing subfolders.
 
-### Sources and target folders
+### How to obtain the data
 
-* **Healthy Human Heart (HH)**
+You have two options:
 
-  * Source: [Figshare from Yu et al., 2023](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)
-  * Save to: `data/HealthyHeart_data/` *(or `/Experiments/data/HealthyHeart_data/`)*
+**A) Preprocess locally**
 
-* **Autism Spectrum Disorder (ASD)**
+* Run the dataset-specific preprocessing scripts in:
+  `preprocessing/<dataset_name>/preprocessing/`
+* Create the 5-fold splits with the notebook:
+  `preprocessing/<dataset_name>/5fold_cross_val/create_splits.ipynb`
 
-  * Source: [Autism Cell Atlas (Speir et al., 2021; Velmeshev et al., 2019)](https://autism.cells.ucsc.edu)
-  * Save to: `data/ASD_data/` *(or `/Experiments/data/ASD_data/`)*
+**B) Use preprocessed bundles (Figshare)**
 
-* **Acute Myeloid Leukemia (AML)**
+* Download the preprocessed data and ready-made splits from Figshare.
+  **Link will be shared after manuscript resubmission.**
+* Save into the per-dataset *log_transformed_* folders listed below.
 
-  * Source: [GEO: GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE116256)
-  * Save to: `data/AML_data/` *(or `/Experiments/data/AML_data/`)*
+---
+
+### Sources & target folders
+
+#### Healthy Human Heart (HH)
+
+* **Original source:** [Figshare ? Yu et al., 2023](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)
+* **Save to** `data/HealthyHeart_data/raw/`
+* **Preprocessed (Figshare; link after resubmission) ** `data/HealthyHeart_data/log_transformed_3000hvggenes/` *(preprocessed + splits)*
+
+#### Autism Spectrum Disorder (ASD)
+
+* **Original source:** [Autism Cell Atlas (Speir 2021; Velmeshev 2019)](https://autism.cells.ucsc.edu)
+* **Save to** `data/ASD_data/norm/`
+* **Preprocessed (Figshare; link after resubmission) ** `data/ASD_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
+
+#### Acute Myeloid Leukemia (AML)
+
+* **Original source:** [GEO: GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE116256)
+* **Save to** `data/AML_data/zip_files/`
+* **Preprocessed (Figshare; link after resubmission) ** `data/AML_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
+
+---
 
 ### Example layout (by dataset)
 
 ```
 data/
-?? AML_data/
-   ?? adata_merged/                  # Downloaded, merged (not yet preprocessed)
-   ?? zip_files/                     # Raw files from GEO
-   ?? log_transformed_2916hvggenes/  # Preprocessed + splits (Figshare link added after resubmission)
+  AML_data/
+    adata_merged/                  # Merged (not yet preprocessed)
+    zip_files/                     # Downloaded: Raw files from GEO
+    log_transformed_2916hvggenes/  # Preprocessed + splits (Figshare link after resubmission)
 
-?? ASD_data/
-   ?? norm/                          # log2-normalized data (Velmeshev et al., 2019)
-   ?? log_transformed_2916hvggenes/  # Preprocessed + splits (Figshare link added after resubmission)
+  ASD_data/
+    norm/                          # log2-normalized data (Velmeshev et al., 2019)
+    log_transformed_2916hvggenes/  # Preprocessed + splits (Figshare link after resubmission)
 
-?? HealthyHeart_data/
-   ?? raw/                           # Downloaded data (Yu et al., 2023)
-   ?? log_transformed_3000hvggenes/  # Preprocessed + splits (Figshare link added after resubmission)
+  HealthyHeart_data/
+    raw/                           # Downloaded data (Yu et al., 2023)
+    log_transformed_3000hvggenes/  # Preprocessed + splits (Figshare link after resubmission)
 ```
 
-> The `outputs/` folder is created automatically during training.
+> The **`outputs/`** folder is created automatically during training.
 
 ---
 
@@ -158,10 +181,10 @@ data/
 
 Each demo notebook guides you to:
 
-* train a model,
+* train scMEDAL-FE and scMEDAL-RE models,
 * compute clustering scores,
 * project **UMAPs** from latent spaces,
-* generate **GenoMaps** on reconstructions,
+* generate **Genomaps** on reconstructions,
 * and run **MEC** (a Random Forest classifier) on latent outputs.
 
 You can run **AE**, **AEC**, **scMEDAL-FE**, **scMEDAL-FEC**, or **scMEDAL-RE** independently.
@@ -194,7 +217,7 @@ You can run **AE**, **AEC**, **scMEDAL-FE**, **scMEDAL-FEC**, or **scMEDAL-RE** 
 ### Quick mode
 
 * Set `quick=True` in `train_kwargs` to shorten training to **1 fold × 10 epochs**.
-* The **AML demo** uses `quick=True` (10 epochs).
+* **All demos** uses `quick=True` (10 epochs).
   Manuscript results use **500 epochs** across folds.
 
 ---
@@ -203,22 +226,22 @@ You can run **AE**, **AEC**, **scMEDAL-FE**, **scMEDAL-FEC**, or **scMEDAL-RE** 
 
 Given a **cells × genes** count matrix, the demo:
 
-1. **Splits** the data into **5-fold cross-validation** with **train/val/test**.
-2. **Trains** each model per split and **saves**:
+
+1. **Trains** each model per split and **saves**:
 
    * reconstructed count matrices,
    * latent spaces.
-3. **Computes clustering metrics**:
+2. **Computes clustering metrics**:
 
    * **ASW** (Silhouette),
    * **1/DB** (Davies?Bouldin),
    * **CH** (Calinski?Harabasz).
-4. After training, use the unique **run name** to load saved:
+3. After training, use the unique **run name** to load saved:
 
    * clustering scores,
    * latent spaces (for **UMAP**),
    * reconstructions (for **GenoMap** visualization).
-5. Optionally run **MEC** to compare **scMEDAL-FE** vs **scMEDAL-RE** classification performance.
+4. Optionally run **MEC** to compare **scMEDAL-FE** vs **scMEDAL-RE** classification performance.
 
 ---
 

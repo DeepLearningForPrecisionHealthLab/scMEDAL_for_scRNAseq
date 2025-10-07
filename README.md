@@ -8,7 +8,7 @@ scMEDAL disentangles **batch-invariant** (fixed effects) from **batch-specific**
 
 ## Quick Start (AML Demo)
 
-We recommend starting with the **Acute Myeloid Leukemia (AML)** demo?the smallest dataset used in the paper.
+We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smallest dataset used in the paper.
 
 1. Open **[`demo/demo_aml.ipynb`](./demo/demo_aml.ipynb)** in Jupyter.
 2. We have run it on an NVIDIA **Tesla V100** GPU; expected runtime is **~30 minutes**.

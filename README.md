@@ -112,7 +112,7 @@ scMEDAL_for_scRNAseq/
 ---
 ## Datasets
 
-Place datasets under **`data/`** (or, if you use a higher-level project, under **`/Experiments/data`**). Create any missing subfolders.
+Place datasets under **`data/`** . Create any missing subfolders.
 
 ### How to obtain the data
 
@@ -229,13 +229,13 @@ Given a **cells × genes** count matrix, the demo:
 
 1. **Trains** each model per split and **saves**:
 
-   * reconstructed count matrices,
-   * latent spaces.
+   * reconstructed count matrices
+   * latent spaces
 2. **Computes clustering metrics**:
 
-   * **ASW** (Silhouette),
-   * **1/DB** (Davies?Bouldin),
-   * **CH** (Calinski?Harabasz).
+   * **ASW** (Silhouette)
+   * **1/DB** (Davies Bouldin),
+   * **CH** (Calinski Harabasz)
 3. After training, use the unique **run name** to load saved:
 
    * clustering scores,
@@ -259,7 +259,7 @@ Each contains a subfolder for the trained model. Example:
 AML/latent_space/scmedalfe/run_crossval_<run_name>
 ```
 
-> **Tip:** copy the value of `<run_name>`?you?ll use it to analyze results.
+> **Tip:** copy the value of `<run_name>`you    will use it to analyze results.
 
 Update your paths as needed:
 

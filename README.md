@@ -241,7 +241,7 @@ Given a **cells × genes** count matrix, the demo:
    * clustering scores,
    * latent spaces (for **UMAP**),
    * reconstructions (for **GenoMap** visualization).
-4. Optionally run **MEC** to compare **scMEDAL-FE** vs **scMEDAL-RE** classification performance.
+4. Optionally run **MEC** to compare **scMEDAL-FE** vs **scMEDAL-FE+scMEDAL-RE** classification performance.
 
 ---
 

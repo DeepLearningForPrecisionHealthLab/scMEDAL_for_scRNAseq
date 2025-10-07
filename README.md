@@ -14,7 +14,7 @@ We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smalle
 2. We have run it on an NVIDIA **Tesla V100** GPU; expected runtime is **~30 minutes**.
 3. The demo uses **quick mode** (see below), so results won't match the full-training manuscript runs.
 
-**Also available:** **[`demo/demo_hh.ipynb`](./demo/demo_hh.ipynb)** and **[`demo/demo_asd.ipynb`](./demo/demo_asd.ipynb)** for larger datasets.
+**Also available:** **[`demo/demo_hh.ipynb`](./demo/demo_hh.ipynb)** and **[`demo/demo_asd.ipynb`](./demo/demo_asd.ipynb)**.
 Before running, set up your data as described in the **[Datasets](#datasets)** section.
 
 ---

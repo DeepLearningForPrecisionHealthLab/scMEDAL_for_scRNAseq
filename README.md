@@ -181,11 +181,11 @@ data/
 
 Each demo notebook guides you to:
 
-* train scMEDAL-FE and scMEDAL-RE models,
-* compute clustering scores,
-* project **UMAPs** from latent spaces,
-* generate **Genomaps** on reconstructions,
-* and run **MEC** (a Random Forest classifier) on latent outputs.
+* Train scMEDAL-FE and scMEDAL-RE models
+* Compute clustering scores
+* Project **UMAPs** from latent spaces,
+* Generate **Genomaps** on reconstructions,
+* Run **MEC** (a Random Forest classifier) on latent outputs.
 
 You can run **AE**, **AEC**, **scMEDAL-FE**, **scMEDAL-FEC**, or **scMEDAL-RE** independently.
 **MEC** requires latent outputs from one of the above models and **cannot** run standalone.
@@ -281,19 +281,19 @@ For a complete description of outputs, see **[Experiment Outputs](./docs/Experim
 
 ### Utilities (under `utils/`)
 
-* **`utils.py`** ? data I/O, plotting, clustering metrics.
-* **`model_train_utils.py`** ? training and model-loading helpers.
-* **`splitter.py`** ? k-fold cross-validation utilities.
-* **`callbacks.py`** ? tracks clustering metrics during training.
-* **`compare_results_utils.py`** ? aggregates results across models.
-* **`genomaps_utils.py`** ? GenoMap generation.
-* **`preprocessing.py`** ? preprocessing routines for datasets.
-* **`utils_load_model.py`** ? load trained models.
-* **`defaults.py`** ? configuration paths per experiment.
+* **`utils.py`**   plotting, clustering metrics.
+* **`model_train_utils.py`**  training and model-loading helpers.
+* **`splitter.py`**  k-fold cross-validation utilities.
+* **`callbacks.py`**  tracks clustering metrics during training.
+* **`compare_results_utils.py`**  aggregates results across models.
+* **`genomaps_utils.py`**  Genomap generation.
+* **`preprocessing.py`**  preprocessing routines for datasets.
+* **`utils_load_model.py`**  load trained models.
+* **`defaults.py`**  configuration paths per experiment.
 
 ### Models (under `models/` and `models/scMEDAL/`)
 
-* **Wrappers:** `ae.py`, `aec.py`, `scmedalfe.py`, `scmedalfec.py`, `scmedalre.py`, `mec.py`, plus `base.py` and `models.py` for orchestration.
+* **Wrappers:** `ae.py`, `aec.py`, `scmedalfe.py`, `scmedalfec.py`, `scmedalre.py`, `mec.py`, plus `base.py` and `models.py` .
 * **Core implementations:** `scMEDAL/` contains AEC, Domain-Adversarial AE, and Domain-Enhancing AE Classifier implementations; random-effects layers live alongside these.
 
 ---
@@ -316,11 +316,11 @@ For a complete description of outputs, see **[Experiment Outputs](./docs/Experim
 
 ## Documentation Index
 
-* **How to Set Up Your Experiment** ? **[docs/How2SetupYourExpt.md](./docs/How2SetupYourExpt.md)**
-* **How to Run Your Experiment** ? **[docs/How2RunYourExpt.md](./docs/How2RunYourExpt.md)**
-* **How to Analyze Your Model Outputs** ? **[docs/How2AnalyzeYourModelOutputs.md](./docs/How2AnalyzeYourModelOutputs.md)**
-* **Experiment Outputs** ? **[docs/ExperimentOutputs.md](./docs/ExperimentOutputs.md)**
-* **Experiment Reproducibility Guide** ? **[docs/ExperimentsReproducibility.md](./docs/ExperimentsReproducibility.md#experiment-reproducibility-guide)**
+* **How to Set Up Your Experiment**  **[docs/How2SetupYourExpt.md](./docs/How2SetupYourExpt.md)**
+* **How to Run Your Experiment**  **[docs/How2RunYourExpt.md](./docs/How2RunYourExpt.md)**
+* **How to Analyze Your Model Outputs**  **[docs/How2AnalyzeYourModelOutputs.md](./docs/How2AnalyzeYourModelOutputs.md)**
+* **Experiment Outputs**  **[docs/ExperimentOutputs.md](./docs/ExperimentOutputs.md)**
+* **Experiment Reproducibility Guide**  **[docs/ExperimentsReproducibility.md](./docs/ExperimentsReproducibility.md#experiment-reproducibility-guide)**
 
 ---
 

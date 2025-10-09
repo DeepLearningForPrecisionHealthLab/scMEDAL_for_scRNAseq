@@ -4,11 +4,11 @@ This guide maps each section of the paper to the corresponding **code**, **datas
 
 We conducted experiments on three datasets: **Healthy Heart (HH)**, **Autism Spectrum Disorder (ASD)**, and **Acute Myeloid Leukemia (AML)**. For each dataset, we provide:
 
-* **1. [Datasets]**(../README.md#datasets)
+* 1. [**Datasets**](../README.md#datasets)
   - Preprocessing and 5-fold cross-validation scripts to split the data into train/val/test.
   - Alternatively, we provide the **precomputed data splits** via Figshare. See **[Datasets](../README.md#datasets)**.
-* **2. Scripts for model training** for our API models (Autoencoder, **scMEDAL** variants, [**Mixed Effects Classifier**](#mec-classifier-scripts)) and [**comparable models**](#comparable-models-scripts): **scVI**, **scANVI**, **Harmony**, **Scanorama**, and **SAUCIE**.
-* [**3. Analysis notebooks**](#analysis-notebooks): Once you have trained your models you need to run the analysis notebooks that retrieve clustering scores (Figures 2-4 and 8), Genomaps (Figures 5-7), UMAPs (Figures 2-4 and 8) and extract the Random Forest classifier outputs reported in Table 1. Use these notebooks to reproduce the paper results once latent spaces and reconstruction outputs are available.
+* 2. **Scripts for model training** for our API models (Autoencoder, **scMEDAL** variants, [**Mixed Effects Classifier**](#mec-classifier-scripts)) and [**comparable models**](#comparable-models-scripts): **scVI**, **scANVI**, **Harmony**, **Scanorama**, and **SAUCIE**.
+* 3. [**Analysis notebooks**](#analysis-notebooks): Once you have trained your models you need to run the analysis notebooks that retrieve clustering scores (Figures 2-4 and 8), Genomaps (Figures 5-7), UMAPs (Figures 2-4 and 8) and extract the Random Forest classifier outputs reported in Table 1. Use these notebooks to reproduce the paper results once latent spaces and reconstruction outputs are available.
 
 We also provide in the Figshare:
 

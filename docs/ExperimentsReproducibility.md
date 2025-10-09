@@ -51,13 +51,13 @@ You have two options:
 2. **Run models from scratch**
    Train the models yourself and then run the analysis notebooks.
 
-To run all models from our API programmatically (AE,AEC,scMEDAL-FE,scMEDAL-RE and scMEDAL-FEC), use [1-run_scMEDAL_alldatasets.py](../scripts/1-run_scMEDAL_alldatasets.py):
+To run all models from our API (AE,AEC,scMEDAL-FE,scMEDAL-RE and scMEDAL-FEC), use [1-run_scMEDAL_alldatasets.py](../scripts/1-run_scMEDAL_alldatasets.py) and make sure your **scMEDAL** environment is activated. See **[scMEDAL Installation](../README.md#Installation)**.
 
 ```bash
 python 1-run_scMEDAL_alldatasets.py
 ```
 
-Make sure your **scMEDAL** environment is activated. See **[Installation](../README.md#Installation)**.
+
 ---
 ## Comparable Models (per-dataset configs)
 

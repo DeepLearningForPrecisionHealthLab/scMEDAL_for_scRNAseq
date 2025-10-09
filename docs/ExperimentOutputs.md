@@ -6,12 +6,12 @@ After running your model, the results are stored in the `outputs/<datasetname>_o
 
 **Note:**  
 - The `latent_space`, `figures`, and `saved_models` directories are generated only by running the AE, AEC, scMEDAL-FE, scMEDAL-FEC, or scMEDAL-RE models.  
-- Both the `compare_models/` scripts and the MEC model require these outputs, as they cannot run without them.  
+- The UMAP and genomap visualizations and the MEC model require these outputs, as they cannot run without them.  
 ---
 
 ## Latent Space Outputs
 
-### For AE, AEC, scMEDAL-FE, scMEDAL-FEC, and scMEDAL-RE Models
+### For AE, AEC, scMEDAL-FE, scMEDAL-FEC, and scMEDAL-RE  Models
 
 ```markdown
 
@@ -62,16 +62,14 @@ outputs/
             |-- <modelname>/
                 |-- <run_name>/   
                     # Aggregated metrics across folds:
-                    |-- metrics_allfolds.csv          # Loss, Balanced_Accuracy_dffn, CategoricalAccuracy_dffn, SVMAccuracy, SVMBalancedAccuracy, RFAccuracy, RFBalancedAccuracy, ChanceAccuracy
+                    |-- metrics_allfolds.csv          # RFAccuracy, RFBalancedAccuracy, ChanceAccuracy
                     |-- metrics_allfolds_95CI.csv     # Above metrics with 95% confidence intervals
-
                     # Per-split outputs (e.g., splits_i/):
                     |-- splits_i/
                         |-- metrics.csv               # Metrics for this single fold
-                        |-- y_pred_<data_type>.csv    # DFFN classifier predictions (not typically used)
                         |-- y_pred_<data_type>_dummy.csv # Dummy classifier predictions (for chance accuracy)
                         |-- y_pred_test_rf.csv         # Random forest classifier predictions (primary method used)
-                        |-- y_pred_test_svm.csv        # SVM classifier predictions (not typically used)
+
 
 ```
 
@@ -121,7 +119,7 @@ outputs/
 
 ## Saved Models
 
-For all model types (AE, AEC, scMEDAL-FE, scMEDAL-FEC, scMEDAL-RE, and MEC), the following structure is used. However, note that for the MEC model, we also save a DFFN classifier model that we generally do not use in favor of a random forest model to reduce overfitting.
+For all model types (AE, AEC, scMEDAL-FE, scMEDAL-FEC, scMEDAL-RE), the following structure is used. 
 
 ```markdown
 outputs/
@@ -153,7 +151,17 @@ outputs/
 
 ### Clustering Scores
 
-After training your models, you may want a more convenient format for comparing clustering metrics (ASW, CH, DB) across folds. To do this, run the `compare_clustering_scores.py` script.
+After training your models, you may want a more convenient format for comparing clustering metrics (ASW, CH, DB) across folds. To do this, you first update the output folders, see [Outputs and Analysis folders](../README.md#outputs-and-analysis-folders) run the following lines of code.
+```python
+import analysis.analysis as aa
+
+analysis_name = "AML_demo"
+
+aml = aa.AMLAnalysis(model_folder_dict, analysis_name)
+
+res= aml.clustering_scores(model_folder_dict)
+```
+
 
 
 **File Outputs:**

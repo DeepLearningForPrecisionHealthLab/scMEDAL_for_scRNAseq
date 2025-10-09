@@ -130,9 +130,9 @@ You have two options:
    - **[`preprocessing/AML/preprocessing/2-preprocess_AML.py`](./preprocessing/AML/preprocessing/2-preprocess_AML.py)**
 - For ASD:
    - **[`preprocessing/ASD/preprocessing/preprocess_ASD.py`](./preprocessing/ASD/preprocessing/preprocess_ASD.py)**
-  For HH:
+- For HH:
    - **[`preprocessing/ASD/preprocessing/preprocess_HealthyHeart.ipynb`](./preprocessing/HH/preprocessing/preprocess_HealthyHeart.ipynb)**
-  preprocess_HealthyHeart.ipynb
+
 
 * Create the 5-fold splits with the notebook:
   `preprocessing/<dataset_name>/5fold_cross_val/create_splits.ipynb`

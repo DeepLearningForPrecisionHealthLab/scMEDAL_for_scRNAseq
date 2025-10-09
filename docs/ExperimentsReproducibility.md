@@ -73,8 +73,8 @@ Each comparable model has its own script and environment requirements. Configura
   ```bash
   python run_SAUCIE.py
   ```
-* **Requirements:** See [`comparables/SAUCIE/requirements.txt`](../comparables/SAUCIE/requirements.txt)
-  **SAUCIE.yaml:** [`comparables/comparables_env/SAUCIE.yaml`](../comparables/comparables_env/SAUCIE.yaml)
+- **Requirements:** See [`comparables/SAUCIE/requirements.txt`](../comparables/SAUCIE/requirements.txt)
+- Use [`SAUCIE.yaml`](../comparables/comparables_env/SAUCIE.yaml) tp create conda environment.
 
 #### scVI
 
@@ -85,8 +85,8 @@ Each comparable model has its own script and environment requirements. Configura
   ```bash
   python run_scVI.py
   ```
-* **Docs:** [https://scvi-tools.org/](https://scvi-tools.org/)
-  **[comparables_env.yaml (shared comparables)]**(../comparables/comparables_env/comparables_env.yaml)
+- **Docs:** [https://scvi-tools.org/](https://scvi-tools.org/)
+
 
 #### scanorama
 
@@ -97,8 +97,8 @@ Each comparable model has its own script and environment requirements. Configura
   ```bash
   python run_scanorama.py
   ```
-* **Preprocessing reference:** [https://scanpy.readthedocs.io/en/stable/external/preprocessing.html](https://scanpy.readthedocs.io/en/stable/external/preprocessing.html)
-   **[comparables_env.yaml:]**(../comparables/comparables_env/comparables_env.yaml)
+- **Docs:** [https://scanpy.readthedocs.io/en/stable/external/preprocessing.html](https://scanpy.readthedocs.io/en/stable/external/preprocessing.html)
+
 
 #### harmony
 
@@ -109,8 +109,8 @@ Each comparable model has its own script and environment requirements. Configura
   ```bash
   python run_harmony.py
   ```
-* **Preprocessing reference:** [https://scanpy.readthedocs.io/en/stable/external/preprocessing.html](https://scanpy.readthedocs.io/en/stable/external/preprocessing.html)
-* **[comparables_env.yaml:]**(../comparables/comparables_env/comparables_env.yaml)
+- **Docs:** [https://scanpy.readthedocs.io/en/stable/external/preprocessing.html](https://scanpy.readthedocs.io/en/stable/external/preprocessing.html)
+
 
 #### scANVI
 
@@ -121,8 +121,9 @@ Each comparable model has its own script and environment requirements. Configura
   ```bash
   python run_scANVI.py
   ```
-* **Docs:** [https://scvi-tools.org/](https://scvi-tools.org/)
-  **[comparables_env.yaml:]**(../comparables/comparables_env/comparables_env.yaml)
+- **Docs:** [https://scvi-tools.org/](https://scvi-tools.org/)
+
+Note:  Use **Comparables env for scVI, scANVI, harmony, scanorama and SAUCIE, use [comparables_env.yaml](../comparables/comparables_env/comparables_env.yaml) to create conda environment.
 ---
 
 ## Using Provided Model Outputs (example for AML Genomaps)
@@ -140,7 +141,7 @@ Each comparable model has its own script and environment requirements. Configura
 
 > After these paths are set, run the analysis notebooks to reproduce the Genomaps section for AML.
 
----
+
 ---
 
 ## Using provided model outputs (example for AML Genomaps)

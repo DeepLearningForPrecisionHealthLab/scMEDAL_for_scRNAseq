@@ -46,12 +46,12 @@ You have two options:
 ## 1. **Reproduce analyses from provided model outputs**
    Download our latent spaces and the 300-cell sample matrix, place them in the specified folders (see below), and run the analysis notebooks to regenerate paper figures.
 
-      - 1. **Place the AML latent space** under:
+      1. Place the AML latent space under:
 
           ```
           /outputs/AML/latent_space/log_transformed_2916hvggenes
           ```
-      - 2. **Place the 300-cell sample matrix** used for Genomaps under:
+      2. Place the 300-cell sample matrix used for Genomaps under:
 
           ```
           outputs/AML/compare_models/log_transformed_2916hvggenes/AML_default/genomap/CMmultibatch_300_cells_per_batch_19batches_Mono_Mono-like_with_2fe_input

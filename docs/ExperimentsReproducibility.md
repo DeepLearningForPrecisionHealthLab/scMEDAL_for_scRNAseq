@@ -1,25 +1,3 @@
-# Running the Demos (10 epochs)
-
-In our **paper experiments**, models are trained for **up to 500 epochs** with **early stopping** (training may halt earlier).
-By contrast, the **demo notebooks** use **10 epochs** to provide a quick, end-to-end tutorial.
-
-Use the demos to learn how to train **scMEDAL** and make visualizations:
-
-* **[`demo/demo_aml.ipynb`](../demo/demo_aml.ipynb)**
-* **[`demo/demo_hh.ipynb`](../demo/demo_hh.ipynb)**
-* **[`demo/demo_asd.ipynb`](../demo/demo_asd.ipynb)**
-
-> Runtime varies by dataset. **AML** is the fastest because it has fewer cells.
-
----
-
-# Running the AML Dataset for 500 Epochs with Early Stopping (5 folds)
-
-* Set `quick=False` in `train_kwargs` to run the **full training** (**5-fold × 500 epochs**) with early stopping.
-* In the paper experiments, we **use `quick=False`**.
-
----
-
 # Experiment Reproducibility Guide
 
 This guide maps each section of the paper to the corresponding **code**, **datasets**, and **model outputs**, so you can reproduce the results as described.

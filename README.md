@@ -8,7 +8,7 @@ scMEDAL disentangles **batch-invariant** (fixed effects) from **batch-specific**
 
 ## Quick Start (AML Demo)
 
-We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smallest dataset used in the paper.
+We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smallest dataset used in the paper. See [**Running the demos.**](#running-the-demos)
 
 1. Open **[`demo/demo_aml.ipynb`](./demo/demo_aml.ipynb)** in Jupyter.
 2. We have run it on an NVIDIA **Tesla V100** GPU; expected runtime is **~30 minutes**.
@@ -232,7 +232,8 @@ You can run **AE**, **AEC**, **scMEDAL-FE**, **scMEDAL-FEC**, or **scMEDAL-RE** 
 
 * Set `quick=True` in `train_kwargs` to shorten training to **1 fold × 10 epochs**.
 * **All demos** uses `quick=True` (10 epochs).
-  Manuscript results use **500 epochs** across folds.
+  Manuscript results use **500 epochs** across folds. # Running the AML Dataset for 500 Epochs with Early Stopping (5 folds). Set `quick=False` in `train_kwargs` to run the **full training** (**5-fold × 500 epochs**) with early stopping.
+
 
 ---
 
@@ -254,8 +255,9 @@ Given a **cells × genes** count matrix, the demo:
 
    * clustering scores,
    * latent spaces (for **UMAP**),
-   * reconstructions (for **GenoMap** visualization).
-4. Optionally run **MEC** to compare **scMEDAL-FE** vs **scMEDAL-FE+scMEDAL-RE** classification performance.
+   * reconstructions (for **Genomap** visualization).
+4. Create UMAP and Genomap visualizations
+5. Optionally run **MEC** to compare **scMEDAL-FE** vs **scMEDAL-FE+scMEDAL-RE** classification performance.
 
 ---
 

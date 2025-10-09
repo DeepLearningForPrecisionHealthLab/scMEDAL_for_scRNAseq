@@ -64,61 +64,65 @@ Make sure your **scMEDAL** environment is activated. See **[Installation](../REA
 Each comparable model has its own script and environment requirements. Configurations vary by dataset. Below we list the **AML** entry points; for **HH** and **ASD**, use the corresponding dataset paths/scripts.
 
 > All comparable-model scripts produce the **same output file structure** as our API models. See **[Outputs & analysis folders](../README.md#outputs-and-analysis-folders)**.
+#### SAUCIE
 
-### SAUCIE
-
-* **Script (AML):** [`comparables/AML/run_SAUCIE.py`](../comparables/AML/run_SAUCIE.py)
-  **Run:**
+* Example Script (AML): [`comparables/AML/run_SAUCIE.py`](../comparables/AML/run_SAUCIE.py)
+  
+  Run:
 
   ```bash
   python run_SAUCIE.py
   ```
 * **Requirements:** See [`comparables/SAUCIE/requirements.txt`](../comparables/SAUCIE/requirements.txt)
-  **Env YAML:** [`comparables/comparables_env/SAUCIE.yaml`](../comparables/comparables_env/SAUCIE.yaml)
+  **SAUCIE.yaml:** [`comparables/comparables_env/SAUCIE.yaml`](../comparables/comparables_env/SAUCIE.yaml)
 
-### scVI
+#### scVI
 
-* **Script (AML):** [`comparables/AML/run_scVI.py`](../comparables/AML/run_scVI.py)
-  **Run:**
+* Example Script (AML): [`comparables/AML/run_scVI.py`](../comparables/AML/run_scVI.py)
+  
+  Run:
 
   ```bash
   python run_scVI.py
   ```
 * **Docs:** [https://scvi-tools.org/](https://scvi-tools.org/)
-  **Env YAML (shared comparables):** [`comparables/comparables_env/comparables_env.yaml`](../comparables/comparables_env/comparables_env.yaml)
+  **[comparables_env.yaml (shared comparables)]**(../comparables/comparables_env/comparables_env.yaml)
 
-### Scanorama
+#### scanorama
 
-* **Script (AML):** [`comparables/AML/run_scanorama.py`](../comparables/AML/run_scanorama.py)
-  **Run:**
+* Example Script (AML): [`comparables/AML/run_scanorama.py`](../comparables/AML/run_scanorama.py)
+  
+  Run:
 
   ```bash
   python run_scanorama.py
   ```
 * **Preprocessing reference:** [https://scanpy.readthedocs.io/en/stable/external/preprocessing.html](https://scanpy.readthedocs.io/en/stable/external/preprocessing.html)
-  **Env YAML (shared comparables):** [`comparables/comparables_env/comparables_env.yaml`](../comparables/comparables_env/comparables_env.yaml)
+   **[comparables_env.yaml:]**(../comparables/comparables_env/comparables_env.yaml)
 
-### Harmony
+#### harmony
 
-* **Script (all datasets):** [`comparables/run_harmony.py`](../comparables/run_harmony.py)
-  **Run:**
+* Example Script (AML): [`comparables/run_harmony.py`](../comparables/AML/run_harmony.py)
+  
+  Run:
 
   ```bash
   python run_harmony.py
   ```
-* **Env YAML (shared comparables):** [`comparables/comparables_env/comparables_env.yaml`](../comparables/comparables_env/comparables_env.yaml)
+* **Preprocessing reference:** [https://scanpy.readthedocs.io/en/stable/external/preprocessing.html](https://scanpy.readthedocs.io/en/stable/external/preprocessing.html)
+* **[comparables_env.yaml:]**(../comparables/comparables_env/comparables_env.yaml)
 
-### scANVI
+#### scANVI
 
-* **Script (all datasets):** [`comparables/run_scANVI.py`](../comparables/run_scANVI.py)
-  **Run:**
+* Example Script (AML) : [`comparables/run_scANVI.py`](../comparables/AML/run_scANVI.py)
+  
+  Run:
 
   ```bash
   python run_scANVI.py
   ```
 * **Docs:** [https://scvi-tools.org/](https://scvi-tools.org/)
-  **Env YAML (shared comparables):** [`comparables/comparables_env/comparables_env.yaml`](../comparables/comparables_env/comparables_env.yaml)
-
+  **[comparables_env.yaml:]**(../comparables/comparables_env/comparables_env.yaml)
 ---
 
 ## Using Provided Model Outputs (example for AML Genomaps)

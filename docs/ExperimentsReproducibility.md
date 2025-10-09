@@ -30,8 +30,6 @@ Use the demos to learn how to train **scMEDAL** and make visualizations:
 
 This guide maps each section of the paper to the corresponding **code**, **datasets**, and **model outputs**, so you can reproduce the results as described.
 
-## Experiments Overview
-
 We conducted experiments on three datasets: **Healthy Heart (HH)**, **Autism Spectrum Disorder (ASD)**, and **Acute Myeloid Leukemia (AML)**. For each dataset, we provide:
 
 * **Preprocessing and 5-fold cross-validation scripts** to split the data into train/val/test.

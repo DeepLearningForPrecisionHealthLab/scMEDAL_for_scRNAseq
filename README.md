@@ -136,7 +136,7 @@ You have two options:
 
 ---
 
-### Sources & target folders
+### Data folders
 
 #### Healthy Human Heart (HH)
 
@@ -248,7 +248,7 @@ Given a **cells × genes** count matrix, the demo:
 
 ---
 
-## Outputs & Where to Find Things
+## Outputs and analysis folders
 
 Running any model creates:
 
@@ -280,7 +280,7 @@ For a complete description of outputs, see **[Experiment Outputs](./docs/Experim
 
 ---
 
-## Utilities & Modules
+## Utilities and Modules
 
 ### Utilities (under `utils/`)
 

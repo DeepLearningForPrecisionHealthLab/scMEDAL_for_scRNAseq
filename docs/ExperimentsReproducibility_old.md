@@ -1,15 +1,43 @@
-# Setup the data
-Follow the instructions to download the AML dataset and set up your data as described in the **[Datasets](../Readme#datasets)** section, that shows how to download , preprocess the data and set up the splits. 
-# Running the Demos (10 epochs)
 
-In our experiments, we used **500 epochs** with early stopping, which may halt training earlier. in contrast to the demo scripts in which we used 10 epochs.**See demos if you want a quick tutorial of how to train scMEDAL and create visualizations :** **[`demo/demo_aml.ipynb`](../demo/demo_aml.ipynb)** , **[`demo/demo_hh.ipynb`](../demo/demo_hh.ipynb)** and **[`demo/demo_asd.ipynb`](../demo/demo_asd.ipynb)** The run time varies, being the AML the fastest because it has a smaller amount of cells.
+# Running the AML Demo
 
- 
-# Running the AML dataset for 500 epochs with early stopping on 5 folds.
-* Set `quick=False` in `train_kwargs` to shorten training to **5 fold × 500 epochs**.
-* In the experiments from the paper we use `quick=False` 
- 
+We recommend using the **Acute Myeloid Leukemia (AML)** dataset as a **demo** for running our model, as it is the smallest dataset used in our study. To adjust the number of training epochs, modify the `model_config.py` file. In our experiments, we used **500 epochs** with early stopping, which may halt training earlier.
 
+### AML Model Configuration Files:
+- [scMEDAL-FE Model Configuration](../Experiments/AML/run_models/scMEDAL-FE/model_config.py)  
+- [scMEDAL-RE Model Configuration](../Experiments/AML/run_models/scMEDAL-RE/model_config.py)  
+
+Follow the instructions to download the [AML dataset](#acute-myeloid-leukemia-aml-dataset), [set up the paths of the experiment](How2SetupYourExpt.md), preprocess the data and set up the splits.  
+Once the 5-fold splits are set up, the estimated runtime for all folds is:
+
+- **scMEDAL-FE:** ~8 minutes (500 epochs with early stopping)  
+- **scMEDAL-RE:** ~24 minutes (500 epochs with early stopping)  
+
+These benchmarks were obtained using an **Nvidia Tesla P4 GPU (8 GB memory)**.
+
+### Example: Running scMEDAL-FE
+
+To run **scMEDAL-FE**, execute the following commands:
+
+```bash
+# Navigate to the model directory
+cd /Experiments/AML/run_models/scMEDAL-FE
+
+# Activate the environment
+source activate /path/to/run_models_env
+
+# Run the model for all folds
+python run_scMEDAL-FE_allfolds.py
+```
+
+## Additional Documentation
+
+For more detailed instructions, refer to:
+
+- **[How to Set Up Your Experiment](How2SetupYourExpt.md)**  
+- **[How to Run Your Experiment](How2RunYourExpt.md)**  
+- **[How to Analyze Your Model Outputs](How2AnalyzeYourModelOutputs.md)**  
+- **[Experiment Outputs](ExperimentOutputs.md)**  
 
 # Experiment Reproducibility Guide
 

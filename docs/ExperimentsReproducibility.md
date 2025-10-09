@@ -20,10 +20,10 @@ This guide provides instructions for reproducing the experiments described in ou
 
 We conducted experiments on three datasets: **Healthy Heart**, **Autism Spectrum Disorder (ASD)**, and **Acute Myeloid Leukemia (AML)**. For each dataset, we provide:
 
-- Preprocessing scripts and 5-fold cross-validation scripts to split the data in train, val and test.
-- Directories and scripts to run various models (e.g., Autoencoder, scMEDAL variants, Mixed Effects Classifier).
-- Scripts to generate and compare results (e.g., clustering scores, Genomaps, and UMAP plots).
-- Example configuration files (`model_config.py`) for each model, along with a list of variables and hyperparameters needed to reproduce our experiments. You can review these details [here](scMEDAL_user_variables.pdf).
+- Preprocessing scripts and 5-fold cross-validation scripts to split the data in train, val and test. alternative we proved the data splits through our Figshare. See  **[Datasets](../README.md#datasets)** section[Datasets](../README.md#datasets)** section
+- Scripts to run various models from our API (e.g., Autoencoder, scMEDAL variants, Mixed Effects Classifier) and comparable models: scVI, scANVI, harmony, scanorama and SAUCIE.
+- Analysis notebooks for analyzing models after being run (e.g., clustering scores, Genomaps, and UMAP plots). These analysis notebooks provide a path to generate the results from the paper after the models have been run and the latent spaces have been generated. We also provide our latent space outputs in the Figshare, so you could setup your pa
+
 
 
 **Note:** Due to variability in TensorFlow, model outputs may differ slightly across runs. To account for this, we report 95% confidence intervals (CI) as an estimate of variability.

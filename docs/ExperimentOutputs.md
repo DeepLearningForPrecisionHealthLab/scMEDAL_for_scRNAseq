@@ -149,9 +149,7 @@ outputs/
 
 ## Compare Models Outputs
 
-### Clustering Scores
-
-After training your models, you may want a more convenient format for comparing clustering metrics (ASW, CH, DB) across folds. To do this, you first update the output folders, see [Outputs and Analysis folders](../README.md#outputs-and-analysis-folders) run the following lines of code.
+To be able to compare model outputs, you first update the output folders, see [Outputs and Analysis folders](../README.md#outputs-and-analysis-folders) run the following lines of code.
 ```python
 import analysis.analysis as aa
 
@@ -161,6 +159,11 @@ aml = aa.AMLAnalysis(model_folder_dict, analysis_name)
 
 res= aml.clustering_scores(model_folder_dict)
 ```
+See  [`demo/demo_aml.ipynb`](../demo/demo_aml.ipynb) for a clear example.
+
+### Clustering Scores
+
+After training your models, you may want a more convenient format for comparing clustering metrics (ASW, CH, DB) across folds.
 
 
 

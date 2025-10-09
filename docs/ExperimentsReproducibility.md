@@ -65,7 +65,7 @@ After running the representation models, you can train the **Mixed Effects Class
 * [2-mec_hh_tissue.py](../scripts/2-mec_hh_tissue.py)
 * [2-mec_hh_celltype.py](../scripts/2-mec_hh_celltype.py)
 
----
+
 ### Comparable Models Scripts
 
 Each comparable model has its own script and environment requirements. Configurations vary by dataset. Below we list the **AML** entry points; for **HH** and **ASD**, use the corresponding dataset paths/scripts.

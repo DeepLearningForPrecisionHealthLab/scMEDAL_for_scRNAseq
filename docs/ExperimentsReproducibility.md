@@ -43,7 +43,7 @@ We also provide in the Figshare:
 
 You have two options:
 
-### 1. **Reproduce analyses from provided model outputs**
+## 1. **Reproduce analyses from provided model outputs**
    Download our latent spaces and the 300-cell sample matrix, place them in the specified folders (see below), and run the analysis notebooks to regenerate paper figures.
 
       - 1. **Place the AML latent space** under:
@@ -59,7 +59,7 @@ You have two options:
 
 > After these paths are set, run the analysis notebooks to reproduce the Genomaps section for AML.
 
-### 2. **Run models from scratch**
+## 2. **Run models from scratch**
    Train the models yourself and then run the analysis notebooks.
 
 #### scMEDAL API Model scripts

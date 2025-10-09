@@ -42,30 +42,6 @@ To run all models from our API (AE,AEC,scMEDAL-FE,scMEDAL-RE and scMEDAL-FEC), u
 python 1-run_scMEDAL_alldatasets.py
 ```
 
-
-If you train models yourself, you may need to update paths to match your own output directories. See [Outputs and analysis folders](../README.md#outputs-and-analysis-folders)
-
-
-### MEC Classifier Scripts
-
-After running the representation models, you can train the **Mixed Effects Classifier (MEC)**:
-
-**ASD**
-
-* [2-mec_asd_dx.py](../scripts/2-mec_asd_dx.py)
-* [2-mec_asd_celltype.py](../scripts/2-mec_asd_celltype.py)
-
-**AML**
-
-* [2-mec_aml_celltype.py](../scripts/2-mec_aml_celltype.py)
-* [2-mec_aml_patientgroup.py](../scripts/2-mec_aml_patientgroup.py)
-
-**Healthy Heart**
-
-* [2-mec_hh_tissue.py](../scripts/2-mec_hh_tissue.py)
-* [2-mec_hh_celltype.py](../scripts/2-mec_hh_celltype.py)
-
-
 ### Comparable Models Scripts
 
 Each comparable model has its own script and environment requirements. Configurations vary by dataset. Below we list the **AML** entry points; for **HH** and **ASD**, use the corresponding dataset paths/scripts.
@@ -133,6 +109,25 @@ Each comparable model has its own script and environment requirements. Configura
 Note:  Use **Comparables env for scVI, scANVI, harmony, scanorama and SAUCIE, use [comparables_env.yaml](../comparables/comparables_env/comparables_env.yaml) to create conda environment.
 
 
+### MEC Classifier Scripts
+
+After running the models, you may need to update paths to match your own output directories. See [Outputs and analysis folders](../README.md#outputs-and-analysis-folders). Once the output folders are updated, you can train the **Mixed Effects Classifier (MEC)**:
+
+**ASD**
+
+* [2-mec_asd_dx.py](../scripts/2-mec_asd_dx.py)
+* [2-mec_asd_celltype.py](../scripts/2-mec_asd_celltype.py)
+
+**AML**
+
+* [2-mec_aml_celltype.py](../scripts/2-mec_aml_celltype.py)
+* [2-mec_aml_patientgroup.py](../scripts/2-mec_aml_patientgroup.py)
+
+**Healthy Heart**
+
+* [2-mec_hh_tissue.py](../scripts/2-mec_hh_tissue.py)
+* [2-mec_hh_celltype.py](../scripts/2-mec_hh_celltype.py)
+
 ---
 
 
@@ -145,6 +140,7 @@ Use the following notebooks to reproduce the analyses and figures:
 * [3-analysis_hh.ipynb](../scripts/3-analysis_hh.ipynb): (Figure 2, Figure 5, Figure 8 and Table 1)
 
 > Download/setup the required model outputs (or train from scratch), update paths where necessary, and run these notebooks to regenerate the paper results.
+If you train models yourself, you may need to update folder names to match your own output directories. See [Outputs and analysis folders](../README.md#outputs-and-analysis-folders)
 
 
 

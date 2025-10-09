@@ -15,7 +15,8 @@ We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smalle
 3. The demo uses **quick mode** (see below), so results won't match the full-training manuscript runs.
 
 **Also available:** **[`demo/demo_hh.ipynb`](./demo/demo_hh.ipynb)** and **[`demo/demo_asd.ipynb`](./demo/demo_asd.ipynb)**.
-Before running, prepare your data as described in the [Datasets](#datasets) section. Default paths are defined in [utils/defaults.py](./utils/defaults.py): inputs are loaded from `./data/` and outputs are saved to `./outputs/`. If your project uses different locations, update the configuration accordingly.
+
+**Before running**, prepare your data as described in the [Datasets](#datasets) section. Default paths are defined in [utils/defaults.py](./utils/defaults.py): inputs are loaded from `./data/` and outputs are saved to `./outputs/`. If your project uses different locations, update the configuration accordingly.
 
 
 ---

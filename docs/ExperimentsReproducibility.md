@@ -32,10 +32,11 @@ This guide maps each section of the paper to the corresponding **code**, **datas
 
 We conducted experiments on three datasets: **Healthy Heart (HH)**, **Autism Spectrum Disorder (ASD)**, and **Acute Myeloid Leukemia (AML)**. For each dataset, we provide:
 
-* **Preprocessing and 5-fold cross-validation scripts** to split the data into train/val/test.
-  Alternatively, we provide the **precomputed data splits** via Figshare. See **[Datasets](../README.md#datasets)**.
-* **Training scripts** for our API models (e.g., Autoencoder, **scMEDAL** variants, Mixed Effects Classifier) and **comparable models**: **scVI**, **scANVI**, **Harmony**, **Scanorama**, and **SAUCIE**.
-* [**Analysis notebooks**](#analysis-notebooks): for evaluate models (clustering scores, Genomaps, and UMAPs for Figures 2-8) and extract the Random Forest classifier outputs reported in Table 1. Use these notebooks to reproduce the paper results once latent spaces and reconstruction outputs are available.
+* **1. Datasets**
+  - Preprocessing and 5-fold cross-validation scripts** to split the data into train/val/test.
+  - Alternatively, we provide the **precomputed data splits** via Figshare. See **[Datasets](../README.md#datasets)**.
+* **2. Scripts for model training** for our API models (e.g., Autoencoder, **scMEDAL** variants, [Mixed Effects Classifier](#mec-classifier-scripts)) and [**comparable models**](#comparable-models-scripts): **scVI**, **scANVI**, **Harmony**, **Scanorama**, and **SAUCIE**.
+* [**3. Analysis notebooks**](#analysis-notebooks): Once you have trained your models you need to run the analysis notebooks that retrieve clustering scores (Figures 2-4 and 8), Genomaps (Figures 5-7), UMAPs (Figures 2-4 and 8) and extract the Random Forest classifier outputs reported in Table 1. Use these notebooks to reproduce the paper results once latent spaces and reconstruction outputs are available.
 
 We also provide in the Figshare:
 
@@ -43,7 +44,7 @@ We also provide in the Figshare:
 
 You have two options:
 
-## 1. **Reproduce analyses from provided model outputs**
+## A. **Reproduce analyses from provided model outputs**
    Download our latent spaces and the 300-cell sample matrix, place them in the specified folders (see below), and run the analysis notebooks to regenerate paper figures.
 
       1. Place the AML latent space under:
@@ -59,7 +60,7 @@ You have two options:
 
 > After these paths are set, run the analysis notebooks to reproduce the Genomaps section for AML.
 
-## 2. **Run models from scratch**
+## B. **Run models from scratch**
    Train the models yourself and then run the analysis notebooks.
 
 ### scMEDAL API Model scripts

@@ -48,14 +48,14 @@ You have two options:
 
       1. Place the AML latent space under:
 
-          ```
+          
           /outputs/AML/latent_space/log_transformed_2916hvggenes
-          ```
+          
       2. Place the 300-cell sample matrix used for Genomaps under:
 
-          ```
+        
           outputs/AML/compare_models/log_transformed_2916hvggenes/AML_default/genomap/CMmultibatch_300_cells_per_batch_19batches_Mono_Mono-like_with_2fe_input
-          ```
+        
 
 > After these paths are set, run the analysis notebooks to reproduce the Genomaps section for AML.
 

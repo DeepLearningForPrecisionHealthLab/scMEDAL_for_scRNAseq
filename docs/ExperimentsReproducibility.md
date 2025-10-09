@@ -37,7 +37,7 @@ We conducted experiments on three datasets: **Healthy Heart (HH)**, **Autism Spe
 * **Preprocessing and 5-fold cross-validation scripts** to split the data into train/val/test.
   Alternatively, we provide the **precomputed data splits** via Figshare. See **[Datasets](../README.md#datasets)**.
 * **Training scripts** for our API models (e.g., Autoencoder, **scMEDAL** variants, Mixed Effects Classifier) and **comparable models**: **scVI**, **scANVI**, **Harmony**, **Scanorama**, and **SAUCIE**.
-* [**Analysis notebooks**](#analysis-notebooks) for post-hoc evaluation (e.g., clustering scores, Genomaps, UMAP plots). These notebooks guide you through generating the paper results once latent spaces and reconstruction outputs are available.
+* [**Analysis notebooks**](#analysis-notebooks): for evaluate models (clustering scores, Genomaps, and UMAPs for Figures 2?8) and extract the Random Forest classifier outputs reported in Table 1. Use these notebooks to reproduce the paper results once latent spaces and reconstruction outputs are available.
 
 We also provide in the Figshare:
 
@@ -73,7 +73,7 @@ Each comparable model has its own script and environment requirements. Configura
   ```bash
   python run_SAUCIE.py
   ```
-- **Requirements:** See [`comparables/SAUCIE/requirements.txt`](../comparables/SAUCIE/requirements.txt)
+- See [requirements.txt](../comparables/SAUCIE/requirements.txt)
 - Use [`SAUCIE.yaml`](../comparables/comparables_env/SAUCIE.yaml) tp create conda environment.
 
 #### scVI
@@ -203,11 +203,11 @@ After running the representation models, you can train the **Mixed Effects Class
 
 ## Analysis Notebooks
 
-Use the following notebooks to reproduce the post-hoc analyses and figures:
+Use the following notebooks to reproduce the analyses and figures:
 
-* [3-analysis_aml.ipynb](../scripts/3-analysis_aml.ipynb)
-* [3-analysis_asd.ipynb`](../scripts/3-analysis_asd.ipynb)
-* [3-analysis_hh.ipynb](../scripts/3-analysis_hh.ipynb)
+* [3-analysis_aml.ipynb](../scripts/3-analysis_aml.ipynb): (Figure 4,Figure 7, Figure 8, Table 1)
+* [3-analysis_asd.ipynb`](../scripts/3-analysis_asd.ipynb: (Figure 3, Figure 6, Figure 8 and  Table 1)
+* [3-analysis_hh.ipynb](../scripts/3-analysis_hh.ipynb): (Figure 2, Figure 5, Figure 8 and Table 1)
 
 > Download/setup the required model outputs (or train from scratch), update paths where necessary, and run these notebooks to regenerate the paper results.
 
@@ -215,115 +215,7 @@ Use the following notebooks to reproduce the post-hoc analyses and figures:
 
 **Note:** Due to variability in TensorFlow, model outputs may differ slightly across runs. To account for this, we report 95% confidence intervals (CI) as an estimate of variability.
 
----
 
-## Healthy Heart Dataset
-
-**Data source:**  
-The Healthy Heart dataset is available from Yu et al. (2023) at [figshare](https://doi.org/10.6084/m9.figshare.20499630.v2).
-
-### Preprocessing
-- [Preprocessing Notebook](../Experiments/HealthyHeart/preprocessing/preprocessing_HealthyHeart.ipynb)
-- [5-Fold Cross-Validation Setup](../Experiments/HealthyHeart/preprocessing/5fold_cross_val)
-
-### Models and scripts to reproduce results sections (RS)
----
-
-**RS 2.2: scMEDAL subnetworks create complementary batch-invariant and batch-specific latent spaces in the Healthy Heart dataset**
-- [Autoencoder (AE)](../Experiments/HealthyHeart/run_models/AE)
-- [Fixed Effects Subnetwork (scMEDAL-FE)](../Experiments/HealthyHeart/run_models/scMEDAL-FE)
-- [Random Effects Subnetwork (scMEDAL-RE)](../Experiments/HealthyHeart/run_models/scMEDAL-RE)
-
-**RS 2.6: Improved cell classification accuracy using complementary latent spaces of scMEDAL**
-- [Mixed Effects Classifier (MEC)](../Experiments/HealthyHeart/run_models/MEC)
-
-**RS 2.7: The AE classifier, scMEDAL-FEC, enhances cell type preservation**
-- [Autoencoder Classifier (AEC)](../Experiments/HealthyHeart/run_models/AEC)
-- [Fixed Effects Subnetwork with Cell Type Classifier (scMEDAL-FEC)](../Experiments/HealthyHeart/run_models/scMEDAL-FEC)
-
-### Comparison scripts
-- RS 2.2 and 2.7 [Clustering scores](../Experiments/HealthyHeart/run_models/compare_results/clustering_scores)
-- RS 2.5 [Generate genomaps](../Experiments/HealthyHeart/run_models/compare_results/genomaps)
-- RS 2.2 and 2.7 [Generate UMAPs](../Experiments/HealthyHeart/run_models/compare_results/umap_plots)
-
-For details on setting input and output paths for the Healthy Heart dataset, please refer to the [path setup instructions].
-
----
-
-## Autism Spectrum Disorder (ASD) dataset
-
-**Data source:**  
-The ASD dataset can be accessed via the UCSC Cell Browser: [https://autism.cells.ucsc.edu](https://autism.cells.ucsc.edu)  
-*(Speir et al., 2021; Velmeshev et al., 2019)*
-
-### Preprocessing
-- [Preprocessing Script](../Experiments/ASD/preprocessing/preprocess_ASD.py)
-- [5-Fold Cross-Validation Setup](../Experiments/ASD/preprocessing/5fold_cross_val)
-
-### Models and scripts to reproduce results sections
-
-**RS 2.3: scMEDAL's components reflect disease-associated neuronal patterns in ASD**
-- [Autoencoder (AE)](../Experiments/ASD/run_models/AE)
-- [Fixed Effects Subnetwork (scMEDAL-FE)](../Experiments/ASD/run_models/scMEDAL-FE)
-- [Random Effects Subnetwork (scMEDAL-RE)](../Experiments/ASD/run_models/scMEDAL-RE)
-
-**RS 2.6: Improved cell classification accuracy using complementary latent spaces of scMEDAL**
-- [Mixed Effects Classifier (MEC)](../Experiments/ASD/run_models/MEC)
-
-**RS 2.7: The AE classifier, scMEDAL-FEC, enhances cell type preservation**
-- [Autoencoder Classifier (AEC)](../Experiments/HealthyHeart/run_models/AEC)  
-  *(Note: This link points to the Healthy Heart directory. Please ensure the correct path for ASD models.)*
-- [Fixed Effects Subnetwork with Cell Type Classifier (scMEDAL-FEC)](../Experiments/HealthyHeart/run_models/scMEDAL-FEC)  
-  *(Note: Similarly, ensure the correct ASD directory is used.)*
-
-### Comparison scripts
-- RS 2.3 and 2.7 [Clustering scores](../Experiments/ASD/run_models/compare_results/clustering_scores)
-- RS 2.5 [Generate genomaps and compute genomap statistics](../Experiments/ASD/run_models/compare_results/genomaps)
-- RS 2.3 and 2.7 [Generate UMAPs](../Experiments/ASD/run_models/compare_results/umap_plots)
-
----
-
-## Acute Myeloid Leukemia (AML) dataset
-
-**Data source:**  
-The AML dataset is available at the Gene Expression Omnibus (GEO) under accession number [GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi-acc=GSE116256) (van Galen et al., 2019).
-
-
-**Data splits** are available in [AML_data.zip](../Experiments/AML_data.zip). We have included the 5 cross-validation splits metadata  and the highly variable genes (HVGs) selected for this experiment.
-
-You can either run the 5-fold cross-validation scripts or use the cell ids provided to generate splits.
-
-### Preprocessing
-- [AML data reader Notebook](../Experiments/AML/preprocessing/AML_data_reader.ipynb)
-- [Preprocessing Script](../Experiments/AML/preprocessing/preprocess_AML.py)
-- [5-Fold Cross-Validation Setup](../Experiments/AML/preprocessing/5fold_cross_val)
-
-### Models and Scripts to Reproduce Results Sections (RS)
-
-**RS 2.4 scMEDAL balances the trade-off between batch correction and cell type information preservation in leukemia**
-- [Autoencoder (AE)](../Experiments/AML/run_models/AE)
-- [Fixed Effects Subnetwork (scMEDAL-FE)](../Experiments/AML/run_models/scMEDAL-FE)
-- [Random Effects Subnetwork (scMEDAL-RE)](../Experiments/AML/run_models/scMEDAL-RE)
-
-**RS 2.6: Improved cell classification accuracy using complementary latent spaces of scMEDAL**
-- [Mixed Effects Classifier (MEC)](../Experiments/AML/run_models/MEC)
-  - [Cell Type Target](../Experiments/AML/run_models/MEC/celltype_target)
-  - [Patient Group Target](../Experiments/AML/run_models/MEC/dx_target)
-
-**RS 2.7: The AE classifier, scMEDAL-FEC, enhances cell type preservation**
-- [Autoencoder Classifier (AEC)](../Experiments/AML/run_models/AEC)
-- [Fixed Effects Subnetwork with Cell Type Classifier (scMEDAL-FEC)](../Experiments/AML/run_models/scMEDAL-FEC)
-
-### Comparison scripts
-- RS 2.4 and 2.6 [Clustering scores](../Experiments/AML/run_models/compare_results/clustering_scores)
-- RS 2.5 [Generate genomaps and compute genomap statistics](../Experiments/AML/run_models/compare_results/genomaps)
-- RS 2.4 and 2.6[Generate UMAPs](../Experiments/AML/run_models/compare_results/umap_plots)
-
----
-
-## Note on variability
-
-Due to the inherent variability in TensorFlow, results may differ slightly each time you train the models. To account for this, we have computed 95% confidence intervals to provide an estimate of the variability in model performance.
 
 ---
 

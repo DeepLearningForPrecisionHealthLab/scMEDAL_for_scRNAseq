@@ -37,7 +37,7 @@ We conducted experiments on three datasets: **Healthy Heart (HH)**, **Autism Spe
 * **Preprocessing and 5-fold cross-validation scripts** to split the data into train/val/test.
   Alternatively, we provide the **precomputed data splits** via Figshare. See **[Datasets](../README.md#datasets)**.
 * **Training scripts** for our API models (e.g., Autoencoder, **scMEDAL** variants, Mixed Effects Classifier) and **comparable models**: **scVI**, **scANVI**, **Harmony**, **Scanorama**, and **SAUCIE**.
-* **Analysis notebooks** for post-hoc evaluation (e.g., clustering scores, Genomaps, UMAP plots). These notebooks guide you through generating the paper results once latent spaces and reconstruction outputs are available.
+* [**Analysis notebooks**](#analysis-notebooks) for post-hoc evaluation (e.g., clustering scores, Genomaps, UMAP plots). These notebooks guide you through generating the paper results once latent spaces and reconstruction outputs are available.
 
 We also provide in the Figshare:
 

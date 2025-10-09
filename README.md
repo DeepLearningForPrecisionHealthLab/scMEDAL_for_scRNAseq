@@ -16,7 +16,7 @@ We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smalle
 
 **Also available:** **[`demo/demo_hh.ipynb`](./demo/demo_hh.ipynb)** and **[`demo/demo_asd.ipynb`](./demo/demo_asd.ipynb)**.
 
-**Before running**, prepare your data as described in the [Datasets](#datasets) section. Default paths are defined in [utils/defaults.py](./utils/defaults.py): inputs are loaded from `./data/` and outputs are saved to `./outputs/`. If your project uses different locations, update the configuration accordingly.
+**Before running**, prepare your data as described in the [Datasets](#datasets) section. **Default paths** are defined in [utils/defaults.py](./utils/defaults.py): inputs are loaded from `./data/` and outputs are saved to `./outputs/`. If your project uses different locations, update the configuration accordingly. See [**Outputs and analyis folders**](../README.md#outputs-and-analysis-folders).
 
 
 ---
@@ -332,9 +332,6 @@ For a complete description of outputs, see **[Experiment Outputs](./docs/Experim
 
 ## Documentation Index
 
-* **How to Set Up Your Experiment**  **[docs/How2SetupYourExpt.md](./docs/How2SetupYourExpt.md)**
-* **How to Run Your Experiment**  **[docs/How2RunYourExpt.md](./docs/How2RunYourExpt.md)**
-* **How to Analyze Your Model Outputs**  **[docs/How2AnalyzeYourModelOutputs.md](./docs/How2AnalyzeYourModelOutputs.md)**
 * **Experiment Outputs**  **[docs/ExperimentOutputs.md](./docs/ExperimentOutputs.md)**
 * **Experiment Reproducibility Guide**  **[docs/ExperimentsReproducibility.md](./docs/ExperimentsReproducibility.md#experiment-reproducibility-guide)**
 

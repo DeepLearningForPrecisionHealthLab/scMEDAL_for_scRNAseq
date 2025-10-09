@@ -14,6 +14,8 @@ We also provide in the Figshare:
 
 * **Latent space outputs**  and a **sample count matrix**  with 300-cell projections so you can reproduce the **Genomaps** exactly as in the paper.
 
+**Default paths** are defined in [utils/defaults.py](./utils/defaults.py): inputs are loaded from `./data/` and outputs are saved to `./outputs/`. If your project uses different locations, update the configuration accordingly. See [**Outputs and analyis folders**](../README.md#outputs-and-analysis-folders).
+
 You have two options:
 
 ## A. **Reproduce analyses from provided model outputs**
@@ -33,7 +35,8 @@ You have two options:
 > After these paths are set, run the analysis notebooks to reproduce the Genomaps section for AML.
 
 ## B. **Run models from scratch**
-   Train the models yourself and then run the analysis notebooks.
+   Train the models yourself and then run the analysis notebooks. 
+   
 
 ### scMEDAL API Model scripts
 To run all models from our API (AE,AEC,scMEDAL-FE,scMEDAL-RE and scMEDAL-FEC), use [1-run_scMEDAL_alldatasets.py](../scripts/1-run_scMEDAL_alldatasets.py) and make sure your **scMEDAL** environment is activated. See **[scMEDAL Installation](../README.md#Installation)**.

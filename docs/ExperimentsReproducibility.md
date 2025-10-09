@@ -37,7 +37,7 @@ We conducted experiments on three datasets: **Healthy Heart (HH)**, **Autism Spe
 * **Preprocessing and 5-fold cross-validation scripts** to split the data into train/val/test.
   Alternatively, we provide the **precomputed data splits** via Figshare. See **[Datasets](../README.md#datasets)**.
 * **Training scripts** for our API models (e.g., Autoencoder, **scMEDAL** variants, Mixed Effects Classifier) and **comparable models**: **scVI**, **scANVI**, **Harmony**, **Scanorama**, and **SAUCIE**.
-* [**Analysis notebooks**](#analysis-notebooks): for evaluate models (clustering scores, Genomaps, and UMAPs for Figures 2?8) and extract the Random Forest classifier outputs reported in Table 1. Use these notebooks to reproduce the paper results once latent spaces and reconstruction outputs are available.
+* [**Analysis notebooks**](#analysis-notebooks): for evaluate models (clustering scores, Genomaps, and UMAPs for Figures 2-8) and extract the Random Forest classifier outputs reported in Table 1. Use these notebooks to reproduce the paper results once latent spaces and reconstruction outputs are available.
 
 We also provide in the Figshare:
 
@@ -206,7 +206,7 @@ After running the representation models, you can train the **Mixed Effects Class
 Use the following notebooks to reproduce the analyses and figures:
 
 * [3-analysis_aml.ipynb](../scripts/3-analysis_aml.ipynb): (Figure 4,Figure 7, Figure 8, Table 1)
-* [3-analysis_asd.ipynb`](../scripts/3-analysis_asd.ipynb: (Figure 3, Figure 6, Figure 8 and  Table 1)
+* [3-analysis_asd.ipynb`](../scripts/3-analysis_asd.ipynb): (Figure 3, Figure 6, Figure 8 and  Table 1)
 * [3-analysis_hh.ipynb](../scripts/3-analysis_hh.ipynb): (Figure 2, Figure 5, Figure 8 and Table 1)
 
 > Download/setup the required model outputs (or train from scratch), update paths where necessary, and run these notebooks to regenerate the paper results.

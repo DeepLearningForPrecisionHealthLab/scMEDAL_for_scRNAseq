@@ -28,7 +28,7 @@ Use the demos to learn how to train **scMEDAL** and make visualizations:
 
 # Experiment Reproducibility Guide
 
-This guide maps each section of the paper to the corresponding **code**, **datasets**, and **artifacts**, so you can reproduce the results as described.
+This guide maps each section of the paper to the corresponding **code**, **datasets**, and **model outputs**, so you can reproduce the results as described.
 
 ## Experiments Overview
 
@@ -37,31 +37,70 @@ We conducted experiments on three datasets: **Healthy Heart (HH)**, **Autism Spe
 * **Preprocessing and 5-fold cross-validation scripts** to split the data into train/val/test.
   Alternatively, we provide the **precomputed data splits** via Figshare. See **[Datasets](../README.md#datasets)**.
 * **Training scripts** for our API models (e.g., Autoencoder, **scMEDAL** variants, Mixed Effects Classifier) and **comparable models**: **scVI**, **scANVI**, **Harmony**, **Scanorama**, and **SAUCIE**.
-* **Analysis notebooks** for post-hoc evaluation (e.g., clustering scores, Genomaps, UMAP plots). These notebooks guide you through generating the paper?s figures once latent spaces are available.
+* **Analysis notebooks** for post-hoc evaluation (e.g., clustering scores, Genomaps, UMAP plots). These notebooks guide you through generating the paper results once latent spaces and reconstruction outputs are available.
 
-We also provide:
+We also provide in the Figshare:
 
-* **Latent space outputs** (Figshare) and a **sample count matrix** with 300-cell projections so you can reproduce the **Genomaps** exactly as in the paper.
+* **Latent space outputs**  and a **sample count matrix**  with 300-cell projections so you can reproduce the **Genomaps** exactly as in the paper.
 
 You have two options:
 
-1. **Reproduce analyses from provided artifacts**
+1. **Reproduce analyses from provided model outputs**
    Download our latent spaces and the 300-cell sample matrix, place them in the specified folders (see below), and run the analysis notebooks to regenerate paper figures.
 
 2. **Run models from scratch**
    Train the models yourself and then run the analysis notebooks.
 
-To run all models programmatically, use:
+To run all models from our API programmatically (AE,AEC,scMEDAL-FE,scMEDAL-RE and scMEDAL-FEC), use [1-run_scMEDAL_alldatasets.py](../scripts/1-run_scMEDAL_alldatasets.py):
 
 ```bash
-python ./scripts/1-run_scMEDAL_alldatasets.py
+python 1-run_scMEDAL_alldatasets.py
 ```
 
 Make sure your **scMEDAL** environment is activated. See **[Installation](../README.md#Installation)**.
 
+We also provide scripts to run **comparable models** using the same settings as in our experiments. Each dataset has its own configuration. For example, for **AML**:
+
+* [**run_SAUCIE.py**](../comparables/AML/run_SAUCIE.py)
+  Run with:
+
+  ```bash
+  python run_SAUCIE.py
+  ```
+
+* [**run_scVI.py**](../comparables/AML/run_scVI.py)
+  Run with:
+
+  ```bash
+  python run_scVI.py
+  ```
+
+* [**run_scanorama.py**](../comparables/AML/run_scanorama.py)
+  Run with:
+
+  ```bash
+  python run_scanorama.py
+  ```
+
+* [**run_harmony.py**](../comparables/run_harmony.py)
+  Run with:
+
+  ```bash
+  python run_harmony.py
+  ```
+
+* [**run_scANVI.py**](../comparables/run_scANVI.py)
+  Run with:
+
+  ```bash
+  python run_scANVI.py
+  ```
+
+Both the comparable-model scripts and our API model scripts produce the **same output file structure**. See **[Outputs & analysis folders](../README.md#outputs-and-analysis-folders)**.
+
 ---
 
-## Using Provided Artifacts (example for AML Genomaps)
+## Using provided model outputs (example for AML Genomaps)
 
 1. **Place the AML latent space** under:
 
@@ -126,7 +165,7 @@ Use the following notebooks to reproduce the post-hoc analyses and figures:
 * `3-analysis_asd.ipynb`
 * `3-analysis_hh.ipynb`
 
-> Download/setup the required artifacts (or train from scratch), update paths where necessary, and run these notebooks to regenerate the paper?s results.
+> Download/setup the required model outputs (or train from scratch), update paths where necessary, and run these notebooks to regenerate the paper?s results.
 
 
 

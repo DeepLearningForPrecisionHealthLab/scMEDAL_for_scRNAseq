@@ -62,7 +62,7 @@ You have two options:
 ## 2. **Run models from scratch**
    Train the models yourself and then run the analysis notebooks.
 
-#### scMEDAL API Model scripts
+### scMEDAL API Model scripts
 To run all models from our API (AE,AEC,scMEDAL-FE,scMEDAL-RE and scMEDAL-FEC), use [1-run_scMEDAL_alldatasets.py](../scripts/1-run_scMEDAL_alldatasets.py) and make sure your **scMEDAL** environment is activated. See **[scMEDAL Installation](../README.md#Installation)**.
 
 ```bash
@@ -73,7 +73,7 @@ python 1-run_scMEDAL_alldatasets.py
 If you train models yourself, you may need to update paths to match your own output directories. See [Outputs and analysis folders](../README.md#outputs-and-analysis-folders)
 
 
-#### MEC Classifier Scripts
+### MEC Classifier Scripts
 
 After running the representation models, you can train the **Mixed Effects Classifier (MEC)**:
 
@@ -93,7 +93,7 @@ After running the representation models, you can train the **Mixed Effects Class
 * [2-mec_hh_celltype.py](../scripts/2-mec_hh_celltype.py)
 
 ---
-#### Comparable Models Scripts
+### Comparable Models Scripts
 
 Each comparable model has its own script and environment requirements. Configurations vary by dataset. Below we list the **AML** entry points; for **HH** and **ASD**, use the corresponding dataset paths/scripts.
 

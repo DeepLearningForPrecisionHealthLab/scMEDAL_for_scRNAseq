@@ -1,5 +1,5 @@
 # Setup the data
-Follow the instructions to download the AML dataset and set up your data as described in the **[Datasets](../Readme.md#datasets)** section, that shows how to download , preprocess the data and set up the splits. 
+Follow the instructions to download the AML dataset and set up your data as described in the **[Datasets](../README.md#datasets)** section, that shows how to download , preprocess the data and set up the splits. 
 # Running the Demos (10 epochs)
 
 In our experiments, we used **500 epochs** with early stopping, which may halt training earlier. in contrast to the demo scripts in which we used 10 epochs.**See demos if you want a quick tutorial of how to train scMEDAL and create visualizations :** **[`demo/demo_aml.ipynb`](../demo/demo_aml.ipynb)** , **[`demo/demo_hh.ipynb`](../demo/demo_hh.ipynb)** and **[`demo/demo_asd.ipynb`](../demo/demo_asd.ipynb)** The run time varies, being the AML the fastest because it has a smaller amount of cells.

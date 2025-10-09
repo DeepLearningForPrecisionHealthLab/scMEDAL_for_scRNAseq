@@ -22,7 +22,7 @@ Use the demos to learn how to train **scMEDAL** and make visualizations:
 # Running the AML Dataset for 500 Epochs with Early Stopping (5 folds)
 
 * Set `quick=False` in `train_kwargs` to run the **full training** (**5-fold × 500 epochs**) with early stopping.
-* In the paper?s experiments, we **use `quick=False`**.
+* In the paper experiments, we **use `quick=False`**.
 
 ---
 
@@ -186,18 +186,18 @@ After running the representation models, you can train the **Mixed Effects Class
 
 **ASD**
 
-* `2-mec_asd_dx.py`
-* `2-mec_asd_celltype.py`
+* [2-mec_asd_dx.py](../scripts/2-mec_asd_dx.py)
+* [2-mec_asd_celltype.py](../scripts/2-mec_asd_celltype.py)
 
 **AML**
 
-* `2-mec_aml_celltype.py`
-* `2-mec_aml_patientgroup.py`
+* [2-mec_aml_celltype.py](../scripts/2-mec_aml_celltype.py)
+* [2-mec_aml_patientgroup.py](../scripts/2-mec_aml_patientgroup.py)
 
 **Healthy Heart**
 
-* `2-mec_hh_tissue.py`
-* `2-mec_hh_celltype.py`
+* [2-mec_hh_tissue.py](../scripts/2-mec_hh_tissue.py)
+* [2-mec_hh_celltype.py](../scripts/2-mec_hh_celltype.py)
 
 ---
 
@@ -205,11 +205,11 @@ After running the representation models, you can train the **Mixed Effects Class
 
 Use the following notebooks to reproduce the post-hoc analyses and figures:
 
-* `3-analysis_aml.ipynb`
-* `3-analysis_asd.ipynb`
-* `3-analysis_hh.ipynb`
+* [3-analysis_aml.ipynb](../scripts/3-analysis_aml.ipynb)
+* [3-analysis_asd.ipynb`](../scripts/3-analysis_asd.ipynb)
+* [3-analysis_hh.ipynb](../scripts/3-analysis_hh.ipynb)
 
-> Download/setup the required model outputs (or train from scratch), update paths where necessary, and run these notebooks to regenerate the paper?s results.
+> Download/setup the required model outputs (or train from scratch), update paths where necessary, and run these notebooks to regenerate the paper results.
 
 
 
@@ -286,7 +286,7 @@ The ASD dataset can be accessed via the UCSC Cell Browser: [https://autism.cells
 ## Acute Myeloid Leukemia (AML) dataset
 
 **Data source:**  
-The AML dataset is available at the Gene Expression Omnibus (GEO) under accession number [GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE116256) (van Galen et al., 2019).
+The AML dataset is available at the Gene Expression Omnibus (GEO) under accession number [GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi-acc=GSE116256) (van Galen et al., 2019).
 
 
 **Data splits** are available in [AML_data.zip](../Experiments/AML_data.zip). We have included the 5 cross-validation splits metadata  and the highly variable genes (HVGs) selected for this experiment.
@@ -330,8 +330,8 @@ Due to the inherent variability in TensorFlow, results may differ slightly each 
 ## References
 
 - Litvinukova, M. et al. Cells of the adult human heart. Nature 588, 466-472 (2020).
-- van Galen, P. et al. *Single-Cell RNA-Seq Reveals AML Hierarchies Relevant to Disease Progression and Immunity.* Cell 176, 1265?1281.e24 (2019).
-- Velmeshev, D. et al. *Single-cell genomics identifies cell type-specific molecular changes in autism.* Science 364, 685?689 (2019).
-- Speir, M. L. et al. *UCSC Cell Browser: visualize your single-cell data.* Bioinformatics 37, 4578?4580 (2021).
+- van Galen, P. et al. *Single-Cell RNA-Seq Reveals AML Hierarchies Relevant to Disease Progression and Immunity.* Cell 176, 1265-1281.e24 (2019).
+- Velmeshev, D. et al. *Single-cell genomics identifies cell type-specific molecular changes in autism.* Science 364, 685-689 (2019).
+- Speir, M. L. et al. *UCSC Cell Browser: visualize your single-cell data.* Bioinformatics 37, 4578-4580 (2021).
 - Yu, X., Xu, X., Zhang, J., & Li, X. *Batch alignment of single-cell transcriptomics data using deep metric learning.* Nat Commun 14, 960 (2023).  
 - Yu, X., Xu, X., Zhang, J., & Li, X. *Batch alignment of single-cell transcriptomics data using deep metric learning.* figshare [https://doi.org/10.6084/m9.figshare.20499630.v2](https://doi.org/10.6084/m9.figshare.20499630.v2) (2023).

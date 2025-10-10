@@ -199,10 +199,10 @@ outputs/
                     |-- gene_coordinates_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.csv # Coordinates mapping genes to pixels
                     |-- genomap_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.npy  # Genomap data (2D representation)
                     |-- T_input_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.npy  # Transformation matrix used in genomap generation
-                    |-- genomap_plots/                # Plot outputs
+                    |-- genomap_plots/                    # Plot outputs
                     |   |-- genomap_plots_scfewbatches_nogenelabels/   # USED: Genomaps (selected batches), no gene labels
                     |   |-- singlecell_gene_std_acrossbatches/         # UNUSED: computes per-cell gene-wise SD across batches and plots the 10 most variable genes on Genomaps
-                    |-- first50genomaps_from_<CMmultibatch_name>.png
+                    |-- first50genomaps_from_<CMmultibatch_name>.png   # Plot of first 50 genomaps (quick overlook) 
 
 ```
 

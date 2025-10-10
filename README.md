@@ -346,5 +346,12 @@ For a complete description of outputs, see **[Experiment Outputs](./docs/Experim
 - Speir, M. L. et al. *UCSC Cell Browser: visualize your single-cell data.* Bioinformatics 37, 4578?4580 (2021).
 - Yu, X., Xu, X., Zhang, J., & Li, X. *Batch alignment of single-cell transcriptomics data using deep metric learning.* Nat Commun 14, 960 (2023).  
 - Yu, X., Xu, X., Zhang, J., & Li, X. *Batch alignment of single-cell transcriptomics data using deep metric learning.* figshare [https://doi.org/10.6084/m9.figshare.20499630.v2](https://doi.org/10.6084/m9.figshare.20499630.v2) (2023).
+- Lopez, R. et al. Deep generative modeling for single-cell transcriptomics. Nat Methods 15, 1053-1058 (2018).
+- Xu, C. et al. Probabilistic harmonization and annotation of single-cell transcriptomics data with deep generative models. Mol Syst Biol 17, e9620 (2021).
+- Amodio, M. et al. Exploring single-cell data with deep multitasking neural networks. Nat Methods 16, 1139-1145 (2019).
+- Hie, B. et al. Efficient integration of heterogeneous single-cell transcriptomes using Scanorama. Nat Biotechnol 37, 685-691 (2019).
+- Korsunsky, I. et al. Fast, sensitive and accurate integration of single-cell data with Harmony. Nat Methods 16, 1289-1296 (2019).
+- Gayoso, A. et al. A Python library for probabilistic analysis of single-cell omics data. Nat Biotechnol 40, 163?166 (2022). https://doi.org/10.1038/s41587-021-01206-w
+
 
 ---

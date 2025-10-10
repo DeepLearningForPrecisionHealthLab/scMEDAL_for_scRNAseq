@@ -6,7 +6,7 @@ After running your model, the results are stored in the `outputs/<datasetname>_o
 
 **Note:**  
 - The `latent_space`, `figures`, and `saved_models` directories are generated only by running the AE, AEC, scMEDAL-FE, scMEDAL-FEC, or scMEDAL-RE models.  
-- The UMAP and genomap visualizations and the MEC model require these outputs, as they cannot run without them.  
+- The UMAP, genomap visualizations and the MEC model require these outputs, as they cannot run without them.  
 ---
 
 ## Latent Space Outputs
@@ -195,18 +195,14 @@ outputs/
                         |-- exprMatrix.npy                # Expression matrix used to generate the genomap
                         |-- geneids.csv                   # List of gene IDs corresponding to the rows in exprMatrix
                         |-- meta.csv                      # Metadata for the cells (e.g., batch, cell type)
-
-                    |-- <n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input/
-                        |-- <n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.png  # Genomap visualization for the first 50 cells
-                        |-- gene_coordinates_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.csv # Coordinates mapping genes to pixels
-                        |-- genomap_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.npy  # Genomap data (2D representation)
-                        |-- T_input_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.npy  # Transformation matrix used in genomap generation
-                        |-- genomap_plots/                # Plot outputs
-                        |   |-- genomap_plots_scfewbatches_nogenelabels/   # USED: Genomaps (selected batches), no gene labels
-                        |   |-- singlecell_gene_std_acrossbatches/         # UNUSED: computes per-cell gene-wise SD across batches and plots the 10 most variable genes on Genomaps
-                        |-- first50genomaps_from_<CMmultibatch_name>.png
-
-
+                    |-- <n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.png  # Genomap visualization for the first 50 cells
+                    |-- gene_coordinates_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.csv # Coordinates mapping genes to pixels
+                    |-- genomap_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.npy  # Genomap data (2D representation)
+                    |-- T_input_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.npy  # Transformation matrix used in genomap generation
+                    |-- genomap_plots/                # Plot outputs
+                    |   |-- genomap_plots_scfewbatches_nogenelabels/   # USED: Genomaps (selected batches), no gene labels
+                    |   |-- singlecell_gene_std_acrossbatches/         # UNUSED: computes per-cell gene-wise SD across batches and plots the 10 most variable genes on Genomaps
+                    |-- first50genomaps_from_<CMmultibatch_name>.png
 
 ```
 

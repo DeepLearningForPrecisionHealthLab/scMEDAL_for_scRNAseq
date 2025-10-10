@@ -149,7 +149,7 @@ outputs/
 
 ## Compare Models Outputs
 
-To be able to compare model outputs, you first update the output folders, see [Outputs and Analysis folders](../README.md#outputs-and-analysis-folders) run the following lines of code.
+To be able to compare model outputs, you first update the output folders, see [Outputs and Analysis folders](../README.md#outputs-and-analysis-folders). Then, run the following lines of code.
 ```python
 import analysis.analysis as aa
 

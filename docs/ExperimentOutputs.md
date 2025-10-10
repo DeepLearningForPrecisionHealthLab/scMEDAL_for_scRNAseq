@@ -98,19 +98,6 @@ outputs/
 ```
 - data_type in [train, val, test]
 - <bio_col>, <donor_col> represent biological or donor annotations
-### For MEC Model
-
-
-```markdown
-outputs/
-|-- <datasetname>_outputs/
-    |-- latent_space/
-        |-- <scenario_id>/
-            |-- <modelname>/
-                |-- <run_name>/
-                    |-- splits_i/
-                        |-- loss.png  # DFFN classifier loss plot (typically not used)
-```
 
 
 **Note:** These figures are mainly for initial quality checks (e.g., monitoring training progress) and may need refinement for publication or presentation.
@@ -179,8 +166,7 @@ outputs/
                 |-- <dataset_type>_allscores.csv                  # All scores (ASW, CH, DB) from all folds for <dataset_type>
                 |-- <dataset_type>_scores_<sample_size>_95CI.csv  # Average ASW, CH, DB with 95% CI across folds
                 |-- <dataset_type>_<sample_size>.csv              # Mean, SEM, STD of scores across folds
-                |-- <dataset_type>_scores_<sample_size>_min_silhouette_batch.csv  # Fold with the lowest ASW
-                |-- <dataset_type>_scores_<sample_size>_max_silhouette_batch.csv  # Fold with the highest ASW
+
 ```
 
 **Explanation of Variables:**
@@ -203,28 +189,32 @@ outputs/
 |-- <datasetname>_outputs/
     |-- compare_models/
         |-- <scenario_id>/
-            |-- <run_name>/
-                |-- CMmultibatch_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input/
-                    |-- exprMatrix.npy                # Expression matrix used to generate the genomap
-                    |-- geneids.csv                   # List of gene IDs corresponding to the rows in exprMatrix
-                    |-- meta.csv                      # Metadata for the cells (e.g., batch, cell type)
+            |-- <analysis_name>/
+                |-- genomap/
+                    |-- CMmultibatch_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input/
+                        |-- exprMatrix.npy                # Expression matrix used to generate the genomap
+                        |-- geneids.csv                   # List of gene IDs corresponding to the rows in exprMatrix
+                        |-- meta.csv                      # Metadata for the cells (e.g., batch, cell type)
 
-                |-- <n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input/
-                    |-- <n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.png  # Genomap visualization for the first 50 cells
-                    |-- gene_coordinates_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.csv # Coordinates mapping genes to pixels
-                    |-- genomap_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.npy  # Genomap data (2D representation)
-                    |-- T_input_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.npy  # Transformation matrix used in genomap generation
-                    |-- genomap_10topvariablegenesacrossbatches_b'<cell_id>'_std.csv  # The top 10 variable genes for a particular cell across all batches
-                    |-- genomap_10topvariablegenesacrossbatches_b'<cell_id>'_std_<celltype_name>.png  # Genomap highlighting top 10 variable genes
-                    |-- genomap_10topvariablegenesacrossbatches_b'<cell_id>'_few_batches_std_<celltype_name>.png  # Genomap focusing on a subset of batches
-                    |-- genomap_10topvariablegenesacrossbatches_b'<cell_id>'_few_batches_std_<celltype_name>_labels.png  # Genomap with labeled top 10 variable genes
+                    |-- <n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input/
+                        |-- <n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.png  # Genomap visualization for the first 50 cells
+                        |-- gene_coordinates_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.csv # Coordinates mapping genes to pixels
+                        |-- genomap_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.npy  # Genomap data (2D representation)
+                        |-- T_input_<n_cells_per_m_batches>_<Type>_<Split>_<celltype_name>_with_<n_inputs_fe>fe_input.npy  # Transformation matrix used in genomap generation
+                        |-- genomap_plots/                # Plot outputs
+                        |   |-- genomap_plots_scfewbatches_nogenelabels/   # USED: Genomaps (selected batches), no gene labels
+                        |   |-- singlecell_gene_std_acrossbatches/         # UNUSED: computes per-cell gene-wise SD across batches and plots the 10 most variable genes on Genomaps
+                        |-- first50genomaps_from_<CMmultibatch_name>.png
+
+
+
 ```
 
 **Explanation of Variables:**
 - `<n_cells_per_m_batches>`: Combination of `<n_cells_per_batch>` and `<n_batches>` describing how cells are sampled.
 - `<Type>`: The dataset split type (e.g., `train`).
 - `<Split>`: The fold number (e.g., `2`).
-- `<celltype_name>`: Concatenation of cell types (e.g., `Ventricular_Cardiomyocyte_Endothelial_Fibroblast_Pericytes`).
+- `<celltype_name>`: Concatenation of cell types (e.g., `Endothelial_Myeloid`).
 - `<n_inputs_fe>`: Number of additional features used (e.g., `2`).
 
 These genomap files allow you to investigate how genes vary across conditions and can be used to pinpoint batch effects or identify biologically relevant gene patterns.
@@ -244,17 +234,21 @@ outputs/
         |-- <scenario_id>/
             |-- <run_name>/
                 |-- umap_<n_batches_sample>batches/
-                    |-- umap_<model>_<data_type>_split<Split>_<sample_size>cells_<n_batches_sample>batches.csv  # UMAP coordinates
-                    |-- umap_<model>_<data_type>_split<Split>_<sample_size>cells_<n_batches_sample>batches.png  # UMAP plot colored by cell type
-                    |-- umap_<model>_<data_type>_split<Split>_<sample_size>cells_<n_batches_sample>batches_batch.png  # UMAP plot colored by batch
+                    |-- plots_axis
+                        |-- X_modelrawlatent_<model>_latent_<data_type>_<split>_<n_batches_sample>batchsample_<bio_col>.png #2 first components  of the model latent space
+                        |-- X_umap_<model>_latent_<data_type>_<split>_<n_batches_sample>batchsample_<bio_col>.png # umap appplied to n components of latent space
+                    |-- plots_noaxis # same plots without axis
+                    |-- umap_csv
+                        |-- X_umap_<model>_latent_<data_type>_<split>_<n_batches_sample>batchsample.csv #umap coordinates
+
 ```
 
 **Explanation of Variables:**
 - `<model>`: The model that generated the embeddings (e.g., `AE_latent`, `AEC_latent`, `scMEDAL-FE_latent`).
 - `<data_type>`: The dataset split (`train`, `val`, `test`).
 - `<Split>`: The fold number.
-- `<sample_size>`: Number of cells sampled for the UMAP.
 - `<n_batches_sample>`: Number of batches sampled (useful for large datasets with many batches).
+- `<bio_col>`: `celltype`, `diagnosis`, etc
 
 **CSV Files:**
 - Contain UMAP coordinates (UMAP1, UMAP2) for each cell, which can be further analyzed or plotted.
@@ -264,4 +258,4 @@ outputs/
 
 ---
 
-By using the `compare_clustering_scores.py` script and examining the genomaps and UMAP outputs, you can gain comprehensive insights into how well your models cluster cells, handle batch effects, and reveal underlying biological structure. These comparison outputs are essential for model selection, performance evaluation, and deeper exploratory analysis of your results.
+By using the analysis pipeline and examining the genomaps and UMAP outputs, you can gain comprehensive insights into how well your models cluster cells, handle batch effects, and reveal underlying biological structure. These comparison outputs are essential for model selection, performance evaluation, and deeper exploratory analysis of your results. See demos for concrete exmaples: **[`demo/demo_aml.ipynb`](../demo/demo_aml.ipynb)**,**[`demo/demo_asd.ipynb`](../demo/demo_asd.ipynb)**,**[`demo/demo_hh.ipynb`](../demo/demo_hh.ipynb)**

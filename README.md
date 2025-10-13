@@ -134,7 +134,7 @@ You have two options:
 - For ASD:
    - **[`preprocess_ASD.py`](./preprocessing/ASD/preprocessing/preprocess_ASD.py)**
 - For HH:
-   - **[`preprocess_HealthyHeart.ipynb`](./preprocessing/HH/preprocessing/preprocess_HealthyHeart.ipynb)**
+   - **[`preprocess_HealthyHeart.ipynb`](./preprocessing/HealthyHeart/preprocessing/preprocess_HealthyHeart.ipynb)**
 
 
 * Create the 5-fold splits with the notebook:

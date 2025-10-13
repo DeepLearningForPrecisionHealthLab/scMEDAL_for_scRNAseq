@@ -14,7 +14,12 @@ We also provide in the Figshare:
 
 * **Latent space outputs**  and a **sample count matrix**  with 300-cell projections so you can reproduce the **Genomaps** exactly as in the paper.
 
-**Default paths** are defined in [**utils/defaults.py**](../utils/defaults.py): inputs are loaded from `./data/` and outputs are saved to `./outputs/`. If your project uses different locations, update the configuration accordingly. See [**Outputs and analyis folders**](../README.md#outputs-and-analysis-folders).
+**Default paths** are defined in [**utils/defaults.py**](../utils/defaults.py): inputs load from `./data/` and outputs save to `./outputs/`.
+> To setup your project path, set:
+```python
+ROOT_PATH = "/your/project/path"
+```
+If your project uses different locations, update the configuration accordingly. See [**Outputs and analysis folders**](../README.md#outputs-and-analysis-folders).
 
 You have two options:
 

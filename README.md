@@ -24,7 +24,7 @@ If your project uses different locations, update the configuration accordingly. 
 
 **Before running**, prepare your data as described in the [Datasets](#datasets) section.
 **Default paths** are defined in [**utils/defaults.py**](./utils/defaults.py): inputs load from `./data/` and outputs save to `./outputs/`.
-> To customize paths, set:
+> To setup your project path, set:
 ```python
 ROOT_PATH = "/your/project/path"
 ```

@@ -39,7 +39,7 @@ import os
 os.chdir("/your/project/path")  
 ```
 
-If your project uses different locations, update the configuration accordingly. See [**Outputs and analysis folders**](../README.md#outputs-and-analysis-folders).
+If your project uses different locations, update the configuration accordingly. See [**Outputs and analysis folders**](#outputs-and-analysis-folders).
 
 ---
 

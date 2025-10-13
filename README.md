@@ -20,14 +20,25 @@ We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smalle
 Change ROOT_PATH = "/your project path"
 If your project uses different locations, update the configuration accordingly. See [**Outputs and analyis folders**](../README.md#outputs-and-analysis-folders).
 
-
-
 **Before running**, prepare your data as described in the [Datasets](#datasets) section.
-**Default paths** are defined in [**utils/defaults.py**](./utils/defaults.py): inputs load from `./data/` and outputs save to `./outputs/`.
-> To setup your project path, set:
+
+> **Default paths** are defined in [**utils/defaults.py**](../utils/defaults.py): inputs load from `./data/` and outputs save to `./outputs/`.
+
+To set up your project path, edit `utils/defaults.py`:
+
 ```python
+# utils/defaults.py
 ROOT_PATH = "/your/project/path"
 ```
+
+Before running Python scripts or notebooks, you can optionally point the working directory to your project path:
+
+```python
+# In a script or notebook cell
+import os
+os.chdir("/your/project/path")  # optional if your code uses ROOT_PATH internally
+```
+
 If your project uses different locations, update the configuration accordingly. See [**Outputs and analysis folders**](../README.md#outputs-and-analysis-folders).
 
 ---

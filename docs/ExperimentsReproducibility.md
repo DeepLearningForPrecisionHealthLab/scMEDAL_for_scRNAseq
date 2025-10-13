@@ -14,11 +14,23 @@ We also provide in the Figshare:
 
 * **Latent space outputs**  and a **sample count matrix**  with 300-cell projections so you can reproduce the **Genomaps** exactly as in the paper.
 
-**Default paths** are defined in [**utils/defaults.py**](../utils/defaults.py): inputs load from `./data/` and outputs save to `./outputs/`.
-> To setup your project path, set:
+> **Default paths** are defined in [**utils/defaults.py**](../utils/defaults.py): inputs load from `./data/` and outputs save to `./outputs/`.
+
+To set up your project path, edit `utils/defaults.py`:
+
 ```python
+# utils/defaults.py
 ROOT_PATH = "/your/project/path"
 ```
+
+Before running Python scripts or notebooks, you can optionally point the working directory to your project path:
+
+```python
+# In a script or notebook cell
+import os
+os.chdir("/your/project/path")  # optional if your code uses ROOT_PATH internally
+```
+
 If your project uses different locations, update the configuration accordingly. See [**Outputs and analysis folders**](../README.md#outputs-and-analysis-folders).
 
 You have two options:

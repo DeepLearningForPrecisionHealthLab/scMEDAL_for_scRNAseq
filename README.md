@@ -16,8 +16,19 @@ We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smalle
 
 **Also available:** **[`demo/demo_hh.ipynb`](./demo/demo_hh.ipynb)** and **[`demo/demo_asd.ipynb`](./demo/demo_asd.ipynb)**.
 
-**Before running**, prepare your data as described in the [Datasets](#datasets) section. **Default paths** are defined in [utils/defaults.py](./utils/defaults.py): inputs are loaded from `./data/` and outputs are saved to `./outputs/`. If your project uses different locations, update the configuration accordingly. See [**Outputs and analyis folders**](../README.md#outputs-and-analysis-folders).
+**Before running**, prepare your data as described in the [Datasets](#datasets) section. **Default paths** are defined in [**utils/defaults.py**](./utils/defaults.py): inputs are loaded from `./data/` and outputs are saved to `./outputs/`. 
+Change ROOT_PATH = "/your project path"
+If your project uses different locations, update the configuration accordingly. See [**Outputs and analyis folders**](../README.md#outputs-and-analysis-folders).
 
+
+
+**Before running**, prepare your data as described in the [Datasets](#datasets) section.
+**Default paths** are defined in [**utils/defaults.py**](./utils/defaults.py): inputs load from `./data/` and outputs save to `./outputs/`.
+> To customize paths, set:
+```python
+ROOT_PATH = "/your/project/path"
+```
+If your project uses different locations, update the configuration accordingly. See [**Outputs and analysis folders**](../README.md#outputs-and-analysis-folders).
 
 ---
 

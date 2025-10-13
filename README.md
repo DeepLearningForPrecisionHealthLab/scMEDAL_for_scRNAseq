@@ -23,6 +23,8 @@ We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smalle
 
 ## Installation
 
+Estimated installation time: ~10 minutes.
+
 ```bash
 # 1) Clone
 git clone https://github.com/DeepLearningForPrecisionHealthLab/scMEDAL_for_scRNAseq.git
@@ -38,7 +40,7 @@ pip install -r scMEDAL_env/scMEDAL_requirements.txt
 # 4) Launch Jupyter
 jupyter notebook   # ensure Jupyter is installed in this environment
 ```
-Estimated installation time: ~10 minutes.
+
 ---
 
 ## Repository Structure

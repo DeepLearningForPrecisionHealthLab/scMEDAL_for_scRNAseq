@@ -28,7 +28,7 @@ Before running Python scripts or notebooks, you can optionally point the working
 ```python
 # In a script or notebook cell
 import os
-os.chdir("/your/project/path")  # optional if your code uses ROOT_PATH internally
+os.chdir("/your/project/path")  
 ```
 
 If your project uses different locations, update the configuration accordingly. See [**Outputs and analysis folders**](../README.md#outputs-and-analysis-folders).

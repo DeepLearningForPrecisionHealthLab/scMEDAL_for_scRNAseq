@@ -20,6 +20,7 @@ You have two options:
 
 ## A. **Reproduce analyses from provided model outputs**
    Download our latent spaces and the multibatch projection of 300-cell sample matrix, place them in the specified folders (see below), and run the analysis notebooks to regenerate paper figures.
+   For example, for AML latent space.
 
       1. Place the AML latent space under:
 
@@ -35,7 +36,7 @@ You have two options:
 > After these paths are set, run the [**Analysis notebooks**](#analysis-notebooks) to reproduce the paper figures.
 
 ## B. **Run models from scratch**
-   Train the models yourself and then run the analysis notebooks. 
+   Train the models yourself and once you have latent space and reconstruction outputs, run the analysis notebooks. 
    
 
 ### scMEDAL API Model scripts
@@ -108,7 +109,7 @@ Each comparable model has its own script and environment requirements. Configura
   ```
 - **Docs:** [https://scvi-tools.org/](https://scvi-tools.org/)
 
-**Note**: For scVI, scANVI, Harmony, Scanorama, and SAUCIE, use the Comparables conda environment. Create it using [comparables_requirements.txt](../comparables/comparables_env/comparables_requirements.txt) 
+**Note**: For scVI, scANVI, Harmony, Scanorama, and SAUCIE, use the Comparables conda environment. You can create it using [comparables_requirements.txt](../comparables/comparables_env/comparables_requirements.txt) 
 
 ### MEC Classifier Scripts
 

@@ -59,8 +59,7 @@ Each comparable model has its own script and environment requirements. Configura
   ```bash
   python run_SAUCIE.py
   ```
-- See [requirements.txt](../comparables/SAUCIE/requirements.txt)
-- Use [`SAUCIE.yaml`](../comparables/comparables_env/SAUCIE.yaml) tp create conda environment.
+- Use [requirements.txt](../comparables/SAUCIE/requirements.txt) from [KrishnaswamyLab](https://github.com/KrishnaswamyLab/SAUCIE) to create conda environment.
 
 ##### scVI
 
@@ -109,7 +108,7 @@ Each comparable model has its own script and environment requirements. Configura
   ```
 - **Docs:** [https://scvi-tools.org/](https://scvi-tools.org/)
 
-**Note**: For scVI, scANVI, Harmony, Scanorama, and SAUCIE, use the Comparables conda environment. Create it from comparables_env.yaml
+**Note**: For scVI, scANVI, Harmony, Scanorama, and SAUCIE, use the Comparables conda environment. Create it using [comparables_requirements.txt](../comparables/comparables_env/comparables_requirements.txt) 
 
 ### MEC Classifier Scripts
 

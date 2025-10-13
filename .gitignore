@@ -25,6 +25,9 @@ outputs
 outputs_demo
 outputs_500
 scripts/tmp
+data/AML_data
+data/ASD_data
+data/HH_data
 
 
 */log/*

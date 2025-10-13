@@ -29,17 +29,16 @@ git clone https://github.com/DeepLearningForPrecisionHealthLab/scMEDAL_for_scRNA
 cd scMEDAL_for_scRNAseq
 
 # 2) Create Conda environment
-conda env create -f scMEDAL_env/scMEDAL.yaml
-# (If it already exists)
-# conda env update -f scMEDAL_env/scMEDAL.yaml --prune
-
-# 3) Activate
+conda create -n scMEDAL python=3.8.20 -y
 conda activate scMEDAL
+
+# 3) Install pip deps (path as appropriate)
+pip install -r scMEDAL_env/scMEDAL_requirements.txt
 
 # 4) Launch Jupyter
 jupyter notebook   # ensure Jupyter is installed in this environment
 ```
-
+Estimated installation time: ~10 minutes.
 ---
 
 ## Repository Structure

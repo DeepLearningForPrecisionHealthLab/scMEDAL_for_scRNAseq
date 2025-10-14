@@ -16,9 +16,6 @@ We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smalle
 
 **Also available:** **[`demo/demo_hh.ipynb`](./demo/demo_hh.ipynb)** and **[`demo/demo_asd.ipynb`](./demo/demo_asd.ipynb)**.
 
-**Before running**, prepare your data as described in the [Datasets](#datasets) section. **Default paths** are defined in [**utils/defaults.py**](./utils/defaults.py): inputs are loaded from `./data/` and outputs are saved to `./outputs/`. 
-Change ROOT_PATH = "/your project path"
-If your project uses different locations, update the configuration accordingly. See [**Outputs and analyis folders**](#outputs-and-analysis-folders).
 
 **Before running**, prepare your data as described in the [Datasets](#datasets) section.
 
@@ -49,7 +46,12 @@ Estimated installation time: ~10 minutes.
 
 ```bash
 # 1) Clone
+# Option A: GitHub (will be public when the manuscript is accepted)
 git clone https://github.com/DeepLearningForPrecisionHealthLab/scMEDAL_for_scRNAseq.git
+
+# Option B: GitFront (if the GitHub repo isn't public yet)
+# Click the "Clone" button on the GitFront page and copy the HTTPS URL 
+git clone https://gitfront.io/r/amontillo/UPEnpWvhLdA1/scMEDAL_for_scRNAseq.git
 cd scMEDAL_for_scRNAseq
 
 # 2) Create Conda environment

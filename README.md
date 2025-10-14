@@ -164,8 +164,8 @@ You have two options:
 
 **B) Use preprocessed bundles (Figshare)**
 
-* Download the preprocessed data and ready-made splits from Figshare.
-  **Link will be shared after manuscript resubmission.**
+* Download the preprocessed data and ready-made splits from our Figshare.
+  **We will share the link upon publication. Reviewers already have access through the Nature Communications portal.**
 * Save into the per-dataset *log_transformed_* folders listed below.
 
 ---
@@ -176,19 +176,19 @@ You have two options:
 
 * **Original source:** [Figshare  Yu et al., 2023](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)
 * **Save to** `data/HealthyHeart_data/raw/`
-* **Preprocessed (Figshare; link after resubmission) ** `data/HealthyHeart_data/log_transformed_3000hvggenes/` *(preprocessed + splits)*
+* **Preprocessed (Figshare; llink after manuscript publication. Reviewers already have access through the Nature Communications portal.) ** `data/HealthyHeart_data/log_transformed_3000hvggenes/` *(preprocessed + splits)*
 
 #### Autism Spectrum Disorder (ASD)
 
 * **Original source:** [Autism Cell Atlas (Speir 2021; Velmeshev 2019)](https://autism.cells.ucsc.edu)
 * **Save to** `data/ASD_data/norm/`
-* **Preprocessed (Figshare; link after resubmission) ** `data/ASD_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
+* **Preprocessed (Figshare; link after manuscript publication. Reviewers already have access through the Nature Communications portal.) ** `data/ASD_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
 
 #### Acute Myeloid Leukemia (AML)
 
 * **Original source:** [GEO: GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE116256)
 * **Save to** `data/AML_data/zip_files/`
-* **Preprocessed (Figshare; link after resubmission) ** `data/AML_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
+* **Preprocessed (Figshare; link after manuscript publication. Reviewers already have access through the Nature Communications portal.) ** `data/AML_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
 
 ---
 
@@ -199,15 +199,15 @@ data/
   AML_data/
     adata_merged/                  # Merged (not yet preprocessed)
     zip_files/                     # Downloaded: Raw files from GEO
-    log_transformed_2916hvggenes/  # Preprocessed + splits (Figshare link after resubmission)
+    log_transformed_2916hvggenes/  # Preprocessed + splits (Figshare link after manuscript publication. Reviewers already have access through the Nature Communications portal.)
 
   ASD_data/
     norm/                          # log2-normalized data (Velmeshev et al., 2019)
-    log_transformed_2916hvggenes/  # Preprocessed + splits (Figshare link after resubmission)
+    log_transformed_2916hvggenes/  # Preprocessed + splits (Figshare link after manuscript publication. Reviewers already have access through the Nature Communications portal.)
 
   HealthyHeart_data/
     raw/                           # Downloaded data (Yu et al., 2023)
-    log_transformed_3000hvggenes/  # Preprocessed + splits (Figshare link after resubmission)
+    log_transformed_3000hvggenes/  # Preprocessed + splits (Figshare link after manuscript publication. Reviewers already have access through the Nature Communications portal.)
 ```
 
 > The **`outputs/`** folder is created automatically during training.

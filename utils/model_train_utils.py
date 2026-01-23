@@ -1545,10 +1545,24 @@ def run_all_folds(Model, input_base_path, out_base_paths_dict, folds_list, run_n
                 latent_list = list(adata_subset.obsm.keys())
                 # for latent_name in adata_subset.obsm.keys():
                 print(f"\n\nProcessing clustering scores {latent_list} for dataset {dataset_type} in fold {intFold}..")
+
+                # Debugging
+                # Avoid duplicate labels when bio_col == batch_col (e.g. predicting batch)
+                labels = [batch_col, bio_col]
+                if batch_col == bio_col:
+                    # If celltype exists, still compute two distinct label sets for diagnostics
+                    if "celltype" in adata_subset.obs.columns:
+                        labels = [batch_col, "celltype"]
+                    else:
+                        # Otherwise compute only once (they are the same)
+                        labels = [batch_col]
+                #end of debugging
                 scores_df = calculate_merge_scores(latent_list=latent_list, 
                                                         adata=adata_subset, 
-                                                        labels=[batch_col, bio_col], 
+                                                        labels=labels, 
                                                         sample_size=sample_size)
+
+                #end of debugging
                 scores_df.to_csv(os.path.join(all_folds_model_params[intFold].latent_path, f"scores_{dataset_type}_samplesize-{sample_size}.csv"))
                 print(f"Scores calculated for {latent_list} on {dataset_type} dataset in fold {intFold}")
                 scores_df['fold'] = intFold
@@ -1670,7 +1684,8 @@ def get_scores_all_folds(input_base_path, out_base_paths_dict, folds_list, run_n
         # 1. Load data in dense format
         adata_dict = load_data(input_path_dict, eval_test=model_params.eval_test, scaling=model_params.scaling, issparse=issparse, load_dense=load_dense)
         for dataset_type, adata in adata_dict.items():
-            df_scores = get_clustering_scores_optimized(adata, use_rep="X", labels=[model_params.batch_col, model_params.bio_col], sample_size=sample_size)
+            labels = [model_params.batch_col, model_params.bio_col]
+            df_scores = get_clustering_scores_optimized(adata, use_rep="X", labels=labels, sample_size=sample_size)
             df_scores['fold'] = intFold
             df_scores['dataset_type'] = dataset_type
             all_scores[dataset_type].append(df_scores)

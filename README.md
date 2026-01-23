@@ -178,7 +178,7 @@ You have two options:
 
 * **Original source:** [Figshare  Yu et al., 2023](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)
 * **Save to** `data/HealthyHeart_data/raw/`
-* **Preprocessed (Figshare; llink after manuscript publication. Reviewers already have access through the Nature Communications portal.) ** `data/HealthyHeart_data/log_transformed_3000hvggenes/` *(preprocessed + splits)*
+* **Preprocessed data** (Figshare; link after manuscript publication. Reviewers already have access through the Nature Communications portal.) `data/HealthyHeart_data/log_transformed_3000hvggenes/` *(preprocessed + splits)*
 
 #### Autism Spectrum Disorder (ASD)
 

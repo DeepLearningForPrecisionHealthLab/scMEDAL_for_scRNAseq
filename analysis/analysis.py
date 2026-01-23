@@ -109,13 +109,29 @@ class Analysis(ABC):
                     self.paths.saved_models_path[model]
                 )
             except Exception as exc:
-                print(f"[WARN] {model}: {exc}  using single-model format (AE will default to PCA format if present)")
-                model_configs_dict[model] = "process_single_model_format"
+                print(f"[WARN] {model}: {exc}. No configs.json found.")
+                print(
+                    f"[WARN] {model}: {exc}. Falling back to single-model format. "
+                    "If AE/ae is present, it will be processed using PCA format. "
+                    "If this is not the intended configuration, please rerun the model "
+                    "so that a valid config.json is generated."
+                )
 
                 # and, while we are in the fallback block, make sure AE
                 # still gets the PCA version.
-                if "AE" in model_result_folder_dict:
-                    model_configs_dict["AE"] = "preprocess_results_model_pca_format"
+                #if "AE" in model_result_folder_dict:
+                    #model_configs_dict["AE"] = "preprocess_results_model_pca_format"
+                # default: single-model format
+                model_configs_dict[model] = "process_single_model_format"
+                
+                # only override if THIS model is AE/ae
+                if model in ["AE", "ae"]:
+                    print(
+                        "[WARN] configs.json missing — "
+                        f"{model} results will be preprocessed with "
+                        "'preprocess_results_model_pca_format'."
+                    )
+                    model_configs_dict[model] = "preprocess_results_model_pca_format"
 
         # compare_clustering_scores(
         #     **self._clustering_scores_kwargs(),

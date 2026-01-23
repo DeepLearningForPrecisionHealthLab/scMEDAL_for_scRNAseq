@@ -24,6 +24,8 @@ demo/outputs/*
 outputs
 outputs_demo
 outputs_500
+outputs_original
+outputs_batchclassifier
 scripts/tmp
 data/AML_data
 data/ASD_data

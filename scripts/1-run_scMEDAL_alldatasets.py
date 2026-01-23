@@ -21,12 +21,14 @@ from models.models import train_model_on_named_experiment
 scmedalfe_hh = train_model_on_named_experiment("scMEDAL-FE", "HH", model_kwargs={"n_latent_dims":50})
 scmedalre_hh = train_model_on_named_experiment("scMEDAL-RE", "HH", model_kwargs={"n_latent_dims":50})
 ae_hh = train_model_on_named_experiment("AE", "HH", model_kwargs={"n_latent_dims":50})
+# This defaults to AEC_ct configuration for HH
 aec_hh = train_model_on_named_experiment("AEC", "HH", model_kwargs={"n_latent_dims":50})
 scmedalfec_hh = train_model_on_named_experiment("scMEDAL-FEC", "HH", model_kwargs={"n_latent_dims":50})
 
 scmedalfe_asd = train_model_on_named_experiment("scMEDAL-FE", "ASD", model_kwargs={"n_latent_dims":50})
 scmedalre_asd = train_model_on_named_experiment("scMEDAL-RE", "ASD", model_kwargs={"n_latent_dims":50})
 ae_asd = train_model_on_named_experiment("AE", "ASD", model_kwargs={"n_latent_dims":50})
+# This defaults to AEC_ct configuration for ASD
 aec_asd = train_model_on_named_experiment("AEC", "ASD", model_kwargs={"n_latent_dims":50})
 scmedalfec_asd = train_model_on_named_experiment("scMEDAL-FEC", "ASD", model_kwargs={"n_latent_dims":50})
 
@@ -34,5 +36,6 @@ scmedalfec_asd = train_model_on_named_experiment("scMEDAL-FEC", "ASD", model_kwa
 scmedalfe_aml= train_model_on_named_experiment("scMEDAL-FE", "AML", model_kwargs={"n_latent_dims":50})
 scmedalre_aml = train_model_on_named_experiment("scMEDAL-RE", "AML", model_kwargs={"n_latent_dims":50})
 ae_aml = train_model_on_named_experiment("AE", "AML", model_kwargs={"n_latent_dims":50})
+# This defaults to AEC_ct configuration for AML
 aec_aml = train_model_on_named_experiment("AEC", "AML", model_kwargs={"n_latent_dims":50})
 scmedalfec_aml = train_model_on_named_experiment("scMEDAL-FEC", "AML", model_kwargs={"n_latent_dims":50})

@@ -7,7 +7,7 @@ We conducted experiments on three datasets: **Healthy Heart (HH)**, **Autism Spe
 * 1. [**Datasets**](../README.md#datasets)
   - Preprocessing and 5-fold cross-validation scripts to split the data into train/val/test.
   - Alternatively, we provide the **precomputed data splits** via Figshare. See **[Datasets](../README.md#datasets)**.
-* 2. **Scripts for model training** for our API models (Autoencoder, **scMEDAL** variants, [**Mixed Effects Classifier**](#mec-classifier-scripts)) and [**comparable models**](#comparable-models-scripts): **scVI**, **scANVI**, **Harmony**, **Scanorama**, and **SAUCIE**.
+* 2. **Scripts for model training** for our [**scMEDAL API models**](#scmedal-api-model-scripts) (Autoencoder, scMEDAL variants, [**Mixed Effects Classifier**](#mec-classifier-scripts)) and [**comparable models**](#comparable-models-scripts): **scVI**, **scANVI**, **Harmony**, **Scanorama**, and **SAUCIE**.
 * 3. [**Analysis notebooks**](#analysis-notebooks): Once you have trained your models you need to run the analysis notebooks that retrieve clustering scores (**Figures 2-4 and 8**), Genomaps (**Figures 5-7**), UMAPs (**Figures 2-4 and 8**) and extract the Random Forest classifier outputs reported in **Table 1**. Use these notebooks to reproduce the paper results once latent spaces and reconstruction outputs are available.
 
 We also provide in our Figshare:
@@ -56,11 +56,18 @@ You have two options:
    Train the models yourself and once you have latent space and reconstruction outputs, run the analysis notebooks. 
    
 
-### scMEDAL API Model scripts
-To run all models from our API (AE,AEC,scMEDAL-FE,scMEDAL-RE and scMEDAL-FEC), use [1-run_scMEDAL_alldatasets.py](../scripts/1-run_scMEDAL_alldatasets.py) and make sure your **scMEDAL** environment is activated. See **[scMEDAL Installation](../README.md#Installation)**.
+### scMEDAL API model scripts
+
+To run all models from our API ($AE$, $AEC_{ct}$, scMEDAL-FE, scMEDAL-RE, and scMEDAL-FEC), use [`1-run_scMEDAL_alldatasets.py`](../scripts/1-run_scMEDAL_alldatasets.py) and make sure your **scMEDAL** environment is activated. See **[scMEDAL Installation](../README.md#Installation)**.
+
 
 ```bash
 python 1-run_scMEDAL_alldatasets.py
+```
+
+The $AEC_{batch}$ experiment can be run with:
+```bash
+python 1-run_scMEDAL_alldatasets_AECbatch.py
 ```
 
 ### Comparable Models Scripts
@@ -157,6 +164,9 @@ Use the following notebooks to reproduce the analyses and figures:
 * [3-analysis_aml.ipynb](../scripts/3-analysis_aml.ipynb): (Figure 4,Figure 7, Figure 8, Table 1)
 * [3-analysis_asd.ipynb](../scripts/3-analysis_asd.ipynb): (Figure 3, Figure 6, Figure 8 and  Table 1)
 * [3-analysis_hh.ipynb](../scripts/3-analysis_hh.ipynb): (Figure 2, Figure 5, Figure 8 and Table 1)
+
+Additional analysis notebooks for $AEC_{batch}$ are in [`/scripts/3-analysis_AECbatch`](../scripts/3-analysis_AECbatch). Use these to obtain the $AEC_{batch}$ scores shown in Figure 2c and Supplementary Figures S11–S13.
+
 
 > Download/setup the required model outputs (or train from scratch), update paths where necessary, and run these notebooks to regenerate the paper results.
 If you train models yourself, you may need to update folder names to match your own output directories. See [Outputs and analysis folders](../README.md#outputs-and-analysis-folders)

@@ -111,11 +111,15 @@ def _parse_model_kwargs_for_named_experiment(model_name:str, model_kwargs:Dict[s
         model_kwargs[kwarg] = model_kwargs.get(kwarg, val) 
 
     if experiment_name == "AML":
-        model_kwargs = {**model_kwargs, **AML_MODEL_KWARGS}
+        #model_kwargs = {**model_kwargs, **AML_MODEL_KWARGS}
+        model_kwargs = {**AML_MODEL_KWARGS, **model_kwargs}
     elif experiment_name == "ASD":
-        model_kwargs = {**model_kwargs, **ASD_MODEL_KWARGS}
+        #model_kwargs = {**model_kwargs, **ASD_MODEL_KWARGS}
+        model_kwargs = {**ASD_MODEL_KWARGS, **model_kwargs}
+
     elif experiment_name == "HH":
-        model_kwargs = {**model_kwargs, **HH_MODEL_KWARGS}
+        #model_kwargs = {**model_kwargs, **HH_MODEL_KWARGS}
+        model_kwargs = {**HH_MODEL_KWARGS, **model_kwargs}
     return model_kwargs
 
 def train_model_on_named_experiment(model_name:str, named_experiment:str, model_kwargs:Optional[Dict[str,Any]]=None, train_kwargs:Optional[Dict[str,Any]]=None) -> Model:

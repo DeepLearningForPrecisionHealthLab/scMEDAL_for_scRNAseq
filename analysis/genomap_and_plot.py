@@ -94,7 +94,8 @@ class GenomapPipeline:
         self.run_names_dict = run_names_dict
         self.results_path_dict = results_path_dict
         self.cfg = cfg
-        self.df = self._load_and_merge_paths()
+        self.df = None   # if you have cm multibatch not needed. Before: self._load_and_merge_paths()
+        # self.df = self._load_and_merge_paths()
         print("\n\nInitialized genomap pipeline ..")
         #print("sparse",cfg.issparse)
 
@@ -615,6 +616,7 @@ class GenomapPipeline:
         typ   = typ  or "train" #test and val also possible
         split  = split or 1
         summary: dict = {}
+        inputs_path = None # initialize, only filled when adata_mb is computed
 
 
         # 1. output directory -------------------------------------------------
@@ -625,26 +627,30 @@ class GenomapPipeline:
 
         # calling genomap function
         print("Run genomap pipeline for: ",typ,split,model)
-        # 2. recon paths ------------------------------------------------------
-        paths, prefixes = self._select_recon(model, split, typ)
-        paths, prefixes = list(paths), list(prefixes)
-        extra_paths, extra_pref = self._build_extra(split, typ)
-        if cfg.add_inputs_fe:
-            paths    = extra_paths    + paths
-            prefixes = extra_pref     + prefixes
-        # 3. metadata ---------------------------------------------------------
-        inputs_path   = self._input_path(model, split, typ)
-        var, obs      = self._load_meta(inputs_path)
-        # ensure the column exists *before* we hand `var` to the matrix builder
-        if "gene_names" not in var.columns:        # <- safe if you rerun
-            var = var.copy()                       #   (avoid SettingWithCopy)
-            var["gene_names"] = var.index
-        # 4. batch selection --------------------------------------------------
-        batches_sel = cfg.batches or list(obs["batch"].unique())
-        print("Batches selected for plotting:",batches_sel)
+        
         # 5. multibatch matrix ----------------------------------------------
         cm_name, cm_path, gname = self._make_cm_and_gnames(typ, split, out_dir)
         if not os.path.exists(cm_path):
+            if self.df is None: # loading recon paths (this is not necessary if you laready have cm_multibatch)
+                print("\nLoading recon paths..")
+                self.df = self._load_and_merge_paths() # loading recon paths (this is not necessary if you laready have cm_multibatch)
+            # 2. recon paths ------------------------------------------------------
+            paths, prefixes = self._select_recon(model, split, typ)
+            paths, prefixes = list(paths), list(prefixes)
+            extra_paths, extra_pref = self._build_extra(split, typ)
+            if cfg.add_inputs_fe:
+                paths    = extra_paths    + paths
+                prefixes = extra_pref     + prefixes
+            # 3. metadata ---------------------------------------------------------
+            inputs_path   = self._input_path(model, split, typ)
+            var, obs      = self._load_meta(inputs_path)
+            # ensure the column exists *before* we hand `var` to the matrix builder
+            if "gene_names" not in var.columns:        # <- safe if you rerun
+                var = var.copy()                       #   (avoid SettingWithCopy)
+                var["gene_names"] = var.index
+            # 4. batch selection --------------------------------------------------
+            batches_sel = cfg.batches or list(obs["batch"].unique())
+            print("Batches selected for plotting:",batches_sel)
             print ("\n\nSampling adata  multibatch from original data and recons..") 
             print("Saving to adata multibatch directory:",cm_path)     
             adata_mb = self._build_multibatch(
@@ -654,7 +660,7 @@ class GenomapPipeline:
             adata_mb.var["gene_names"] = adata_mb.var.index 
         else:
             print ("\n\nReading adata multibatch from",cm_path)  
-            print (f"Please verify that the count matrix adata multibatch contains cells from the  selected batches: {batches_sel}")
+            
             X_mb, var_mb, obs_mb = read_adata(cm_path)
             adata_mb= AnnData(X=X_mb, obs=obs_mb, var=var_mb)                       
             adata_mb.var["gene_names"] = adata_mb.var[cfg.gene_index_col].astype(str)#.values
@@ -664,6 +670,12 @@ class GenomapPipeline:
             # print("adata_mb gene_names",adata_mb.var["gene_names"])
             # print("adata_mb gene_names",adata_mb.var["gene_names"])
             #print("adata_mb index",adata_mb.obs.index)
+            
+            # batch selection should come from obs in CM
+            batches_sel = cfg.batches or list(adata_mb.obs["batch"].unique())
+            print("Batches selected for plotting:", batches_sel)
+            print (f"Please verify that the count matrix adata multibatch contains cells from the  selected batches: {batches_sel}")
+
         # choose cells and original batches
         cell_ids, original_batch_list, n_batch_cols2plot = self._choose_cells_and_batches(adata_mb, typ, batches_to_select_from =batches_sel)
         print("Original batch list:",original_batch_list)
@@ -672,9 +684,9 @@ class GenomapPipeline:
         extra = cfg.n_inputs_fe if cfg.add_inputs_fe else 0
         ncells_for_genomap = cfg.n_cells_per_batch * (cfg.n_batches + extra)
 
-        genomap = self._compute_genomap(
-            cm_path, gname, out_dir, gene_names=var.index[:cfg.n_genes]
-        )
+        #genomap = self._compute_genomap(cm_path, gname, out_dir, gene_names=gene_names=var.index[:cfg.n_genes])
+        gene_names = adata_mb.var.index.astype(str)[:cfg.n_genes]
+        genomap = self._compute_genomap(cm_path, gname, out_dir, gene_names=gene_names)
         coords = self._load_gene_coordinates(out_dir, gname)
         # 8. plot panels ------------------------------------------------------
         self._plot_panels(genomap, adata_mb.obs, coords, out_dir, typ, cell_ids, original_batch_list,n_batch_cols2plot)

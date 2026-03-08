@@ -157,7 +157,7 @@ def run_scanorama_pipeline(
         for split, ad in adata_dict_reordered.items():
             latent_list = [
                 f"{model_params.encoder_latent_name}_{split}",
-                f"pca_latent_{ad.obsm['X_scanorama'].shape[1]}_{split}"
+                #f"pca_latent_{ad.obsm['X_scanorama'].shape[1]}_{split}"
             ]
             df_scores = calculate_merge_scores(
                 latent_list=latent_list,

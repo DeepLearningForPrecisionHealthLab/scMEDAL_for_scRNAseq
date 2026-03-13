@@ -12,12 +12,40 @@ from tensorflow.keras import layers
 from collections.abc import Iterable
 
 
-"""
-Author: Aixa Andrade with collaboration of Son Nguyen.
-Code inspired in the original ARMED's convolutional autoencoder code written by Kevin Nguyen for the melanoma experiment.
-Some snippets of code are borrowed as they are from Kevin Nguyen et al 2023 (ARMED paper (2023)).
-This code uses custom Dense layers for building custom scMEDAL vector autoencoders.
 
+"""
+scMEDAL dense autoencoder-classifier models.
+
+This module contains original scMEDAL code together with components adapted and modified from the ARMED project, developed in Dr. Albert Montillo's lab and published in 2023. Adapted components are provided for academic and research use only:
+
+Nguyen KP, Treacher AH, Montillo AA. Adversarially-Regularized Mixed Effects
+Deep Learning (ARMED) Models Improve Interpretability, Performance, and
+Generalization on Clustered (non-iid) Data. IEEE Trans Pattern Anal Mach Intell.
+2023;45(7):8081-8093. doi:10.1109/TPAMI.2023.3234291.
+
+The following scMEDAL components were adapted and modified from ARMED
+autoencoder-classifier implementations:
+- DomainAdversarialAE
+- RandomEffectEncoder
+- RandomEffectDecoder
+- DomainEnhancingAutoencoderClassifier
+
+These components were rewritten for dense/vector-based scRNA-seq models rather
+than convolutional image-based models, and were further modified to support
+scMEDAL-specific architectures and training options.
+
+Other classes in this file were developed for scMEDAL, although some were
+influenced by the overall ARMED design. In particular, TiedDenseTranspose is a
+separate dense tied-weight implementation for scMEDAL and is additionally
+inspired by Laurence Mayrand-Provencher (2019).
+
+Original ARMED code:
+tinyurl.com/ARMEDCode
+
+Original ARMED license:
+https://gitfront.io/r/DeepLearningForPrecisionHealthLab/54f18307815dfb2148fbc2d14368c1268b63825e/ARMED-MixedEffectsDL/blob/LICENSE.md
+
+Adapted portions remain subject to the original ARMED license terms.
 """
 
 

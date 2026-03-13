@@ -1,5 +1,17 @@
 '''
-Core random effects Bayesian layers. Code adapted from Nguyen et al 2023: tinyurl.com/ARMEDCode
+Core random-effects Bayesian layers.
+
+Certain functions in this file were adapted from code associated with the ARMED project described in:
+Nguyen KP, Treacher AH, Montillo AA. Adversarially-Regularized Mixed Effects Deep Learning (ARMED) Models Improve Interpretability, Performance, and Generalization on Clustered (non-iid) Data. IEEE Trans Pattern Anal Mach Intell. 2023;45(7):8081–8093. doi:10.1109/TPAMI.2023.3234291.
+Adapted components are provided for academic and research use only.
+
+Original ARMED code:
+tinyurl.com/ARMEDCode
+
+Original ARMED license:
+https://gitfront.io/r/DeepLearningForPrecisionHealthLab/54f18307815dfb2148fbc2d14368c1268b63825e/ARMED-MixedEffectsDL/blob/LICENSE.md
+
+Any adapted portions remain subject to the original ARMED license terms.
 '''
 import numpy as np
 import tensorflow as tf

@@ -1,6 +1,6 @@
 
 from anndata import AnnData
-import pandas as pd # Please install pandas and matplotlib before you run this example
+import pandas as pd 
 import matplotlib.pyplot as plt
 import matplotlib
 # Set the Matplotlib backend to 'Agg'
@@ -26,13 +26,17 @@ from genomap.genomap import createMeshDistance,createInteractionMatrix
 
     Genomap repository:
     https://github.com/xinglab-ai/genomap
+
     Original source:
     https://github.com/xinglab-ai/genomap/blob/main/genomap/genomap.py
-    License:
+
+    Genomaps license:
     CC BY-NC-ND 2.0
     https://creativecommons.org/licenses/by-nc-nd/2.0/
-    Original license:
+    
+    Original genomaps license link:
     https://github.com/xinglab-ai/genomap/blob/main/LICENSE.txt
+
     Reference: Islam, M.T., Xing, L. Cartography of Genomic Interactions Enables Deep Analysis of Single-Cell Expression Data. Nat Commun 14, 679 (2023). https://doi.org/10.1038/s41467-023-36383-6
 
     Only the function `construct_genomap` was adapted from Genomap.

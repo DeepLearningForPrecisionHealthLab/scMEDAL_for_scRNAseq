@@ -14,6 +14,7 @@ from collections.abc import Iterable
 
 
 """
+Authors: Aixa Andrade, Son Nguyen, Austin Marckx and Albert Montillo"
 scMEDAL dense autoencoder-classifier models.
 
 This module contains original scMEDAL code together with components adapted and modified from the ARMED project, developed in Dr. Albert Montillo's lab and published in 2023. Adapted components are provided for academic and research use only:

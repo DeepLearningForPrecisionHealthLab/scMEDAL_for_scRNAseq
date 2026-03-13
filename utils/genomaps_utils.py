@@ -33,6 +33,7 @@ from genomap.genomap import createMeshDistance,createInteractionMatrix
     https://creativecommons.org/licenses/by-nc-nd/2.0/
     Original license:
     https://github.com/xinglab-ai/genomap/blob/main/LICENSE.txt
+    Reference: Islam, M.T., Xing, L. Cartography of Genomic Interactions Enables Deep Analysis of Single-Cell Expression Data. Nat Commun 14, 679 (2023). https://doi.org/10.1038/s41467-023-36383-6
 
     Only the function `construct_genomap` was adapted from Genomap.
     The rest of the code in this file was developed in this project.

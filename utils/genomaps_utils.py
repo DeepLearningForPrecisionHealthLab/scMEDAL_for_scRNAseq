@@ -27,14 +27,14 @@ from genomap.genomap import createMeshDistance,createInteractionMatrix
     Genomap repository:
     https://github.com/xinglab-ai/genomap
 
-    Original genomap's source:
+    Original genomap source:
     https://github.com/xinglab-ai/genomap/blob/main/genomap/genomap.py
 
     Genomaps license:
     CC BY-NC-ND 2.0
     https://creativecommons.org/licenses/by-nc-nd/2.0/
 
-    Original genomaps' license link:
+    Original genomaps license link:
     https://github.com/xinglab-ai/genomap/blob/main/LICENSE.txt
 
     Genomaps Reference: Islam, M.T., Xing, L. Cartography of Genomic Interactions Enables Deep Analysis of Single-Cell Expression Data. Nat Commun 14, 679 (2023). https://doi.org/10.1038/s41467-023-36383-6

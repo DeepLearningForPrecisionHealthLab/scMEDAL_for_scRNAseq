@@ -17,84 +17,38 @@ from scipy.spatial.distance import pdist, squareform
 from utils.utils import read_adata, min_max_scaling,save_adata,calculate_zscores
 # I run it with Aixa_genomap
 from genomap.genomapOPT import create_space_distributions, gromov_wasserstein_adjusted_norm
-from genomap.genomap import createMeshDistance
-
-"""Adapted genomap functions from https://github.com/xinglab-ai/genomap/blob/main/genomap/genomap.py and created utils for plotting"""
-
-def createInteractionMatrix(data, metric='correlation'):
-    """
-    Function from genomap github: https://github.com/xinglab-ai/genomap/blob/main/genomap/genomap.py
-    I added here because sometimes it throws nan values
-    Returns the interaction matrix among the genes
-
-    Parameters
-    ----------
-    data : ndarray, shape (cellNum, geneNum)
-         gene expression data in cell X gene format. Each row corresponds
-         to one cell, whereas each column represents one gene
-    metric : 'string'
-         Metric for computing the genetic interaction
-
-    Returns
-    -------
-    interactMat : ndarray, shape (geneNum, geneNum)
-           pairwise interaction matrix among genes
-    """
-
-    interactMat=mpd.pairwise_distances(data.T,metric=metric)
-    return interactMat
+from genomap.genomap import createMeshDistance,createInteractionMatrix
 
 
+"""
+    This file includes one function adapted from Genomap:
+    `construct_genomap`
 
+    Genomap repository:
+    https://github.com/xinglab-ai/genomap
+    Original source:
+    https://github.com/xinglab-ai/genomap/blob/main/genomap/genomap.py
+    License:
+    CC BY-NC-ND 2.0
+    https://creativecommons.org/licenses/by-nc-nd/2.0/
+    Original license:
+    https://github.com/xinglab-ai/genomap/blob/main/LICENSE.txt
 
-def create_gene_coordinates_mapping(projMat, gene_names, num_genes=2916, rowNum=54, colNum=54):
-    """
-    Applies a projection matrix to a diagnostic array of gene indices, reshapes the
-    result into a 54×54 grid, and maps each gene to an (x,y) coordinate. Note that
-    if 'projMat' contains fractional assignments (e.g., from Gromov-Wasserstein),
-    rounding to int can cause collisions and potentially overwrite or miss certain
-    gene indices. Any missing genes are reported in the console.
-    """
-    # Create and transform the diagnostic matrix
-    diagnostic_matrix = np.arange(num_genes).reshape(1, -1)
-    transformed_indices = np.matmul(diagnostic_matrix, projMat).flatten()
-    px = np.round(transformed_indices, 2)
-    
-    # Reshape into a rowNum, colNum matrix
-    # Order ='F' returns transposed indexes
-    # genomaps_diagnostic = np.reshape(px, (rowNum, colNum), order='F')
-    # Reshape into a rowNum, colNum matrix
-    genomaps_diagnostic = np.reshape(px, (rowNum, colNum), order='C')  # Default is 'C' order (Not transposed)
-    
-    # Map genes to coordinates
-    gene_to_coordinates = {}
-    count = 0
-    for x in range(rowNum):
-        for y in range(colNum):
-            gene_index = int(genomaps_diagnostic[x, y])
-            if 0 <= gene_index < len(gene_names):
-                gene_name = gene_names[gene_index]
-                gene_to_coordinates[gene_name] = (x, y)
-                count += 1
-            else:
-                print(f"Index {gene_index} not assigned to a gene name")
+    Only the function `construct_genomap` was adapted from Genomap.
+    The rest of the code in this file was developed in this project.
 
-    expected_indices = set(range(len(gene_names)))
-    found_indices = set(int(genomaps_diagnostic[i, j]) for i in range(rowNum) for j in range(colNum) if 0 <= int(genomaps_diagnostic[i, j]) < len(gene_names))
-    missing_indices = expected_indices - found_indices
-    print("Missing indices:", missing_indices)
-    
-    return gene_to_coordinates
+    Changes made to `construct_genomap`:
+    - added NaN handling for the interaction matrix
+    - modified the returned outputs
 
-# Example usage:
-# projMat = np.random.rand(2916, 2916)  # Example initialization; replace with actual matrix
-# gene_names = ['Gene1', 'Gene2', ..., 'Gene2916']  # Define a list of gene names
-# mapping = create_gene_name_coordinates_mapping(projMat, gene_names)
+    Original source and license are acknowledged here.
+"""
+
 
 def construct_genomap(data,rowNum,colNum,epsilon=0,num_iter=1000):
 
     """
-    Adapted function from genomap github: https://github.com/xinglab-ai/genomap/blob/main/genomap/genomap.py
+    Adapted function from genomap repository: https://github.com/xinglab-ai/genomap/blob/main/genomap/genomap.py
 
     Constructs 2D "genomaps" by coupling a gene-gene interaction matrix with
     a grid distance matrix using Gromov-Wasserstein. Note that GW transport
@@ -167,6 +121,50 @@ def construct_genomap(data,rowNum,colNum,epsilon=0,num_iter=1000):
     geno_dict = {"genomaps":genomaps,"T":T,"totalGridPoint":totalGridPoint} 
     return geno_dict 
     #return genomaps
+
+def create_gene_coordinates_mapping(projMat, gene_names, num_genes=2916, rowNum=54, colNum=54):
+    """
+    Applies a projection matrix to a diagnostic array of gene indices, reshapes the
+    result into a 54×54 grid, and maps each gene to an (x,y) coordinate. Note that
+    if 'projMat' contains fractional assignments (e.g., from Gromov-Wasserstein),
+    rounding to int can cause collisions and potentially overwrite or miss certain
+    gene indices. Any missing genes are reported in the console.
+    """
+    # Create and transform the diagnostic matrix
+    diagnostic_matrix = np.arange(num_genes).reshape(1, -1)
+    transformed_indices = np.matmul(diagnostic_matrix, projMat).flatten()
+    px = np.round(transformed_indices, 2)
+    
+    # Reshape into a rowNum, colNum matrix
+    # Order ='F' returns transposed indexes
+    # genomaps_diagnostic = np.reshape(px, (rowNum, colNum), order='F')
+    # Reshape into a rowNum, colNum matrix
+    genomaps_diagnostic = np.reshape(px, (rowNum, colNum), order='C')  # Default is 'C' order (Not transposed)
+    
+    # Map genes to coordinates
+    gene_to_coordinates = {}
+    count = 0
+    for x in range(rowNum):
+        for y in range(colNum):
+            gene_index = int(genomaps_diagnostic[x, y])
+            if 0 <= gene_index < len(gene_names):
+                gene_name = gene_names[gene_index]
+                gene_to_coordinates[gene_name] = (x, y)
+                count += 1
+            else:
+                print(f"Index {gene_index} not assigned to a gene name")
+
+    expected_indices = set(range(len(gene_names)))
+    found_indices = set(int(genomaps_diagnostic[i, j]) for i in range(rowNum) for j in range(colNum) if 0 <= int(genomaps_diagnostic[i, j]) < len(gene_names))
+    missing_indices = expected_indices - found_indices
+    print("Missing indices:", missing_indices)
+
+    # Example usage:
+    # projMat = np.random.rand(2916, 2916)  # Example initialization; replace with actual matrix
+    # gene_names = ['Gene1', 'Gene2', ..., 'Gene2916']  # Define a list of gene names
+    # mapping = create_gene_name_coordinates_mapping(projMat, gene_names)
+    
+    return gene_to_coordinates
 
 
 def process_data_genomap(inputs_path, recon_path=None, ncells=50000, ngenes=2916, return_input_zscores=False,issparse=True):

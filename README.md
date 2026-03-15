@@ -45,14 +45,9 @@ If your project uses different locations, update the configuration accordingly. 
 Estimated installation time: ~10 minutes.
 
 ```bash
-# 1) Clone
-# Option A: GitHub (will be public when the manuscript is accepted)
+# 1) Clone from GitHub
 git clone https://github.com/DeepLearningForPrecisionHealthLab/scMEDAL_for_scRNAseq.git
 
-# Option B: GitFront (if the GitHub repo isn't public yet)
-# Click the "Clone" button on the GitFront page and copy the HTTPS URL 
-git clone https://gitfront.io/r/amontillo/UPEnpWvhLdA1/scMEDAL_for_scRNAseq.git
-cd scMEDAL_for_scRNAseq
 
 # 2) Create Conda environment
 conda create -n scMEDAL python=3.8.20 -y

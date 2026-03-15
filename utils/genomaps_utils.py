@@ -46,7 +46,7 @@ from genomap.genomap import createMeshDistance,createInteractionMatrix
     - added NaN handling for the interaction matrix
     - modified the returned outputs
 
-    Original source and license are acknowledged here.
+    Original source and license are acknowledged here. Genomap functions remain subject to their original  license terms.
 """
 
 

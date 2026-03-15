@@ -31,22 +31,21 @@ from genomap.genomap import createMeshDistance,createInteractionMatrix
     https://github.com/xinglab-ai/genomap/blob/main/genomap/genomap.py
 
     Genomaps license:
-    CC BY-NC-ND 2.0
-    https://creativecommons.org/licenses/by-nc-nd/2.0/
+    Creative Commons Attribution-NonCommercial-NoDerivs 2.0
 
     Original genomaps license link:
     https://github.com/xinglab-ai/genomap/blob/main/LICENSE.txt
 
     Genomaps Reference: Islam, M.T., Xing, L. Cartography of Genomic Interactions Enables Deep Analysis of Single-Cell Expression Data. Nat Commun 14, 679 (2023). https://doi.org/10.1038/s41467-023-36383-6
 
-    Only the function `construct_genomap` was adapted from Genomap.
+    Only the function `construct_genomap` was minimally adapted from Genomap and included here for research and academic purposes with permission from Dr. Md Tauhidul Islam.
     The rest of the code in this file was developed in this project.
 
     Changes made to `construct_genomap`:
     - added NaN handling for the interaction matrix
     - modified the returned outputs
 
-    Original source and license are acknowledged here. Genomap functions remain subject to their original  license terms.
+    Original genomaps source and license are acknowledged here. Genomap functions remain subject to their original  license terms.
 """
 
 

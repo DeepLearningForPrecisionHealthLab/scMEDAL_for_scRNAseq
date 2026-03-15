@@ -178,19 +178,19 @@ You have two options:
 
 * **Original source:** [Figshare  Yu et al., 2023](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)
 * **Save to** `data/HealthyHeart_data/raw/`
-* **Preprocessed data** (scMEDAL's Figshare) `data/HealthyHeart_data/log_transformed_3000hvggenes/` *(preprocessed + splits)*
+* **Preprocessed (scMEDAL's Figshare)** `data/HealthyHeart_data/log_transformed_3000hvggenes/` *(preprocessed + splits)*
 
 #### Autism Spectrum Disorder (ASD)
 
 * **Original source:** [Autism Cell Atlas (Speir 2021; Velmeshev 2019)](https://autism.cells.ucsc.edu)
 * **Save to** `data/ASD_data/norm/`
-* **Preprocessed (scMEDAL's Figshare) ** `data/ASD_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
+* **Preprocessed (scMEDAL's Figshare)** `data/ASD_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
 
 #### Acute Myeloid Leukemia (AML)
 
 * **Original source:** [GEO: GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE116256)
 * **Save to** `data/AML_data/zip_files/`
-* **Preprocessed (scMEDAL's Figshare) ** `data/AML_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
+* **Preprocessed (scMEDAL's Figshare)** `data/AML_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
 
 ---
 

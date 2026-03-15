@@ -19,7 +19,7 @@ We recommend starting with the **Acute Myeloid Leukemia (AML)** demo, the smalle
 
 **Before running**, prepare your data as described in the [Datasets](#datasets) section.
 
-> **Default paths** are defined in [**utils/defaults.py**](./utils/defaults.py): inputs load from `./data/` and outputs save to `./outputs/`.
+> **Default paths** are defined in [**utils/defaults.py**](./utils/defaults.py): inputs load from `ROOT_PATH/data/` and outputs save to `ROOT_PATH/outputs/`.
 
 To set up your project path, edit `utils/defaults.py`:
 

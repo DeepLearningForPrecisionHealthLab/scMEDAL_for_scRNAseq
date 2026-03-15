@@ -4,7 +4,14 @@ DEFAULTS_ABS_PATH = os.path.abspath(__file__)
 
 # REPOSITORY PATH
 # update your ROOT_PATH
-ROOT_PATH = "/archive/bioinformatics/DLLab/AixaAndrade/src/gitfront/batchclassifiertest/scMEDAL_for_scRNAseq"
+ROOT_PATH = "/your/project/path"
+
+
+if ROOT_PATH == "/your/project/path" or not os.path.exists(ROOT_PATH):
+    raise ValueError(
+        "Invalid ROOT_PATH. Please update ROOT_PATH in /utils/defaults.py"
+    )
+
 DATA_DIR = os.path.join(ROOT_PATH,"data") 
 OUTPUTS_DIR =  os.path.join(ROOT_PATH,"outputs")
 # Remove comment below only if you want to recreate our AEC batch plots using /outputs_batchclassifier from the Figshare.

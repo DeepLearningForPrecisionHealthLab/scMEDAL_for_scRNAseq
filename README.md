@@ -164,10 +164,10 @@ You have two options:
 * Create the 5-fold splits with the notebook:
   `preprocessing/<dataset_name>/5fold_cross_val/1-create_splits.ipynb`
 
-**B) Use preprocessed bundles (Figshare)**
+**B) Use preprocessed bundles (scMEDAL's Figshare)**
 
-* Download the preprocessed data and ready-made splits from our Figshare.
-  **We will share the link upon publication. Reviewers already have access through the Nature Communications portal.**
+* Download the preprocessed data and ready-made splits from scMEDAL's Figshare.
+
 * Save into the per-dataset *log_transformed_* folders listed below.
 
 ---
@@ -178,19 +178,19 @@ You have two options:
 
 * **Original source:** [Figshare  Yu et al., 2023](https://figshare.com/articles/dataset/Batch_Alignment_of_single-cell_transcriptomics_data_using_Deep_Metric_Learning/20499630/2)
 * **Save to** `data/HealthyHeart_data/raw/`
-* **Preprocessed data** (Figshare; link after manuscript publication. Reviewers already have access through the Nature Communications portal.) `data/HealthyHeart_data/log_transformed_3000hvggenes/` *(preprocessed + splits)*
+* **Preprocessed data** (scMEDAL's Figshare) `data/HealthyHeart_data/log_transformed_3000hvggenes/` *(preprocessed + splits)*
 
 #### Autism Spectrum Disorder (ASD)
 
 * **Original source:** [Autism Cell Atlas (Speir 2021; Velmeshev 2019)](https://autism.cells.ucsc.edu)
 * **Save to** `data/ASD_data/norm/`
-* **Preprocessed (Figshare; link after manuscript publication. Reviewers already have access through the Nature Communications portal.) ** `data/ASD_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
+* **Preprocessed (scMEDAL's Figshare) ** `data/ASD_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
 
 #### Acute Myeloid Leukemia (AML)
 
 * **Original source:** [GEO: GSE116256](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE116256)
 * **Save to** `data/AML_data/zip_files/`
-* **Preprocessed (Figshare; link after manuscript publication. Reviewers already have access through the Nature Communications portal.) ** `data/AML_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
+* **Preprocessed (scMEDAL's Figshare) ** `data/AML_data/log_transformed_2916hvggenes/` *(preprocessed + splits)*
 
 ---
 
@@ -201,15 +201,15 @@ data/
   AML_data/
     adata_merged/                  # Merged (not yet preprocessed)
     zip_files/                     # Downloaded: Raw files from GEO
-    log_transformed_2916hvggenes/  # Preprocessed + splits (Figshare link after manuscript publication. Reviewers already have access through the Nature Communications portal.)
+    log_transformed_2916hvggenes/  # Preprocessed + splits (scMEDAL's Figshare)
 
   ASD_data/
     norm/                          # log2-normalized data (Velmeshev et al., 2019)
-    log_transformed_2916hvggenes/  # Preprocessed + splits (Figshare link after manuscript publication. Reviewers already have access through the Nature Communications portal.)
+    log_transformed_2916hvggenes/  # Preprocessed + splits (scMEDAL's Figshare)
 
   HealthyHeart_data/
     raw/                           # Downloaded data (Yu et al., 2023)
-    log_transformed_3000hvggenes/  # Preprocessed + splits (Figshare link after manuscript publication. Reviewers already have access through the Nature Communications portal.)
+    log_transformed_3000hvggenes/  # Preprocessed + splits (scMEDAL's Figshare)
 ```
 
 > The **`outputs/`** folder is created automatically during training.
@@ -364,7 +364,7 @@ For a complete description of outputs, see **[Experiment Outputs](./docs/Experim
 
 ## References
 
-
+- scMEDAL's Figshare: Andrade, Aixa X.; Nguyen, Son; Montillo, Albert (2026). scMEDAL: Interpretable Single-Cell Transcriptomics Analysis with Batch Effect Visualization via Deep Mixed-Effects Autoencoder. figshare. Dataset. https://doi.org/10.6084/m9.figshare.28414367
 - Litvinukova, M. et al. Cells of the adult human heart. Nature 588, 466-472 (2020).
 - van Galen, P. et al. *Single-Cell RNA-Seq Reveals AML Hierarchies Relevant to Disease Progression and Immunity.* Cell 176, 1265?1281.e24 (2019).
 - Velmeshev, D. et al. *Single-cell genomics identifies cell type-specific molecular changes in autism.* Science 364, 685?689 (2019).

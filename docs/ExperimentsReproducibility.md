@@ -6,11 +6,11 @@ We conducted experiments on three datasets: **Healthy Heart (HH)**, **Autism Spe
 
 * 1. [**Datasets**](../README.md#datasets)
   - Preprocessing and 5-fold cross-validation scripts to split the data into train/val/test.
-  - Alternatively, we provide the **precomputed data splits** via Figshare. See **[Datasets](../README.md#datasets)**.
+  - Alternatively, we provide the **precomputed data splits** via scMEDAL's Figshare. See **[Datasets](../README.md#datasets)**.
 * 2. **Scripts for model training** for our [**scMEDAL API models**](#scmedal-api-model-scripts) (Autoencoder, scMEDAL variants, [**Mixed Effects Classifier**](#mec-classifier-scripts)) and [**comparable models**](#comparable-models-scripts): **scVI**, **scANVI**, **Harmony**, **Scanorama**, and **SAUCIE**.
 * 3. [**Analysis notebooks**](#analysis-notebooks): Once you have trained your models you need to run the analysis notebooks that retrieve clustering scores (**Figures 2-4 and 8**), Genomaps (**Figures 5-7**), UMAPs (**Figures 2-4 and 8**) and extract the Random Forest classifier outputs reported in **Table 1**. Use these notebooks to reproduce the paper results once latent spaces and reconstruction outputs are available.
 
-We also provide in our Figshare:
+We also provide in scMEDAL's Figshare:
 
 * **Latent space outputs**  and a **sample count matrix**  with 300-cell projections so you can reproduce the **Genomaps** exactly as in the paper.
 
@@ -180,7 +180,7 @@ If you train models yourself, you may need to update folder names to match your 
 ---
 
 ## References
-
+- scMEDAL's Figshare: Andrade, Aixa X.; Nguyen, Son; Montillo, Albert (2026). scMEDAL: Interpretable Single-Cell Transcriptomics Analysis with Batch Effect Visualization via Deep Mixed-Effects Autoencoder. figshare. Dataset. https://doi.org/10.6084/m9.figshare.28414367
 - Litvinukova, M. et al. Cells of the adult human heart. Nature 588, 466-472 (2020).
 - van Galen, P. et al. *Single-Cell RNA-Seq Reveals AML Hierarchies Relevant to Disease Progression and Immunity.* Cell 176, 1265-1281.e24 (2019).
 - Velmeshev, D. et al. *Single-cell genomics identifies cell type-specific molecular changes in autism.* Science 364, 685-689 (2019).

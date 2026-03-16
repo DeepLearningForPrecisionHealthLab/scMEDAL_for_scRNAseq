@@ -13,6 +13,10 @@ import os
 import glob
 import re
 
+
+
+
+
 from scipy.spatial.distance import pdist, squareform
 from utils.utils import read_adata, min_max_scaling,save_adata,calculate_zscores
 # I run it with Aixa_genomap
@@ -38,7 +42,7 @@ from genomap.genomap import createMeshDistance,createInteractionMatrix
 
     Genomaps Reference: Islam, M.T., Xing, L. Cartography of Genomic Interactions Enables Deep Analysis of Single-Cell Expression Data. Nat Commun 14, 679 (2023). https://doi.org/10.1038/s41467-023-36383-6
 
-    Only the function `construct_genomap` was minimally adapted from Genomap and included here for research and academic purposes with permission from Dr. Md Tauhidul Islam.
+    Only the function `construct_genomap` was adapted from Genomap and included here for research and academic purposes only with permission from Dr. Md Tauhidul Islam.
     The rest of the code in this file was developed in this project.
 
     Changes made to `construct_genomap`:
@@ -473,68 +477,7 @@ def save_genomaps(genoMaps, output_folder, model, Type, Split, data_type, recon_
 
 
 
-import numpy as np
 
-def get_genomapfromT(t_files_path, inputs_path, recon_path,ncells=50000, ngenes=2916,colNum = 54 ,rowNum = 54,gene_names=None):
-    """
-    Generates genomaps from given input data and projection matrix.
-
-    Parameters:
-    - t_files_path (str): Path to the T matrix file.
-    - inputs_path (str): Path to the input data.
-    - recon_path (str): Path to the reconstructed data.
-    - ncells (int, optional): Number of cells in the data. Default is 50000.
-    - ngenes (int, optional): Number of genes in the data. Default is 2916.
-    - colNum (int, optional): Number of columns in the genomap. Default is 54.
-    - rowNum (int, optional): Number of rows in the genomap. Default is 54.
-    - gene_names (list, optional): list of gene names for coordinates mapping
-
-    Returns:
-    dict: A dictionary containing:
-        - 'genomaps': A 4D numpy array representing the genomaps.
-        - 'genes_coor_map': A dictionary mapping gene names to their coordinates in the genomap.
-    """
-    # Load the T matrix
-    T = np.load(t_files_path)
-    
-    # Process data and get z scores
-    out_dict = process_data_genomap(inputs_path, recon_path, ncells, ngenes, return_input_zscores=False)
-    
-    # Get genomap without perturbation
-    data = out_dict['recon']["z_scores"].copy()
-    sizeData = data.shape
-    print("sizeData", sizeData)
-    
-    # Define parameters for genomap construction
-    numCell = sizeData[0]
-    numGene = sizeData[1]
-    totalGridPoint = ngenes
-    
-    # Project data onto the coupling matrix
-    projMat = T * totalGridPoint
-    projM = np.matmul(data, projMat)
-    
-    # Initialize genomaps
-    genomaps = np.zeros((numCell, rowNum, colNum, 1))
-    px = np.asmatrix(projM)
-    
-    # Formation of genomaps from the projected data
-    for i in range(numCell):
-        dx = px[i, :]
-        fullVec = np.zeros((1, rowNum * colNum))
-        fullVec[:dx.shape[0], :dx.shape[1]] = dx
-        #ex = np.reshape(fullVec, (rowNum, colNum), order='F').copy()
-        ex = np.reshape(fullVec, (rowNum, colNum), order='C').copy()
-        genomaps[i, :, :, 0] = ex
-
-    # Map genes to genomap
-    if gene_names is not None:
-        gene_to_coordinates = create_gene_coordinates_mapping(projMat, gene_names, ngenes, rowNum, colNum)
-        return {"genomaps": genomaps, "genes_coor_map": gene_to_coordinates}
-    else:
-        return {"genomaps": genomaps}
-
-import matplotlib.pyplot as plt
 
 def plot_genomap_with_genes(cell_geno, top10hvg_genes, gene_to_coordinates):
     """

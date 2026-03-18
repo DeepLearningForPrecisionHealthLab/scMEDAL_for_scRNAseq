@@ -372,6 +372,8 @@ For a complete description of outputs, see **[Experiment Outputs](./docs/Experim
 - Hie, B. et al. Efficient integration of heterogeneous single-cell transcriptomes using Scanorama. Nat Biotechnol 37, 685-691 (2019).
 - Korsunsky, I. et al. Fast, sensitive and accurate integration of single-cell data with Harmony. Nat Methods 16, 1289-1296 (2019).
 - Gayoso, A. et al. A Python library for probabilistic analysis of single-cell omics data. Nat Biotechnol 40, 163?166 (2022). https://doi.org/10.1038/s41587-021-01206-w
+- Islam, M. T. & Xing, L. Cartography of Genomic Interactions Enables Deep Analysis of Single-
+Cell Expression Data. Nat. Commun. 14, 679 (2023).
 
 
 ---

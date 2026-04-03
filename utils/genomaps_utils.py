@@ -42,14 +42,15 @@ from genomap.genomap import createMeshDistance,createInteractionMatrix
 
     Genomaps Reference: Islam, M.T., Xing, L. Cartography of Genomic Interactions Enables Deep Analysis of Single-Cell Expression Data. Nat Commun 14, 679 (2023). https://doi.org/10.1038/s41467-023-36383-6
 
-    Only the function `construct_genomap` was adapted from Genomap and included here for research and academic purposes only with permission from Dr. Md Tauhidul Islam.
+    Only the function `construct_genomap` was adapted from Genomap and included here for research and academic purposes only (non commercial use) with permission from Dr. Md Tauhidul Islam and Dr. Lei Xing.
     The rest of the code in this file was developed in this project.
 
     Changes made to `construct_genomap`:
     - added NaN handling for the interaction matrix
+    - changed the order of the pixels for “C"
     - modified the returned outputs
 
-    Original genomaps source and license are acknowledged here. Genomap functions remain subject to their original  license terms.
+    Original genomaps source and license are acknowledged here. Genomap functions remain subject to their original license terms.
 """
 
 
